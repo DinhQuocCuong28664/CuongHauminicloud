@@ -1,17 +1,17 @@
 NAME                                  CPU %     MEM USAGE / LIMIT
-api-gateway-proxy-server              0.00%     3.605MiB / 3.742GiB
-web-frontend-exporter                 0.00%     5.633MiB / 3.742GiB
-web-frontend-server2                  0.00%     3.391MiB / 3.742GiB
-monitoring-grafana-dashboard-server   1.03%     531.2MiB / 3.742GiB
-application-backend-server            0.01%     77.97MiB / 3.742GiB
-web-frontend-server1                  0.00%     3.445MiB / 3.742GiB
-relational-database-server            0.01%     102MiB / 3.742GiB
-monitoring-prometheus-server          0.32%     42.98MiB / 3.742GiB
-object-storage-server                 0.03%     81.24MiB / 3.742GiB
-authentication-identity-server        0.83%     570.3MiB / 3.742GiB
-monitoring-node-exporter-server       0.00%     7.699MiB / 3.742GiB
-internal-dns-server                   0.00%     25.79MiB / 3.742GiB
+authentication-identity-server        0.24%     530.2MiB / 3.742GiB
+application-backend-server            0.01%     70.66MiB / 3.742GiB
+api-gateway-proxy-server              0.00%     5.254MiB / 3.742GiB
+web-frontend-exporter                 0.00%     16.59MiB / 3.742GiB
+web-frontend-server2                  0.00%     8.625MiB / 3.742GiB
+monitoring-grafana-dashboard-server   1.86%     460.7MiB / 3.742GiB
+web-frontend-server1                  0.00%     3.434MiB / 3.742GiB
+relational-database-server            0.01%     124.8MiB / 3.742GiB
+monitoring-prometheus-server          0.44%     108.9MiB / 3.742GiB
+object-storage-server                 0.00%     131.9MiB / 3.742GiB
+monitoring-node-exporter-server       0.00%     22.5MiB / 3.742GiB
+internal-dns-server                   0.00%     38.35MiB / 3.742GiB
 
                total        used        free      shared  buff/cache   available
-Mem:           3.7Gi       1.8Gi       200Mi       3.7Mi       2.0Gi       2.0Gi
-Swap:          2.0Gi        80Ki       2.0Gi
+Mem:           3.7Gi       1.7Gi       355Mi       3.8Mi       2.0Gi       2.1Gi
+Swap:          2.0Gi          0B       2.0Gi

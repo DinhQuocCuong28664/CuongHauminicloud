@@ -1,16 +1,16 @@
-$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@54.255.211.211
+$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@13.212.241.134
 ubuntu@minicloud-ec2
 PRETTY_NAME="Ubuntu 24.04.5 LTS"
 7.0.0-1014-aws
 2
                total        used        free      shared  buff/cache   available
-Mem:           3.7Gi       1.8Gi       200Mi       3.7Mi       2.0Gi       2.0Gi
+Mem:           3.7Gi       1.7Gi       347Mi       3.8Mi       2.0Gi       2.0Gi
 
 $ docker compose ps
 NAME                                  IMAGE                                      STATUS
-api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:1.0     Up About a minute
+api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:1.0     Up 2 minutes
 application-backend-server            dinhquoccuong286/myminicloud-app:1.0       Up About a minute (healthy)
-authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up 2 minutes (healthy)
+authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up About a minute (healthy)
 internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 2 minutes
 monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 2 minutes
 monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 2 minutes
