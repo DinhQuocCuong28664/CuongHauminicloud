@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Phong cảnh đồi thông và hồ ở Đà Lạt">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd6a5"/>
+      <stop offset="1" stop-color="#fdf6ec"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb7d9"/>
+      <stop offset="1" stop-color="#3d7ea6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#sky)"/>
+  <circle cx="640" cy="90" r="42" fill="#ffb347" opacity="0.9"/>
+  <!-- Đồi xa -->
+  <path d="M0 210 Q120 120 260 190 T520 180 T800 170 V360 H0 Z" fill="#9cc5a1"/>
+  <!-- Đồi gần -->
+  <path d="M0 250 Q160 180 330 240 T800 230 V360 H0 Z" fill="#5b8c5a"/>
+  <!-- Hồ -->
+  <ellipse cx="420" cy="305" rx="300" ry="38" fill="url(#lake)"/>
+  <!-- Thông -->
+  <g fill="#2d5a3d">
+    <polygon points="90,250 110,180 130,250"/><rect x="106" y="250" width="8" height="18" fill="#5a3e2b"/>
+    <polygon points="140,245 165,160 190,245"/><rect x="161" y="245" width="8" height="20" fill="#5a3e2b"/>
+    <polygon points="610,240 632,170 654,240"/><rect x="628" y="240" width="8" height="18" fill="#5a3e2b"/>
+    <polygon points="660,236 688,150 716,236"/><rect x="684" y="236" width="8" height="20" fill="#5a3e2b"/>
+    <polygon points="720,244 740,185 760,244"/><rect x="736" y="244" width="8" height="16" fill="#5a3e2b"/>
+  </g>
+  <text x="40" y="60" font-family="Segoe UI, Arial" font-size="30" font-weight="700" fill="#5a3e2b">Đà Lạt – 3 ngày</text>
+  <text x="40" y="92" font-family="Segoe UI, Arial" font-size="16" fill="#5a3e2b">Hồ, đồi thông và cà phê buổi sáng</text>
+</svg>

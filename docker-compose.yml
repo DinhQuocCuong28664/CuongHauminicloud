@@ -1,0 +1,261 @@
+# MyMiniCloud — nhóm Đinh Quốc Cường (523H0008) & Nguyễn Cao Hậu (523H0025)
+# 9 loại server + 3 container phụ trợ (web2 cho cân bằng tải, node-exporter, nginx-exporter)
+# Biến ${...} lấy từ file .env (xem .env.example)
+name: cuonghauminicloud
+
+networks:
+  cloud-net:
+    name: cloud-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
+
+volumes:
+  db-data:
+  keycloak-data:
+  prometheus-data:
+  grafana-data:
+
+services:
+  # ---------------------------------------------------------------- 1. Web
+  web-frontend-server1:
+    build: ./web-frontend-server
+    image: ${DOCKERHUB_USER}/myminicloud-web:${IMAGE_TAG}
+    container_name: web-frontend-server1
+    environment:
+      SERVER_NAME: web1
+    ports: ["${WEB1_PORT}:80"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.10
+        aliases: [web, web-frontend-server]
+    restart: unless-stopped
+
+  web-frontend-server2:
+    # Cùng image với web1, chỉ khác SERVER_NAME
+    build: ./web-frontend-server
+    image: ${DOCKERHUB_USER}/myminicloud-web:${IMAGE_TAG}
+    container_name: web-frontend-server2
+    environment:
+      SERVER_NAME: web2
+    ports: ["${WEB2_PORT}:80"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.11
+        aliases: [web2]
+    depends_on: [web-frontend-server1]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 2. Application
+  application-backend-server:
+    build: ./application-backend-server
+    image: ${DOCKERHUB_USER}/myminicloud-app:${IMAGE_TAG}
+    container_name: application-backend-server
+    environment:
+      DB_HOST: relational-database-server
+      DB_USER: ${DB_APP_USER}
+      DB_PASSWORD: ${DB_APP_PASSWORD}
+      KC_INTERNAL_URL: http://authentication-identity-server:8080/auth
+      KC_REALM: ${KC_REALM}
+      OIDC_AUDIENCE: ${OIDC_CLIENT_ID}
+      # Issuer hợp lệ: token xin qua proxy (cổng PROXY_PORT) hoặc trực tiếp qua cổng AUTH_PORT
+      OIDC_ISSUERS: http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM}
+    ports: ["${APP_PORT}:8081"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.20
+        aliases: [app-server]
+    depends_on:
+      relational-database-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 3. Database
+  relational-database-server:
+    image: mariadb:11.4.13
+    container_name: relational-database-server
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: minicloud
+      DB_APP_USER: ${DB_APP_USER}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./relational-database-server/init:/docker-entrypoint-initdb.d:ro
+    ports: ["${DB_PORT}:3306"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.30
+        aliases: [db]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 4. Authentication
+  authentication-identity-server:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: authentication-identity-server
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_KC_HEAP: "-Xms256m -Xmx512m"
+      # Dùng trong file realm import (cú pháp ${...})
+      KC_REALM: ${KC_REALM}
+      SV_PASSWORD: ${SV_PASSWORD}
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./authentication-identity-server/realm-523H0008-523H0025.json:/opt/keycloak/data/import/realm-523H0008-523H0025.json:ro
+    ports: ["${AUTH_PORT}:8080"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.40
+        aliases: [keycloak]
+    healthcheck:
+      # Image không có curl: gọi /health/ready trên cổng quản trị 9000 bằng /dev/tcp của bash
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 5. Object storage
+  object-storage-server:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    container_name: object-storage-server
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./object-storage-server/data:/data
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.50
+        aliases: [minio]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 6. DNS
+  internal-dns-server:
+    image: internetsystemsconsortium/bind9:9.18
+    container_name: internal-dns-server
+    volumes:
+      - ./internal-dns-server/named.conf:/etc/bind/named.conf:ro
+      - ./internal-dns-server/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./internal-dns-server/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./internal-dns-server/db.cloud.local:/etc/bind/db.cloud.local:ro
+    ports: ["${DNS_PORT}:53/udp"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.53
+        aliases: [dns-server]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 7. Monitoring
+  monitoring-prometheus-server:
+    image: prom/prometheus:v3.15.0
+    container_name: monitoring-prometheus-server
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./monitoring-prometheus-server/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["${PROM_PORT}:9090"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.60
+        aliases: [prometheus]
+    restart: unless-stopped
+
+  monitoring-node-exporter-server:
+    image: prom/node-exporter:v1.12.1
+    container_name: monitoring-node-exporter-server
+    # Đọc /proc, /sys của máy chủ (trên EC2 là VM Ubuntu) thay vì của riêng container
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      # Không dùng rslave: Docker Desktop báo "/ is not a shared or slave mount"
+      - /:/host:ro
+    ports: ["${NODE_EXPORTER_PORT}:9100"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.61
+        aliases: [node-exporter]
+    restart: unless-stopped
+
+  web-frontend-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.3
+    container_name: web-frontend-exporter
+    command: ["--nginx.scrape-uri=http://web-frontend-server1/nginx_status"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.62
+    depends_on: [web-frontend-server1]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 8. Visualization
+  monitoring-grafana-dashboard-server:
+    image: grafana/grafana:13.2.4
+    container_name: monitoring-grafana-dashboard-server
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring-grafana-dashboard-server/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring-grafana-dashboard-server/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports: ["${GRAFANA_PORT}:3000"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.70
+        aliases: [grafana]
+    depends_on: [monitoring-prometheus-server]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 9. Reverse proxy / LB
+  api-gateway-proxy-server:
+    build: ./api-gateway-proxy-server
+    image: ${DOCKERHUB_USER}/myminicloud-proxy:${IMAGE_TAG}
+    container_name: api-gateway-proxy-server
+    ports: ["${PROXY_PORT}:80"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.2
+        aliases: [proxy]
+    # nginx phân giải tên upstream lúc khởi động: các container đích phải có mặt trước
+    depends_on:
+      web-frontend-server1:
+        condition: service_started
+      web-frontend-server2:
+        condition: service_started
+      application-backend-server:
+        condition: service_healthy
+      authentication-identity-server:
+        condition: service_healthy
+    restart: unless-stopped

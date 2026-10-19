@@ -1,0 +1,11 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    # Tên container trong cloud-net (alias ngắn "prometheus" cũng dùng được)
+    url: http://monitoring-prometheus-server:9090
+    isDefault: true
+    editable: false

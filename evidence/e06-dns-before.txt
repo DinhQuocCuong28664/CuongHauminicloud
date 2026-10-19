@@ -1,0 +1,10 @@
+### TRƯỚC khi thêm bản ghi (serial 2026102001)
+$ dig @127.0.0.1 -p 1053 app-backend.cloud.local
+;; WARNING: .local is reserved for Multicast DNS
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 32904
+$ dig @127.0.0.1 -p 1053 minio.cloud.local
+;; WARNING: .local is reserved for Multicast DNS
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 20096
+$ dig @127.0.0.1 -p 1053 keycloak.cloud.local
+;; WARNING: .local is reserved for Multicast DNS
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 60713

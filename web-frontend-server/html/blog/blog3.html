@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Học Docker Compose qua đồ án MyMiniCloud – MyMiniCloud Blog</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">MyMiniCloud</a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <span class="tag">Học tập</span>
+      <h1>Học Docker Compose qua đồ án MyMiniCloud</h1>
+      <p class="meta">Đinh Quốc Cường &amp; Nguyễn Cao Hậu · 20/10/2026 · Served by __SERVER_NAME__</p>
+
+      <figure>
+        <img src="/assets/blog3-study.svg" alt="Sơ đồ bốn bước học Docker Compose qua đồ án">
+        <figcaption>Bốn bước nhóm dùng để làm đồ án hai người mà không giẫm chân nhau.</figcaption>
+      </figure>
+
+      <p>
+        Đọc tài liệu Docker Compose thì dễ, nhưng phải tự dựng 12 container nói chuyện được với nhau mới thấy
+        hết những chỗ dễ sai. Đây là ghi chú của nhóm sau phần cơ bản của đồ án.
+      </p>
+
+      <h2>1. Đọc đề thành ma trận yêu cầu</h2>
+      <p>
+        Mỗi yêu cầu trong đề (mạng chung, tên container, cổng, volume, restart policy, Docker Hub, EC2) được ghi thành
+        một dòng kèm cách đáp ứng và minh chứng. Nhờ vậy lúc viết báo cáo chỉ cần đi theo bảng.
+      </p>
+
+      <h2>2. Chốt "hợp đồng" trước khi chia việc</h2>
+      <p>
+        Hai người làm song song nên phải thống nhất trước: dải mạng <code>10.10.10.0/24</code>, IP tĩnh và tên ngắn của từng
+        container, cổng trên máy host, tên biến trong <code>.env</code>. Đặt subnet đúng dải đề cho giúp bản ghi DNS
+        <code>web-frontend-server.cloud.local → 10.10.10.10</code> là IP thật, ping được.
+      </p>
+
+      <h2>3. Những lỗi học được nhiều nhất</h2>
+      <ul>
+        <li><strong>Cân bằng tải luôn trả web1:</strong> mỗi worker của nginx đếm round robin riêng. Thêm
+          <code>zone</code> vào <code>upstream</code> để các worker dùng chung bộ đếm.</li>
+        <li><strong>DNS không nạp zone:</strong> image bind9 mới không tự include file cấu hình mà hướng dẫn mẫu mount vào,
+          phải mount thêm <code>named.conf</code>.</li>
+        <li><strong>Script khởi tạo database chạy sai trên Windows:</strong> file mount từ Windows có quyền thực thi, nên
+          entrypoint chạy script thay vì nạp nó, mất các hàm hỗ trợ.</li>
+        <li><strong>Image biến mất:</strong> MinIO ngừng phát hành image chính thức, nhóm phải chuyển sang bản fork cộng đồng
+          và ghim phiên bản cụ thể cho mọi image.</li>
+      </ul>
+
+      <h2>4. Tự động hoá kiểm thử</h2>
+      <p>
+        Thay vì mở từng trang để xem, nhóm viết <code>smoke-test.sh</code> chạy toàn bộ test case và in PASS/FAIL.
+        Sửa gì cũng chạy lại cả bộ, nên lỗi ở server này làm hỏng server khác được phát hiện ngay. Cùng một script
+        chạy được cả trên máy cá nhân lẫn trên EC2.
+      </p>
+
+      <div class="post-nav">
+        <a href="/">← Về trang chủ</a>
+        <a href="/blog/">Danh sách bài viết</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>MyMiniCloud · Môn Điện toán đám mây · TDTU 2026</footer>
+</body>
+</html>

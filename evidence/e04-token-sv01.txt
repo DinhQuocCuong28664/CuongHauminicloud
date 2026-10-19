@@ -1,0 +1,28 @@
+Realm:          realm_523H0008_523H0025
+Client:         flask-app (public, Direct Access Grants)
+Token endpoint: http://localhost:80/auth/realms/realm_523H0008_523H0025/protocol/openid-connect/token
+
+$ curl -X POST <token endpoint> -d grant_type=password -d client_id=flask-app -d username=sv01 -d password=***
+token_type: Bearer | expires_in: 300 s | access_token: eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwi...
+
+Payload của access token (đã giải mã base64url):
+  iss: http://localhost/auth/realms/realm_523H0008_523H0025
+  aud: flask-app
+  azp: flask-app
+  preferred_username: sv01
+  name: Quốc Cường Đinh
+  email: sv01@cloud.local
+  iat: 1792442100
+  exp: 1792442400
+
+$ curl http://localhost:80/api/secure -H 'Authorization: Bearer <token>'
+{"audience":"flask-app","issuer":"http://localhost/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"}
+  [HTTP 200]
+
+$ curl http://localhost:80/api/secure            (không gửi token)
+{"error":"Missing Bearer token"}
+  [HTTP 401]
+
+$ curl http://localhost:80/api/secure -H 'Authorization: Bearer <token bị sửa chữ ký>'
+{"error":"Signature verification failed."}
+  [HTTP 401]

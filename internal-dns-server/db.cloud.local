@@ -1,0 +1,40 @@
+$TTL 1H
+@   IN  SOA ns.cloud.local. admin.cloud.local. (
+            2026102002  ; serial (YYYYMMDDnn) - tăng mỗi lần sửa zone
+            1H          ; refresh
+            15M         ; retry
+            1W          ; expire
+            1H )        ; negative cache TTL
+    IN  NS  ns.cloud.local.
+
+; Name server
+ns                                   IN  A   10.10.10.53
+dns-server                           IN  A   10.10.10.53
+internal-dns-server                  IN  A   10.10.10.53
+
+; Reverse proxy / load balancer
+proxy                                IN  A   10.10.10.2
+api-gateway-proxy-server             IN  A   10.10.10.2
+
+; Web servers
+web-frontend-server                  IN  A   10.10.10.10
+web-frontend-server1                 IN  A   10.10.10.10
+web-frontend-server2                 IN  A   10.10.10.11
+www                                  IN  CNAME web-frontend-server
+
+; Application, database, identity, storage
+application-backend-server           IN  A   10.10.10.20
+relational-database-server           IN  A   10.10.10.30
+authentication-identity-server       IN  A   10.10.10.40
+object-storage-server                IN  A   10.10.10.50
+
+; Mở rộng 6: tên ngắn cho các dịch vụ (serial 2026102002)
+app-backend                          IN  A   10.10.10.20
+minio                                IN  A   10.10.10.50
+keycloak                             IN  A   10.10.10.40
+
+; Monitoring
+monitoring-prometheus-server         IN  A   10.10.10.60
+monitoring-node-exporter-server      IN  A   10.10.10.61
+web-frontend-exporter                IN  A   10.10.10.62
+monitoring-grafana-dashboard-server  IN  A   10.10.10.70

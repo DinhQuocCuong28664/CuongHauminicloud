@@ -1,0 +1,13 @@
+
+api-gateway-proxy-server 10.10.10.2/24
+web-frontend-server1 10.10.10.10/24
+web-frontend-server2 10.10.10.11/24
+application-backend-server 10.10.10.20/24
+relational-database-server 10.10.10.30/24
+authentication-identity-server 10.10.10.40/24
+object-storage-server 10.10.10.50/24
+internal-dns-server 10.10.10.53/24
+monitoring-prometheus-server 10.10.10.60/24
+monitoring-node-exporter-server 10.10.10.61/24
+web-frontend-exporter 10.10.10.62/24
+monitoring-grafana-dashboard-server 10.10.10.70/24

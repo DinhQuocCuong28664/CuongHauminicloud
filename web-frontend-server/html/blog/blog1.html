@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Container khác máy ảo ở điểm nào? – MyMiniCloud Blog</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">MyMiniCloud</a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <span class="tag">Công nghệ</span>
+      <h1>Container khác máy ảo ở điểm nào?</h1>
+      <p class="meta">Đinh Quốc Cường · 20/10/2026 · Served by __SERVER_NAME__</p>
+
+      <figure>
+        <img src="/assets/blog1-container.svg" alt="So sánh kiến trúc máy ảo và container">
+        <figcaption>Máy ảo mang theo cả hệ điều hành khách; container dùng chung kernel của máy chủ.</figcaption>
+      </figure>
+
+      <p>
+        Khi bắt đầu đồ án MyMiniCloud, câu hỏi đầu tiên của nhóm là: tại sao lại chạy 9 server bằng
+        container mà không tạo 9 máy ảo? Câu trả lời nằm ở cách hai công nghệ chia sẻ tài nguyên.
+      </p>
+
+      <h2>Máy ảo: ảo hoá phần cứng</h2>
+      <p>
+        Mỗi máy ảo chạy trên một <strong>hypervisor</strong> và có hệ điều hành khách riêng, kèm kernel riêng.
+        Cách ly rất mạnh, nhưng mỗi máy ảo tốn hàng trăm MB đến vài GB RAM chỉ để chạy hệ điều hành,
+        và khởi động mất từ vài chục giây đến vài phút. Đây là cách các dịch vụ IaaS như Amazon EC2 cấp máy cho khách hàng.
+      </p>
+
+      <h2>Container: ảo hoá ở mức hệ điều hành</h2>
+      <p>
+        Container dùng chung kernel của máy chủ. Kernel Linux tách các tiến trình bằng <strong>namespace</strong>
+        (mỗi container thấy cây tiến trình, mạng, hệ thống file riêng) và giới hạn tài nguyên bằng <strong>cgroup</strong>.
+        Image chỉ chứa ứng dụng và thư viện cần thiết, nên nhẹ và khởi động trong vài giây.
+      </p>
+
+      <table>
+        <tr><th>Tiêu chí</th><th>Máy ảo</th><th>Container</th></tr>
+        <tr><td>Đơn vị ảo hoá</td><td>Phần cứng</td><td>Hệ điều hành</td></tr>
+        <tr><td>Kernel</td><td>Riêng cho mỗi máy</td><td>Dùng chung kernel máy chủ</td></tr>
+        <tr><td>Khởi động</td><td>Hàng chục giây – phút</td><td>Vài giây</td></tr>
+        <tr><td>Mức cách ly</td><td>Mạnh</td><td>Vừa phải</td></tr>
+        <tr><td>Đóng gói, phân phối</td><td>File ảnh đĩa lớn</td><td>Image theo lớp, đẩy lên registry</td></tr>
+      </table>
+
+      <h2>Con số thực tế trong đồ án</h2>
+      <p>
+        Cả cụm MyMiniCloud gồm 12 container (9 loại server và 3 container phụ trợ) chỉ dùng khoảng
+        <strong>1,3 GB RAM</strong>, trong đó riêng Keycloak chiếm hơn một nửa. Nếu dựng bằng 12 máy ảo,
+        chỉ riêng phần hệ điều hành khách đã vượt xa con số này. Đó là lý do một máy EC2 t3.medium (4 GB RAM)
+        đủ chạy toàn bộ hệ thống.
+      </p>
+
+      <h2>Khi nào vẫn nên dùng máy ảo?</h2>
+      <p>
+        Khi cần hệ điều hành khác nhau (Windows và Linux trên cùng máy chủ), khi cần cách ly mạnh giữa các khách hàng,
+        hoặc khi ứng dụng cần sửa kernel. Trên thực tế hai công nghệ thường đi cùng nhau: container chạy bên trong máy ảo,
+        đúng như cách nhóm triển khai MyMiniCloud lên EC2.
+      </p>
+
+      <div class="post-nav">
+        <a href="/">← Về trang chủ</a>
+        <a href="/blog/blog2.html">Bài tiếp: Đà Lạt 3 ngày →</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>MyMiniCloud · Môn Điện toán đám mây · TDTU 2026</footer>
+</body>
+</html>

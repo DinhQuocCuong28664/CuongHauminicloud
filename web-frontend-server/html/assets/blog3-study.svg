@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Sơ đồ quy trình học Docker Compose qua đồ án">
+  <rect width="800" height="360" fill="#f5f7fb"/>
+  <text x="400" y="45" font-family="Segoe UI, Arial" font-size="22" font-weight="700" text-anchor="middle" fill="#1c2333">Học Docker Compose qua đồ án MyMiniCloud</text>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5b6475"/>
+    </marker>
+  </defs>
+  <g font-family="Segoe UI, Arial" font-size="15" text-anchor="middle">
+    <rect x="30" y="120" width="150" height="90" rx="12" fill="#e7f0ff" stroke="#1f6feb" stroke-width="2"/>
+    <text x="105" y="160" fill="#1c2333" font-weight="700">1. Đọc đề</text>
+    <text x="105" y="183" fill="#5b6475">ma trận yêu cầu</text>
+
+    <rect x="220" y="120" width="150" height="90" rx="12" fill="#e9f7ef" stroke="#238636" stroke-width="2"/>
+    <text x="295" y="160" fill="#1c2333" font-weight="700">2. Chốt contract</text>
+    <text x="295" y="183" fill="#5b6475">IP, cổng, .env</text>
+
+    <rect x="410" y="120" width="150" height="90" rx="12" fill="#fff4e5" stroke="#d29922" stroke-width="2"/>
+    <text x="485" y="160" fill="#1c2333" font-weight="700">3. Chia server</text>
+    <text x="485" y="183" fill="#5b6475">mỗi người một nhánh</text>
+
+    <rect x="600" y="120" width="170" height="90" rx="12" fill="#f3e8ff" stroke="#8957e5" stroke-width="2"/>
+    <text x="685" y="160" fill="#1c2333" font-weight="700">4. Smoke test</text>
+    <text x="685" y="183" fill="#5b6475">PASS/FAIL tự động</text>
+  </g>
+  <g stroke="#5b6475" stroke-width="2.5" marker-end="url(#arrow)">
+    <line x1="182" y1="165" x2="216" y2="165"/>
+    <line x1="372" y1="165" x2="406" y2="165"/>
+    <line x1="562" y1="165" x2="596" y2="165"/>
+  </g>
+  <path d="M685 214 Q685 300 400 300 Q115 300 105 216" fill="none" stroke="#5b6475" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+  <text x="400" y="290" font-family="Segoe UI, Arial" font-size="14" text-anchor="middle" fill="#5b6475">lỗi → quay lại sửa, chạy lại toàn bộ</text>
+</svg>

@@ -1,0 +1,8 @@
+node        http://monitoring-node-exporter-server:9100/metrics  up    
+prometheus  http://localhost:9090/metrics                        up    
+web         http://web-frontend-exporter:9113/metrics            up    
+
+$ query: nginx_connections_active, nginx_http_requests_total
+nginx_connections_active web-frontend-server = 1
+nginx_http_requests_total web-frontend-server = 213
+nginx_up web-frontend-server = 1

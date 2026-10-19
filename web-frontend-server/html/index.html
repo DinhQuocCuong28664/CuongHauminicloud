@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyMiniCloud – Home</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">MyMiniCloud</a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>MyMiniCloud – Home</h1>
+    <p>
+      Hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container, kết nối qua mạng <code>cloud-net</code>.
+      Nhóm thực hiện: Đinh Quốc Cường (523H0008) và Nguyễn Cao Hậu (523H0025).
+    </p>
+    <p><span class="badge">Served by __SERVER_NAME__</span></p>
+
+    <h2>Các dịch vụ</h2>
+    <div class="grid">
+      <div class="card"><h3>1. Web Server</h3><p>nginx phục vụ trang tĩnh: trang chủ và <a href="/blog/">blog</a>.</p></div>
+      <div class="card"><h3>2. Application Server</h3><p>Flask API, gọi qua <a href="/api/hello">/api/hello</a>.</p></div>
+      <div class="card"><h3>3. Database Server</h3><p>MariaDB lưu dữ liệu ứng dụng.</p></div>
+      <div class="card"><h3>4. Authentication Server</h3><p>Keycloak (OIDC), đăng nhập tại <a href="/auth/">/auth/</a>.</p></div>
+      <div class="card"><h3>5. Object Storage</h3><p>MinIO, API tương thích Amazon S3.</p></div>
+      <div class="card"><h3>6. DNS Server</h3><p>BIND9, zone nội bộ <code>cloud.local</code>.</p></div>
+      <div class="card"><h3>7. Monitoring</h3><p>Prometheus và Node Exporter thu thập metric.</p></div>
+      <div class="card"><h3>8. Visualization</h3><p>Grafana hiển thị dashboard giám sát.</p></div>
+      <div class="card"><h3>9. Reverse Proxy / LB</h3><p>nginx định tuyến theo path và cân bằng tải.</p></div>
+    </div>
+
+    <h2>Bài viết mới trên blog</h2>
+    <ul>
+      <li><a href="/blog/blog1.html">Container khác máy ảo ở điểm nào?</a> <span class="tag">Công nghệ</span></li>
+      <li><a href="/blog/blog2.html">Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên</a> <span class="tag">Du lịch</span></li>
+      <li><a href="/blog/blog3.html">Học Docker Compose qua đồ án MyMiniCloud</a> <span class="tag">Học tập</span></li>
+    </ul>
+    <p><a href="/blog/">Xem tất cả bài viết →</a></p>
+  </main>
+
+  <footer>MyMiniCloud · Môn Điện toán đám mây · TDTU 2026</footer>
+</body>
+</html>

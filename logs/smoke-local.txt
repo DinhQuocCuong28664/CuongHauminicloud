@@ -1,0 +1,143 @@
+MyMiniCloud smoke test — nhãn: local — host: localhost — 2026-10-20 03:33:39 +0700
+
+NAME                                  STATUS
+api-gateway-proxy-server              Up 30 seconds
+application-backend-server            Up 56 seconds (healthy)
+authentication-identity-server        Up About a minute (healthy)
+internal-dns-server                   Up About a minute
+monitoring-grafana-dashboard-server   Up About a minute
+monitoring-node-exporter-server       Up About a minute
+monitoring-prometheus-server          Up About a minute
+object-storage-server                 Up About a minute
+relational-database-server            Up About a minute (healthy)
+web-frontend-exporter                 Up About a minute
+web-frontend-server1                  Up About a minute
+web-frontend-server2                  Up About a minute
+
+[PASS] T-B01  Web server: / và /blog/ trả 200
+         GET :18080/ -> 200 <title>MyMiniCloud – Home</title>
+         GET :18080/blog/ -> 200 <title>MyMiniCloud – Blog</title>
+[PASS] T-B02  App server: /hello trực tiếp và qua proxy giống nhau
+         GET :8085/hello      -> {"message":"Hello from App Server!"}
+         GET :80/api/hello -> {"message":"Hello from App Server!"}
+[PASS] T-B03  Database: có database minicloud, bảng notes, app đọc được
+         Database
+         information_schema
+         minicloud
+         mysql
+         performance_schema
+         studentdb
+         sys
+         Tables_in_minicloud
+         notes
+         id	title	created_at
+         1	Hello from MariaDB!	2026-10-19 18:04:48
+         GET :8085/notes -> {"count":1,"notes":[{"created_at":"2026-10-19 18:04:48","id":1,"title":"Hello from MariaDB!"}],"source":"MariaDB minicloud.notes"}
+[PASS] T-B04  Auth server: Keycloak chạy, admin đăng nhập, tạo được user
+         GET :8081/auth/ -> 302 (chuyển tới trang đăng nhập)
+         issuer realm realm_523H0008_523H0025: http://localhost:8081/auth/realms/realm_523H0008_523H0025
+         đăng nhập admin (realm master): lấy được access token
+         tạo user sv-test -> HTTP 409 (201 = mới tạo, 409 = đã có); tìm lại được 1 user
+[PASS] T-B05  Storage: tạo bucket demo, upload index.html, console mở được
+         Bucket created successfully `local/demo`.
+         Bucket created successfully `local/profile-pics`.
+         Bucket created successfully `local/documents`.
+         `/upload/web/index.html` -> `local/demo/index.html`
+         ┌──────────┬─────────────┬──────────┬─────────────┐
+         │ Total    │ Transferred │ Duration │ Speed       │
+         │ 2.41 KiB │ 2.41 KiB    │ 00m00s   │ 34.33 KiB/s │
+         └──────────┴─────────────┴──────────┴─────────────┘
+         `/upload/samples/avatar.jpg` -> `local/profile-pics/avatar.jpg`
+         ┌───────────┬─────────────┬──────────┬──────────────┐
+         │ Total     │ Transferred │ Duration │ Speed        │
+         │ 23.15 KiB │ 23.15 KiB   │ 00m00s   │ 351.47 KiB/s │
+         └───────────┴─────────────┴──────────┴──────────────┘
+         `/upload/samples/report.pdf` -> `local/documents/report.pdf`
+         ┌──────────┬─────────────┬──────────┬─────────────┐
+         │ Total    │ Transferred │ Duration │ Speed       │
+         │ 1.98 MiB │ 1.98 MiB    │ 00m00s   │ 20.20 MiB/s │
+         └──────────┴─────────────┴──────────┴─────────────┘
+         Access permission for `local/profile-pics` is set to `download`
+         
+         Access permission for `local/demo` is `private`
+         Access permission for `local/profile-pics` is `download`
+         Access permission for `local/documents` is `private`
+         
+         [2026-10-19 20:33:43 UTC] 2.4KiB STANDARD demo/index.html
+         [2026-10-19 20:33:43 UTC] 2.0MiB STANDARD documents/report.pdf
+         [2026-10-19 20:33:43 UTC]  23KiB STANDARD profile-pics/avatar.jpg
+         GET :9001/ (console) -> 200
+[PASS] T-B06  DNS: web-frontend-server.cloud.local -> 10.10.10.10
+         dig @<host> -p 1053 web-frontend-server.cloud.local +short -> 10.10.10.10
+[PASS] T-B07  Monitoring: target node-exporter UP, có metric node_cpu_seconds_total
+         node http://monitoring-node-exporter-server:9100/metrics up
+         prometheus http://localhost:9090/metrics up
+         web http://web-frontend-exporter:9113/metrics up
+         node_cpu_seconds_total: 64 chuỗi thời gian
+[PASS] T-B08  Grafana: datasource Prometheus OK, có dashboard Node Exporter Full
+         GET :3000/api/health -> 200
+         datasource Prometheus: OK
+         dashboards: Node Exporter Full, System Health of 523H0008 & 523H0025
+[PASS] T-B09  Proxy: / -> web, /api/ -> app, /auth/ -> Keycloak
+         GET :80/          -> 200
+         GET :80/api/hello -> {"message":"Hello from App Server!"}
+         GET :80/auth/     -> 302 http://localhost/auth/admin/
+[PASS] T-B10  Mạng: ping 9 server từ trong proxy, không mất gói
+         web            3 packets transmitted, 3 packets received, 0% packet loss
+         app-server     3 packets transmitted, 3 packets received, 0% packet loss
+         db             3 packets transmitted, 3 packets received, 0% packet loss
+         keycloak       3 packets transmitted, 3 packets received, 0% packet loss
+         minio          3 packets transmitted, 3 packets received, 0% packet loss
+         prometheus     3 packets transmitted, 3 packets received, 0% packet loss
+         grafana        3 packets transmitted, 3 packets received, 0% packet loss
+         dns-server     3 packets transmitted, 3 packets received, 0% packet loss
+         node-exporter  3 packets transmitted, 3 packets received, 0% packet loss
+
+==================== PHẦN MỞ RỘNG ====================
+
+[PASS] T-E01  Blog cá nhân: 3 bài có ảnh, link về trang chủ, trang chủ liệt kê đủ
+         blog1.html: "Container khác máy ảo ở điểm nào?" | ảnh /assets/blog1-container.svg -> 200 | link về trang chủ: 3
+         blog2.html: "Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên" | ảnh /assets/blog2-dalat.svg -> 200 | link về trang chủ: 3
+         blog3.html: "Học Docker Compose qua đồ án MyMiniCloud" | ảnh /assets/blog3-study.svg -> 200 | link về trang chủ: 3
+         trang chủ có link tới 3/3 bài
+[PASS] T-E02  API /student đọc students.json qua proxy: 5 sinh viên đủ 4 trường
+         GET :80/api/student -> 5 bản ghi
+         1 | Nguyễn Văn An | Computer Science | 3.5
+         2 | Trần Thị Bình | Information Systems | 3.7
+         3 | Lê Văn Cảnh | Software Engineering | 3.2
+         4 | Phạm Thị Dung | Data Science | 3.8
+         5 | Hoàng Văn Em | Cybersecurity | 3.4
+[PASS] T-E03  studentdb.students có ≥3 bản ghi, API /students-db đọc đúng từ MariaDB
+         SELECT COUNT(*) FROM studentdb.students -> 4
+         GET :80/api/students-db -> 4 bản ghi
+         SV001 | Nguyễn Văn An | 2005-03-15 | Computer Science
+         SV002 | Trần Thị Bình | 2005-11-02 | Data Science
+         SV003 | Lê Văn Cảnh | 2005-07-20 | Cybersecurity
+         SV004 | Phạm Thị Dung | 2005-01-09 | Software Engineering
+[PASS] T-E04  Realm realm_523H0008_523H0025: token sv01 gọi /secure được, không token/token sai bị chặn
+         token hợp lệ  -> {"audience":"flask-app","issuer":"http://localhost/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"}
+          [200]
+         không token   -> {"error":"Missing Bearer token"}
+          [401]
+         token bị sửa  -> {"error":"Signature verification failed."}
+          [401]
+[PASS] T-E05  MinIO: profile-pics public, documents private (chỉ mở được bằng URL có chữ ký)
+         GET :9000/profile-pics/avatar.jpg (ẩn danh)        -> 200
+         GET :9000/documents/report.pdf (ẩn danh)           -> 403
+         GET documents/report.pdf bằng presigned URL (hết hạn 10 phút) -> 200
+[PASS] T-E06  DNS: thêm app-backend, minio, keycloak vào zone cloud.local
+         app-backend.cloud.local -> 10.10.10.20 (cần 10.10.10.20)
+         minio.cloud.local -> 10.10.10.50 (cần 10.10.10.50)
+         keycloak.cloud.local -> 10.10.10.40 (cần 10.10.10.40)
+[PASS] T-E07  Prometheus: job 'web' giám sát web-frontend-server UP
+         job web: http://web-frontend-exporter:9113/metrics up
+         nginx_up = 1
+[PASS] T-E08  Grafana: dashboard System Health có biểu đồ CPU, Memory, Network
+         System Health of 523H0008 & 523H0025 | CPU Usage (%), Memory Usage, Network Traffic, Web requests/s (nginx web-frontend-server)
+[PASS] T-E09  Proxy: /student/ trả danh sách sinh viên từ backend
+         GET :80/student/ -> 5 bản ghi, giống /api/student
+[PASS] T-E10  Load balancing round robin: 6 request chia đều web1/web2
+         X-Served-By: web1 web2 web1 web2 web1 web2 
+         (kiểm thử failover đầy đủ: bash scripts/lb-test.sh)
+
+Tổng kết: 20 PASS, 0 FAIL

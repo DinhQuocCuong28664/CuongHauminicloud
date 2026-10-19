@@ -1,0 +1,18 @@
+### Trước khi xoá container (03:32:29)
+  MariaDB  studentdb.students: 4 bản ghi
+  MinIO    objects: demo/index.html documents/report.pdf profile-pics/avatar.jpg 
+  Keycloak user sv-test (master): 1 user
+  Grafana  dashboards: Node Exporter Full, System Health of 523H0008 & 523H0025
+  Prometheus mẫu up{job="node"} trong 10 phút qua: 39 (scrape 15 giây/lần)
+
+$ docker compose down        (xoá container và network, GIỮ volume)
+  13 đối tượng đã xoá
+$ docker compose up -d
+  cụm đã chạy lại, Keycloak healthy
+
+### Sau khi tạo lại container (03:33:25)
+  MariaDB  studentdb.students: 4 bản ghi
+  MinIO    objects: demo/index.html documents/report.pdf profile-pics/avatar.jpg 
+  Keycloak user sv-test (master): 1 user
+  Grafana  dashboards: Node Exporter Full, System Health of 523H0008 & 523H0025
+  Prometheus mẫu up{job="node"} trong 10 phút qua: 38 (scrape 15 giây/lần)

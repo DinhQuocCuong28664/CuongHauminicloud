@@ -1,0 +1,13 @@
+NAME                                  CPU %     MEM USAGE / LIMIT
+api-gateway-proxy-server              0.00%     7.883MiB / 7.756GiB
+application-backend-server            0.02%     69.49MiB / 7.756GiB
+authentication-identity-server        0.21%     755.8MiB / 7.756GiB
+internal-dns-server                   0.00%     31.3MiB / 7.756GiB
+monitoring-grafana-dashboard-server   1.06%     220MiB / 7.756GiB
+monitoring-node-exporter-server       0.00%     8.215MiB / 7.756GiB
+monitoring-prometheus-server          0.30%     41.92MiB / 7.756GiB
+object-storage-server                 0.02%     80MiB / 7.756GiB
+relational-database-server            0.02%     85.64MiB / 7.756GiB
+web-frontend-exporter                 0.00%     2.473MiB / 7.756GiB
+web-frontend-server1                  0.00%     13.11MiB / 7.756GiB
+web-frontend-server2                  0.00%     7.809MiB / 7.756GiB

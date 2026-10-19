@@ -1,0 +1,17 @@
+$ named-checkzone cloud.local /etc/bind/db.cloud.local
+zone cloud.local/IN: loaded serial 2026102002
+OK
+$ docker restart internal-dns-server
+internal-dns-server
+
+### SAU khi thêm bản ghi và restart (serial 2026102002)
+$ dig @127.0.0.1 -p 1053 app-backend.cloud.local +short
+10.10.10.20
+$ dig @127.0.0.1 -p 1053 minio.cloud.local +short
+10.10.10.50
+$ dig @127.0.0.1 -p 1053 keycloak.cloud.local +short
+10.10.10.40
+
+### Container dùng DNS nội bộ (--dns 10.10.10.53) gọi dịch vụ bằng tên miền cloud.local
+$ docker run --rm --network cloud-net --dns 10.10.10.53 netshoot curl -s http://app-backend.cloud.local:8081/hello
+{"message":"Hello from App Server!"}

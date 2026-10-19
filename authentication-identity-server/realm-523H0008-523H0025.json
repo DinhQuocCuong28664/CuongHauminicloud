@@ -1,0 +1,62 @@
+{
+  "realm": "${KC_REALM}",
+  "displayName": "MyMiniCloud – 523H0008 & 523H0025",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "users": [
+    {
+      "username": "sv01",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Quốc Cường",
+      "lastName": "Đinh",
+      "email": "sv01@cloud.local",
+      "credentials": [
+        { "type": "password", "value": "${SV_PASSWORD}", "temporary": false }
+      ]
+    },
+    {
+      "username": "sv02",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Cao Hậu",
+      "lastName": "Nguyễn",
+      "email": "sv02@cloud.local",
+      "credentials": [
+        { "type": "password", "value": "${SV_PASSWORD}", "temporary": false }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "flask-app",
+      "name": "MyMiniCloud Flask App",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://${PUBLIC_HOST}/*", "http://localhost/*"],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-flask-app",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "flask-app",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

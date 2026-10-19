@@ -1,0 +1,21 @@
+// Chỉ trả lời và đệ quy cho máy trong cloud-net (và chính container),
+// tránh thành open resolver khi chạy trên EC2
+acl cloudnet {
+    10.10.10.0/24;
+    127.0.0.1;
+};
+
+options {
+    directory "/var/cache/bind";
+
+    listen-on { any; };
+    listen-on-v6 { none; };
+
+    allow-query { cloudnet; };
+    recursion yes;
+    allow-recursion { cloudnet; };
+
+    // Tên ngoài zone cloud.local được chuyển tiếp ra DNS công cộng
+    forwarders { 8.8.8.8; 1.1.1.1; };
+    dnssec-validation auto;
+};

@@ -1,0 +1,3 @@
+node        http://monitoring-node-exporter-server:9100/metrics  up    
+prometheus  http://localhost:9090/metrics                        up    
+web         http://web-frontend-server:80/metrics                down  server returned HTTP status 404 Not Found

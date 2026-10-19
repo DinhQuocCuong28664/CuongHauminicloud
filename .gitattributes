@@ -1,0 +1,7 @@
+# Mọi file text dùng LF: bind9 hỏng với zone file CRLF, shell script CRLF báo $'\r': command not found
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary

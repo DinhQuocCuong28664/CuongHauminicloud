@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus tự giám sát chính nó
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # CPU, RAM, network, disk của máy chủ chạy Docker
+  - job_name: 'node'
+    static_configs:
+      - targets: ['monitoring-node-exporter-server:9100']
+
+  # Mở rộng 7: giám sát web-frontend-server.
+  # Đề bài ghi target 'web-frontend-server:80' nhưng target đó DOWN: Prometheus đọc
+  # http://web-frontend-server:80/metrics và nginx trả 404 vì không tự xuất metric.
+  # web-frontend-exporter đọc /nginx_status (stub_status) của web1 rồi xuất ra định dạng Prometheus.
+  - job_name: 'web'
+    static_configs:
+      - targets: ['web-frontend-exporter:9113']
+        labels:
+          instance: 'web-frontend-server'

@@ -1,0 +1,7 @@
+$ curl -s http://localhost/student/
+[{"gpa":3.5,"id":1,"major":"Computer Science","name":"Nguyễn Văn An"},{"gpa":3.7,"id":2,"major":"Information Systems","name":"Trần Thị Bình"},{"gpa":3.2,"id":3,"major":"Software Engineering","name":"Lê Văn Cảnh"},{"gpa":3.8,"id":4,"major":"Data Science","name":"Phạm Thị Dung"},{"gpa":3.4,"id":5,"major":"Cybersecurity","name":"Hoàng Văn Em"}]
+
+
+$ curl -s http://localhost/api/student
+[{"gpa":3.5,"id":1,"major":"Computer Science","name":"Nguyễn Văn An"},{"gpa":3.7,"id":2,"major":"Information Systems","name":"Trần Thị Bình"},{"gpa":3.2,"id":3,"major":"Software Engineering","name":"Lê Văn Cảnh"},{"gpa":3.8,"id":4,"major":"Data Science","name":"Phạm Thị Dung"},{"gpa":3.4,"id":5,"major":"Cybersecurity","name":"Hoàng Văn Em"}]
+

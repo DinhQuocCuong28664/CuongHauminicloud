@@ -1,0 +1,6 @@
+.env
+*.pem
+object-storage-server/data/
+__pycache__/
+*.pyc
+object-storage-server/samples/*.pdf

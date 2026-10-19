@@ -1,0 +1,90 @@
+# ping -c 3 web
+PING web (10.10.10.10): 56 data bytes
+64 bytes from 10.10.10.10: seq=0 ttl=64 time=0.100 ms
+64 bytes from 10.10.10.10: seq=1 ttl=64 time=0.075 ms
+64 bytes from 10.10.10.10: seq=2 ttl=64 time=0.066 ms
+
+--- web ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.066/0.080/0.100 ms
+
+# ping -c 3 app-server
+PING app-server (10.10.10.20): 56 data bytes
+64 bytes from 10.10.10.20: seq=0 ttl=64 time=0.050 ms
+64 bytes from 10.10.10.20: seq=1 ttl=64 time=0.096 ms
+64 bytes from 10.10.10.20: seq=2 ttl=64 time=0.068 ms
+
+--- app-server ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.050/0.071/0.096 ms
+
+# ping -c 3 db
+PING db (10.10.10.30): 56 data bytes
+64 bytes from 10.10.10.30: seq=0 ttl=64 time=0.060 ms
+64 bytes from 10.10.10.30: seq=1 ttl=64 time=0.067 ms
+64 bytes from 10.10.10.30: seq=2 ttl=64 time=0.061 ms
+
+--- db ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.060/0.062/0.067 ms
+
+# ping -c 3 keycloak
+PING keycloak (10.10.10.40): 56 data bytes
+64 bytes from 10.10.10.40: seq=0 ttl=64 time=0.047 ms
+64 bytes from 10.10.10.40: seq=1 ttl=64 time=0.098 ms
+64 bytes from 10.10.10.40: seq=2 ttl=64 time=0.064 ms
+
+--- keycloak ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.047/0.069/0.098 ms
+
+# ping -c 3 minio
+PING minio (10.10.10.50): 56 data bytes
+64 bytes from 10.10.10.50: seq=0 ttl=64 time=0.042 ms
+64 bytes from 10.10.10.50: seq=1 ttl=64 time=0.069 ms
+64 bytes from 10.10.10.50: seq=2 ttl=64 time=0.071 ms
+
+--- minio ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.042/0.060/0.071 ms
+
+# ping -c 3 prometheus
+PING prometheus (10.10.10.60): 56 data bytes
+64 bytes from 10.10.10.60: seq=0 ttl=64 time=0.050 ms
+64 bytes from 10.10.10.60: seq=1 ttl=64 time=0.065 ms
+64 bytes from 10.10.10.60: seq=2 ttl=64 time=0.069 ms
+
+--- prometheus ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.050/0.061/0.069 ms
+
+# ping -c 3 grafana
+PING grafana (10.10.10.70): 56 data bytes
+64 bytes from 10.10.10.70: seq=0 ttl=64 time=0.043 ms
+64 bytes from 10.10.10.70: seq=1 ttl=64 time=0.070 ms
+64 bytes from 10.10.10.70: seq=2 ttl=64 time=0.072 ms
+
+--- grafana ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.043/0.061/0.072 ms
+
+# ping -c 3 dns-server
+PING dns-server (10.10.10.53): 56 data bytes
+64 bytes from 10.10.10.53: seq=0 ttl=64 time=0.042 ms
+64 bytes from 10.10.10.53: seq=1 ttl=64 time=0.091 ms
+64 bytes from 10.10.10.53: seq=2 ttl=64 time=0.066 ms
+
+--- dns-server ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.042/0.066/0.091 ms
+
+# ping -c 3 node-exporter
+PING node-exporter (10.10.10.61): 56 data bytes
+64 bytes from 10.10.10.61: seq=0 ttl=64 time=0.043 ms
+64 bytes from 10.10.10.61: seq=1 ttl=64 time=0.067 ms
+64 bytes from 10.10.10.61: seq=2 ttl=64 time=0.065 ms
+
+--- node-exporter ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 0.043/0.058/0.067 ms
+
