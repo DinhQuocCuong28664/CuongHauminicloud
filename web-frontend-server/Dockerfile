@@ -1,5 +1,9 @@
 FROM nginx:1.30.6-alpine
 
+LABEL org.opencontainers.image.title="myminicloud-web" \
+      org.opencontainers.image.description="MyMiniCloud web server: nginx phục vụ trang tĩnh và blog" \
+      org.opencontainers.image.authors="Đinh Quốc Cường (523H0008), Nguyễn Cao Hậu (523H0025)"
+
 # Tên bản sao (web1/web2) hiển thị trên trang và trong header X-Served-By,
 # để thấy được proxy cân bằng tải luân phiên giữa hai web server
 ENV SERVER_NAME=web1

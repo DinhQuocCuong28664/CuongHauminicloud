@@ -1,0 +1,89 @@
+$ docker push dinhquoccuong286/myminicloud-web:1.0
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+7b5202971cfe: Mounted from library/nginx
+28929cdf5be0: Mounted from library/nginx
+b40d04ac48f7: Mounted from library/nginx
+f6591080e8dd: Mounted from library/nginx
+9aab0913f304: Mounted from library/nginx
+a9bafeab4f16: Mounted from library/nginx
+258d8d3acc3e: Mounted from library/nginx
+e2de96513ba9: Mounted from valkey/valkey
+e04f3eb2a3ea: Pushed
+b9f70dc80811: Pushed
+d3b092832d84: Pushed
+4155885275a1: Pushed
+759babd4a6b8: Pushed
+d2ead74e6c81: Pushed
+1.0: digest: sha256:e71799b78220d60c7eb30a27ecb7a8b52bce40fcb8eca078b670dcd62cc02081 size: 856
+$ docker push dinhquoccuong286/myminicloud-web:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+4155885275a1: Layer already exists
+d2ead74e6c81: Layer already exists
+b9f70dc80811: Layer already exists
+d3b092832d84: Layer already exists
+b40d04ac48f7: Layer already exists
+7b5202971cfe: Layer already exists
+759babd4a6b8: Already exists
+e04f3eb2a3ea: Layer already exists
+258d8d3acc3e: Layer already exists
+f6591080e8dd: Layer already exists
+9aab0913f304: Layer already exists
+e2de96513ba9: Layer already exists
+a9bafeab4f16: Layer already exists
+28929cdf5be0: Layer already exists
+latest: digest: sha256:e71799b78220d60c7eb30a27ecb7a8b52bce40fcb8eca078b670dcd62cc02081 size: 856
+
+$ docker push dinhquoccuong286/myminicloud-app:1.0
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+283ac05c32e6: Mounted from library/python
+bce3d672089f: Mounted from library/python
+e203d50c86bd: Mounted from library/python
+e2de96513ba9: Mounted from dinhquoccuong286/myminicloud-web
+4bf2a602e340: Pushed
+2e359100ecdb: Pushed
+e201862535b2: Pushed
+133935bac567: Pushed
+f662829c7ae2: Pushed
+396ca5afd85f: Pushed
+1.0: digest: sha256:63c13a7d9f586afe8e96e18ff19aabb35df18bcba18b4adf612db95d9656e332 size: 856
+$ docker push dinhquoccuong286/myminicloud-app:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+e203d50c86bd: Layer already exists
+2e359100ecdb: Already exists
+283ac05c32e6: Layer already exists
+bce3d672089f: Layer already exists
+396ca5afd85f: Layer already exists
+133935bac567: Layer already exists
+f662829c7ae2: Layer already exists
+e2de96513ba9: Layer already exists
+e201862535b2: Layer already exists
+4bf2a602e340: Layer already exists
+latest: digest: sha256:63c13a7d9f586afe8e96e18ff19aabb35df18bcba18b4adf612db95d9656e332 size: 856
+
+$ docker push dinhquoccuong286/myminicloud-proxy:1.0
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+258d8d3acc3e: Mounted from dinhquoccuong286/myminicloud-web
+e2de96513ba9: Mounted from dinhquoccuong286/myminicloud-web
+9aab0913f304: Mounted from dinhquoccuong286/myminicloud-web
+28929cdf5be0: Mounted from dinhquoccuong286/myminicloud-web
+7b5202971cfe: Mounted from dinhquoccuong286/myminicloud-web
+f6591080e8dd: Mounted from dinhquoccuong286/myminicloud-web
+b40d04ac48f7: Mounted from dinhquoccuong286/myminicloud-web
+a9bafeab4f16: Mounted from dinhquoccuong286/myminicloud-web
+fb856a1f5665: Pushed
+ea83a5d8616a: Pushed
+1.0: digest: sha256:de76b2f1a66d0d25643903c691ba2c039e589dd4eae130ebb608ec065a49fcf6 size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+28929cdf5be0: Layer already exists
+fb856a1f5665: Already exists
+9aab0913f304: Layer already exists
+e2de96513ba9: Layer already exists
+b40d04ac48f7: Layer already exists
+f6591080e8dd: Layer already exists
+a9bafeab4f16: Layer already exists
+ea83a5d8616a: Layer already exists
+258d8d3acc3e: Layer already exists
+7b5202971cfe: Layer already exists
+latest: digest: sha256:de76b2f1a66d0d25643903c691ba2c039e589dd4eae130ebb608ec065a49fcf6 size: 856
+

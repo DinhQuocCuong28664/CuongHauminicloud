@@ -1,18 +1,18 @@
-MyMiniCloud smoke test — nhãn: local — host: localhost — 2026-10-20 03:33:39 +0700
+MyMiniCloud smoke test — nhãn: local — host: localhost — 2026-10-20 03:42:01 +0700
 
 NAME                                  STATUS
-api-gateway-proxy-server              Up 30 seconds
-application-backend-server            Up 56 seconds (healthy)
-authentication-identity-server        Up About a minute (healthy)
-internal-dns-server                   Up About a minute
-monitoring-grafana-dashboard-server   Up About a minute
-monitoring-node-exporter-server       Up About a minute
-monitoring-prometheus-server          Up About a minute
-object-storage-server                 Up About a minute
-relational-database-server            Up About a minute (healthy)
-web-frontend-exporter                 Up About a minute
-web-frontend-server1                  Up About a minute
-web-frontend-server2                  Up About a minute
+api-gateway-proxy-server              Up 21 seconds
+application-backend-server            Up 32 seconds (healthy)
+authentication-identity-server        Up 9 minutes (healthy)
+internal-dns-server                   Up 9 minutes
+monitoring-grafana-dashboard-server   Up 9 minutes
+monitoring-node-exporter-server       Up 9 minutes
+monitoring-prometheus-server          Up 9 minutes
+object-storage-server                 Up 9 minutes
+relational-database-server            Up 9 minutes (healthy)
+web-frontend-exporter                 Up 9 minutes
+web-frontend-server1                  Up 33 seconds
+web-frontend-server2                  Up 32 seconds
 
 [PASS] T-B01  Web server: / và /blog/ trả 200
          GET :18080/ -> 200 <title>MyMiniCloud – Home</title>
@@ -45,17 +45,17 @@ web-frontend-server2                  Up About a minute
          `/upload/web/index.html` -> `local/demo/index.html`
          ┌──────────┬─────────────┬──────────┬─────────────┐
          │ Total    │ Transferred │ Duration │ Speed       │
-         │ 2.41 KiB │ 2.41 KiB    │ 00m00s   │ 34.33 KiB/s │
+         │ 2.41 KiB │ 2.41 KiB    │ 00m00s   │ 29.52 KiB/s │
          └──────────┴─────────────┴──────────┴─────────────┘
          `/upload/samples/avatar.jpg` -> `local/profile-pics/avatar.jpg`
          ┌───────────┬─────────────┬──────────┬──────────────┐
          │ Total     │ Transferred │ Duration │ Speed        │
-         │ 23.15 KiB │ 23.15 KiB   │ 00m00s   │ 351.47 KiB/s │
+         │ 23.15 KiB │ 23.15 KiB   │ 00m00s   │ 335.30 KiB/s │
          └───────────┴─────────────┴──────────┴──────────────┘
          `/upload/samples/report.pdf` -> `local/documents/report.pdf`
          ┌──────────┬─────────────┬──────────┬─────────────┐
          │ Total    │ Transferred │ Duration │ Speed       │
-         │ 1.98 MiB │ 1.98 MiB    │ 00m00s   │ 20.20 MiB/s │
+         │ 1.98 MiB │ 1.98 MiB    │ 00m00s   │ 19.43 MiB/s │
          └──────────┴─────────────┴──────────┴─────────────┘
          Access permission for `local/profile-pics` is set to `download`
          
@@ -63,9 +63,9 @@ web-frontend-server2                  Up About a minute
          Access permission for `local/profile-pics` is `download`
          Access permission for `local/documents` is `private`
          
-         [2026-10-19 20:33:43 UTC] 2.4KiB STANDARD demo/index.html
-         [2026-10-19 20:33:43 UTC] 2.0MiB STANDARD documents/report.pdf
-         [2026-10-19 20:33:43 UTC]  23KiB STANDARD profile-pics/avatar.jpg
+         [2026-10-19 20:42:04 UTC] 2.4KiB STANDARD demo/index.html
+         [2026-10-19 20:42:05 UTC] 2.0MiB STANDARD documents/report.pdf
+         [2026-10-19 20:42:04 UTC]  23KiB STANDARD profile-pics/avatar.jpg
          GET :9001/ (console) -> 200
 [PASS] T-B06  DNS: web-frontend-server.cloud.local -> 10.10.10.10
          dig @<host> -p 1053 web-frontend-server.cloud.local +short -> 10.10.10.10

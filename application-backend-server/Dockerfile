@@ -1,5 +1,9 @@
 FROM python:3.12-alpine
 
+LABEL org.opencontainers.image.title="myminicloud-app" \
+      org.opencontainers.image.description="MyMiniCloud application server: Flask API (hello, notes, student, students-db, secure OIDC)" \
+      org.opencontainers.image.authors="Đinh Quốc Cường (523H0008), Nguyễn Cao Hậu (523H0025)"
+
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

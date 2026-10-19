@@ -15,6 +15,21 @@ docker compose ps
 bash scripts/smoke-test.sh  # chạy toàn bộ kiểm thử, ghi log vào logs/
 ```
 
+## Image trên Docker Hub
+
+Ba image tự build (tag `1.0` và `latest`, public):
+
+- https://hub.docker.com/r/dinhquoccuong286/myminicloud-web
+- https://hub.docker.com/r/dinhquoccuong286/myminicloud-app
+- https://hub.docker.com/r/dinhquoccuong286/myminicloud-proxy
+
+Trên máy chỉ cần chạy (như EC2), đặt `DOCKERHUB_USER=dinhquoccuong286` trong `.env` rồi:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ## Đường dẫn chính (qua reverse proxy, cổng 80)
 
 | Đường dẫn | Đích | Ghi chú |
