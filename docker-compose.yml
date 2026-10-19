@@ -60,8 +60,10 @@ services:
       KC_INTERNAL_URL: http://authentication-identity-server:8080/auth
       KC_REALM: ${KC_REALM}
       OIDC_AUDIENCE: ${OIDC_CLIENT_ID}
-      # Issuer hợp lệ: token xin qua proxy (cổng PROXY_PORT) hoặc trực tiếp qua cổng AUTH_PORT
-      OIDC_ISSUERS: http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM}
+      # Issuer hợp lệ: token xin qua proxy (cổng PROXY_PORT) hoặc trực tiếp qua cổng AUTH_PORT,
+      # bằng tên PUBLIC_HOST (public IP khi chạy EC2) hoặc localhost (kiểm thử ngay trên máy chủ)
+      OIDC_ISSUERS: >-
+        http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM},http://localhost/auth/realms/${KC_REALM},http://localhost:${AUTH_PORT}/auth/realms/${KC_REALM}
     ports: ["${APP_PORT}:8081"]
     networks:
       cloud-net:

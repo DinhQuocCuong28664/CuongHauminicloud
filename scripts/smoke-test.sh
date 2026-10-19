@@ -17,8 +17,22 @@ DBCLIENT=mariadb:11.4.13
 mkdir -p logs
 exec > >(tee "$LOG") 2>&1
 
+# Kéo trước các image công cụ (dig, mariadb client, mc) để log kéo image không lẫn vào kết quả kiểm thử
+for img in "$NETSHOOT" "$DBCLIENT" pgsty/mc:RELEASE.2026-10-18T00-00-00Z; do
+  docker image inspect "$img" >/dev/null 2>&1 || docker pull -q "$img" >/dev/null
+done
+
 # Trên Windows "python3" có thể là lối tắt Microsoft Store không chạy được
 if python3 -c 'pass' >/dev/null 2>&1; then PY=python3; else PY=python; fi
+
+# dig tới cổng DNS đã publish trên máy host. Docker Desktop: đi qua host.docker.internal.
+# Linux (EC2): dùng mạng host, gọi 127.0.0.1 (docker-proxy chuyển vào cloud-net với nguồn là gateway
+# 10.10.10.1, nằm trong ACL của bind9; còn đi từ bridge mặc định 172.17.0.0/16 sẽ bị REFUSED).
+if docker info --format '{{.OperatingSystem}}' 2>/dev/null | grep -q 'Docker Desktop'; then
+  dig_host() { docker run --rm --add-host host.docker.internal:host-gateway "$NETSHOOT" dig @host.docker.internal -p "$DNS_PORT" "$@"; }
+else
+  dig_host() { docker run --rm --network host "$NETSHOOT" dig @127.0.0.1 -p "$DNS_PORT" "$@"; }
+fi
 
 pass=0
 fail=0
@@ -86,8 +100,7 @@ result T-B05 "Storage: tạo bucket demo, upload index.html, console mở đư�
 GET :$MINIO_CONSOLE_PORT/ (console) -> $m2"
 
 # ---------------------------------------------------------------- T-B06 DNS
-n1=$(docker run --rm --add-host host.docker.internal:host-gateway "$NETSHOOT" \
-       dig @host.docker.internal -p "$DNS_PORT" web-frontend-server.cloud.local +short +time=3 +tries=2 2>&1)
+n1=$(dig_host web-frontend-server.cloud.local +short +time=3 +tries=2 2>&1)
 [ "$n1" = "10.10.10.10" ]
 result T-B06 "DNS: web-frontend-server.cloud.local -> 10.10.10.10" $? "dig @<host> -p $DNS_PORT web-frontend-server.cloud.local +short -> $n1"
 
@@ -193,8 +206,7 @@ e6=""
 ok=0
 for pair in app-backend:10.10.10.20 minio:10.10.10.50 keycloak:10.10.10.40; do
   name=${pair%%:*}; want=${pair#*:}
-  got=$(docker run --rm --add-host host.docker.internal:host-gateway "$NETSHOOT" \
-          dig @host.docker.internal -p "$DNS_PORT" "$name.cloud.local" +short +time=3 2>&1)
+  got=$(dig_host "$name.cloud.local" +short +time=3 2>&1)
   e6="$e6$name.cloud.local -> $got (cần $want)
 "
   [ "$got" = "$want" ] || ok=1

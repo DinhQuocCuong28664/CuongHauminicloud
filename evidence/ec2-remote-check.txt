@@ -1,0 +1,28 @@
+Kiểm thử từ máy cá nhân (118.69.28.143) tới EC2 54.255.211.211 — 2026-10-20 03:59:28 +0700
+
+### Qua reverse proxy (cổng 80, mở cho Internet)
+GET http://54.255.211.211/                     -> 200 <title>MyMiniCloud – Home</title>
+GET http://54.255.211.211/blog/                -> 200
+GET http://54.255.211.211/blog/blog1.html      -> 200
+GET http://54.255.211.211/api/hello            -> {"message":"Hello from App Server!"}
+GET http://54.255.211.211/student/             -> 5 sinh viên
+GET http://54.255.211.211/api/students-db      -> 4 bản ghi từ MariaDB
+GET http://54.255.211.211/auth/                -> 302 http://54.255.211.211/auth/admin/
+4 request liên tiếp, header X-Served-By     -> web1 web2 web1 web2 
+GET /api/secure (token sv01 xin qua 54.255.211.211) -> {"audience":"flask-app","issuer":"http://54.255.211.211/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"} [200]
+GET /api/secure (không token)                 -> {"error":"Missing Bearer token"} [401]
+
+### Cổng trực tiếp (Security Group chỉ mở cho My IP)
+Web1  http://54.255.211.211:8080/              -> 200
+Web2  http://54.255.211.211:8088/              -> 200
+App   http://54.255.211.211:8085/hello         -> {"message":"Hello from App Server!"}
+Keycloak http://54.255.211.211:8081/auth/      -> 302
+MinIO public http://54.255.211.211:9000/profile-pics/avatar.jpg -> 200
+MinIO private http://54.255.211.211:9000/documents/report.pdf -> 403
+MinIO Console http://54.255.211.211:9001/      -> 200
+Prometheus http://54.255.211.211:9090/-/ready  -> 200
+Grafana http://54.255.211.211:3000/api/health  -> 200
+
+### Cổng KHÔNG mở trong Security Group (phải bị chặn)
+TCP 54.255.211.211:3306                        -> timeout (bị Security Group chặn)
+TCP 54.255.211.211:9100                        -> timeout (bị Security Group chặn)

@@ -4,3 +4,5 @@ object-storage-server/data/
 __pycache__/
 *.pyc
 object-storage-server/samples/*.pdf
+scripts/ec2/instance.env
+scripts/ec2/known_hosts

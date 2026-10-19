@@ -1,0 +1,6 @@
+Tài khoản: 749680934725 | IP của bạn: 118.69.28.143/32
+VPC mặc định: vpc-0065e5894e88f6ea6 | AMI Ubuntu 24.04: ami-0080f2c6aa4e378b7
+Đã tạo key pair minicloud-523h0008-523h0025-key
+Đã tạo security group MiniCloud-SG-523H0008-523H0025 (sg-075f476a5da63be72)
+Đã tạo instance i-0858e481793d4534d (t3.medium)
+Instance i-0858e481793d4534d running | public IP 54.255.211.211 | ec2-54-255-211-211.ap-southeast-1.compute.amazonaws.com

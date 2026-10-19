@@ -30,6 +30,17 @@ docker compose pull
 docker compose up -d
 ```
 
+## Triển khai trên AWS EC2 (tài khoản B, ap-southeast-1)
+
+| Script | Việc |
+|---|---|
+| `scripts/ec2/launch.sh` | tạo key pair, security group (80 mở Internet; 22 và cổng quản trị chỉ My IP; không mở 3306, 9100, 1053), instance t3.medium Ubuntu 24.04, gp3 30 GB; `user-data.sh` cài Docker và swap 2 GB |
+| `scripts/ec2/deploy.sh` | gửi mã nguồn + `.env` (PUBLIC_HOST = public IP), `docker compose pull` từ Docker Hub, `up -d --no-build`, chạy smoke test trên EC2 |
+| `scripts/ec2/remote-check.sh` | kiểm thử từ máy cá nhân qua public IP, kể cả xác nhận cổng 3306/9100 bị chặn |
+| `scripts/ec2/stop.sh` | Stop instance (không Terminate) khi không dùng |
+
+Public IP đổi mỗi lần Stop/Start: chạy lại `launch.sh` (tự Start và ghi IP mới) rồi `deploy.sh`.
+
 ## Đường dẫn chính (qua reverse proxy, cổng 80)
 
 | Đường dẫn | Đích | Ghi chú |

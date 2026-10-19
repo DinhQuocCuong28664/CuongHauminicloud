@@ -1,0 +1,72 @@
+== 1. Chờ cloud-init cài Docker trên 54.255.211.211
+Docker version 29.9.1, build dfc520d
+Docker Compose version v5.6.0
+               total        used        free      shared  buff/cache   available
+Mem:           3.7Gi       556Mi       2.3Gi       2.8Mi       1.1Gi       3.2Gi
+Swap:          2.0Gi          0B       2.0Gi
+== 2. Gửi mã nguồn và .env
+== 3. docker compose pull + up
+ Image internetsystemsconsortium/bind9:9.18 Pulled 
+ Image prom/node-exporter:v1.12.1 Pulled 
+ Image nginx/nginx-prometheus-exporter:1.5.3 Pulled 
+ Image pgsty/minio:RELEASE.2026-08-04T00-00-00Z Pulled 
+ Image dinhquoccuong286/myminicloud-proxy:1.0 Pulled 
+ Image dinhquoccuong286/myminicloud-web:1.0 Pulled 
+ Image dinhquoccuong286/myminicloud-app:1.0 Pulled 
+ Image mariadb:11.4.13 Pulled 
+ Image prom/prometheus:v3.15.0 Pulled 
+ Image quay.io/keycloak/keycloak:26.8.1 Pulled 
+ Image grafana/grafana:13.2.4 Pulled 
+ Container authentication-identity-server Healthy 
+ Container api-gateway-proxy-server Starting 
+ Container api-gateway-proxy-server Started 
+Keycloak: healthy
+== 4. Hậu kiểm và smoke test trên EC2
+Logging into http://localhost:8080/auth as user admin of realm master
+
+realm master: sslRequired = none
+Tổng kết: 19 PASS, 1 FAIL
+$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@54.255.211.211
+ubuntu@minicloud-ec2
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+7.0.0-1014-aws
+2
+               total        used        free      shared  buff/cache   available
+Mem:           3.7Gi       1.8Gi       200Mi       3.7Mi       2.0Gi       2.0Gi
+
+$ docker compose ps
+NAME                                  IMAGE                                      STATUS
+api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:1.0     Up About a minute
+application-backend-server            dinhquoccuong286/myminicloud-app:1.0       Up About a minute (healthy)
+authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up 2 minutes (healthy)
+internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 2 minutes
+monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 2 minutes
+monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 2 minutes
+monitoring-prometheus-server          prom/prometheus:v3.15.0                    Up 2 minutes
+object-storage-server                 pgsty/minio:RELEASE.2026-08-04T00-00-00Z   Up 2 minutes
+relational-database-server            mariadb:11.4.13                            Up 2 minutes (healthy)
+web-frontend-exporter                 nginx/nginx-prometheus-exporter:1.5.3      Up 2 minutes
+web-frontend-server1                  dinhquoccuong286/myminicloud-web:1.0       Up 2 minutes
+web-frontend-server2                  dinhquoccuong286/myminicloud-web:1.0       Up 2 minutes
+
+[PASS] T-B01  Web server: / và /blog/ trả 200
+[PASS] T-B02  App server: /hello trực tiếp và qua proxy giống nhau
+[PASS] T-B03  Database: có database minicloud, bảng notes, app đọc được
+[PASS] T-B04  Auth server: Keycloak chạy, admin đăng nhập, tạo được user
+[PASS] T-B05  Storage: tạo bucket demo, upload index.html, console mở được
+[FAIL] T-B06  DNS: web-frontend-server.cloud.local -> 10.10.10.10
+[PASS] T-B07  Monitoring: target node-exporter UP, có metric node_cpu_seconds_total
+[PASS] T-B08  Grafana: datasource Prometheus OK, có dashboard Node Exporter Full
+[PASS] T-B09  Proxy: / -> web, /api/ -> app, /auth/ -> Keycloak
+[PASS] T-B10  Mạng: ping 9 server từ trong proxy, không mất gói
+[PASS] T-E01  Blog cá nhân: 3 bài có ảnh, link về trang chủ, trang chủ liệt kê đủ
+[PASS] T-E02  API /student đọc students.json qua proxy: 5 sinh viên đủ 4 trường
+[PASS] T-E03  studentdb.students có ≥3 bản ghi, API /students-db đọc đúng từ MariaDB
+[PASS] T-E04  Realm realm_523H0008_523H0025: token sv01 gọi /secure được, không token/token sai bị chặn
+[PASS] T-E05  MinIO: profile-pics public, documents private (chỉ mở được bằng URL có chữ ký)
+[PASS] T-E06  DNS: thêm app-backend, minio, keycloak vào zone cloud.local
+[PASS] T-E07  Prometheus: job 'web' giám sát web-frontend-server UP
+[PASS] T-E08  Grafana: dashboard System Health có biểu đồ CPU, Memory, Network
+[PASS] T-E09  Proxy: /student/ trả danh sách sinh viên từ backend
+[PASS] T-E10  Load balancing round robin: 6 request chia đều web1/web2
+Tổng kết: 19 PASS, 1 FAIL

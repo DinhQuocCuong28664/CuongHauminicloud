@@ -1,0 +1,2 @@
+i-0858e481793d4534d	running	stopping
+i-0858e481793d4534d	t3.medium	stopped
