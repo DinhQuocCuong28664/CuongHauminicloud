@@ -10,3 +10,6 @@ logs/*.tmp
 scripts/loadtest/out/
 # Office lock files created while a document is open in Word/Excel
 ~$*
+# Reference material from the lecturer and another group's sample report (not part of the project)
+guild_from_teacher/
+523H0110_523H0024.docx
