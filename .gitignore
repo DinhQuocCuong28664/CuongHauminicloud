@@ -8,3 +8,5 @@ scripts/ec2/instance.env
 scripts/ec2/known_hosts
 logs/*.tmp
 scripts/loadtest/out/
+# Office lock files created while a document is open in Word/Excel
+~$*
