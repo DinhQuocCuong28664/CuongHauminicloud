@@ -1,0 +1,15 @@
+$ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' $(docker compose ps -q)
+NAME                                  CPU %     MEM USAGE / LIMIT
+api-gateway-proxy-server              0.00%     7.457MiB / 7.756GiB
+application-backend-server            0.01%     66.25MiB / 7.756GiB
+authentication-identity-server        0.24%     569.9MiB / 7.756GiB
+internal-dns-server                   0.00%     27.23MiB / 7.756GiB
+monitoring-grafana-dashboard-server   1.20%     246.1MiB / 7.756GiB
+monitoring-node-exporter-server       0.00%     7.891MiB / 7.756GiB
+monitoring-prometheus-server          0.30%     42.51MiB / 7.756GiB
+object-storage-server                 0.00%     75.34MiB / 7.756GiB
+relational-database-server            0.02%     82.23MiB / 7.756GiB
+web-frontend-exporter                 0.00%     5.816MiB / 7.756GiB
+web-frontend-server1                  0.00%     7.398MiB / 7.756GiB
+web-frontend-server2                  0.00%     7.41MiB / 7.756GiB
+

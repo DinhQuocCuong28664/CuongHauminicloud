@@ -1,0 +1,30 @@
+$ curl -sI http://localhost/
+HTTP/1.1 200 OK
+Server: nginx/1.30.6
+Date: Mon, 19 Oct 2026 21:41:54 GMT
+Content-Type: text/html; charset=utf-8
+Content-Length: 2457
+Connection: keep-alive
+Last-Modified: Mon, 19 Oct 2026 21:41:05 GMT
+ETag: "6ad68e71-999"
+X-Served-By: web1
+Accept-Ranges: bytes
+X-Upstream-Addr: 10.10.10.10:80
+
+
+$ curl -s http://localhost/api/hello
+{"message":"Hello from App Server!"}
+
+$ curl -sI http://localhost/auth/
+HTTP/1.1 302 Found
+Server: nginx/1.30.6
+Date: Mon, 19 Oct 2026 21:41:54 GMT
+Connection: keep-alive
+Location: http://localhost/auth/admin/
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Robots-Tag: none
+X-Upstream-Addr: 10.10.10.40:8080
+
+

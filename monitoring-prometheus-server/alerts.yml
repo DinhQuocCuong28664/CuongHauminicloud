@@ -1,0 +1,66 @@
+# Luật cảnh báo của MyMiniCloud (Prometheus đánh giá mỗi 15 giây, gửi sang Alertmanager)
+groups:
+  - name: minicloud-availability
+    rules:
+      # Một target ngừng trả metric (exporter, Prometheus, app...)
+      - alert: TargetDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target {{ $labels.job }} ({{ $labels.instance }}) không phản hồi"
+          description: "Prometheus không scrape được {{ $labels.instance }} trong 30 giây."
+
+      # Một web server trong cụm cân bằng tải biến mất (cAdvisor không còn thấy container)
+      - alert: WebServerDown
+        expr: >-
+          absent(container_last_seen{name="web-frontend-server1"})
+          or absent(container_last_seen{name="web-frontend-server2"})
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Web server {{ $labels.name }} đã dừng"
+          description: "Cụm web chỉ còn một bản sao; proxy vẫn phục vụ nhưng không còn dự phòng."
+
+  - name: minicloud-resources
+    rules:
+      - alert: HighCpuUsage
+        expr: 100 - avg(rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU máy chủ trên 85% trong 2 phút ({{ $value | printf \"%.0f\" }}%)"
+
+      - alert: ContainerHighMemory
+        expr: >-
+          container_memory_working_set_bytes{name!=""}
+          / (container_spec_memory_limit_bytes{name!=""} > 0) > 0.9
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} dùng trên 90% giới hạn RAM"
+
+  - name: minicloud-api
+    rules:
+      - alert: ApiHighErrorRate
+        expr: >-
+          sum(rate(minicloud_http_requests_total{status=~"5.."}[1m]))
+          / sum(rate(minicloud_http_requests_total[1m])) > 0.05
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Hơn 5% request tới API bị lỗi 5xx"
+
+      - alert: ApiHighLatencyP95
+        expr: >-
+          histogram_quantile(0.95, sum by (le) (rate(minicloud_http_request_duration_seconds_bucket[1m]))) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Độ trễ p95 của API trên 500 ms ({{ $value | printf \"%.2f\" }} s)"

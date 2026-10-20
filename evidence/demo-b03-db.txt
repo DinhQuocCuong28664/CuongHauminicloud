@@ -1,0 +1,15 @@
+$ docker exec relational-database-server mariadb -uroot -p"$DB_ROOT_PASSWORD" -e "SHOW DATABASES;"
+Database
+information_schema
+minicloud
+mysql
+performance_schema
+studentdb
+sys
+
+$ docker run --rm --network cloud-net mariadb:11.4.13 mariadb -h db -uroot -p"$DB_ROOT_PASSWORD" -e "USE minicloud; SHOW TABLES; SELECT * FROM notes;"
+Tables_in_minicloud
+notes
+id	title	created_at
+1	Hello from MariaDB!	2026-10-19 18:04:48
+

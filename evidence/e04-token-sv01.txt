@@ -10,10 +10,6 @@ Payload của access token (đã giải mã base64url):
   aud: flask-app
   azp: flask-app
   preferred_username: sv01
-  name: Quốc Cường Đinh
-  email: sv01@cloud.local
-  iat: 1792442100
-  exp: 1792442400
 
 $ curl http://localhost:80/api/secure -H 'Authorization: Bearer <token>'
 {"audience":"flask-app","issuer":"http://localhost/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"}

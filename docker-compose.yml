@@ -1,7 +1,17 @@
 # MyMiniCloud — nhóm Đinh Quốc Cường (523H0008) & Nguyễn Cao Hậu (523H0025)
-# 9 loại server + 3 container phụ trợ (web2 cho cân bằng tải, node-exporter, nginx-exporter)
+# 9 loại server; một số loại gồm nhiều container phụ trợ:
+#   Web: web1, web2 (cân bằng tải) · Monitoring: Prometheus, node-exporter, nginx-exporter, cAdvisor, Alertmanager
+#   Logging/Visualization: Grafana, Loki, Alloy
 # Biến ${...} lấy từ file .env (xem .env.example)
 name: cuonghauminicloud
+
+# Thiết lập chung cho mọi service: tiến trình trong container không được tự nâng quyền (setuid),
+# log của Docker xoay vòng 3 file x 10 MB để không làm đầy ổ đĩa EC2
+x-hardening: &hardening
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
 
 networks:
   cloud-net:
@@ -17,6 +27,10 @@ volumes:
   keycloak-data:
   prometheus-data:
   grafana-data:
+  alertmanager-data:
+  loki-data:
+  alloy-data:
+  certbot-www:
 
 services:
   # ---------------------------------------------------------------- 1. Web
@@ -31,6 +45,14 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.10
         aliases: [web, web-frontend-server]
+    <<: *hardening
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   web-frontend-server2:
@@ -46,6 +68,14 @@ services:
         ipv4_address: 10.10.10.11
         aliases: [web2]
     depends_on: [web-frontend-server1]
+    <<: *hardening
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 2. Application
@@ -53,8 +83,11 @@ services:
     build: ./application-backend-server
     image: ${DOCKERHUB_USER}/myminicloud-app:${IMAGE_TAG}
     container_name: application-backend-server
+    # Nâng cao A10: hỏi DNS nội bộ BIND9 trước. DNS nhúng của Docker (127.0.0.11) vẫn trả tên container,
+    # tên khác (*.cloud.local) được chuyển tới 10.10.10.53, nên app kết nối DB và MinIO bằng tên trong zone cloud.local
+    dns: [10.10.10.53]
     environment:
-      DB_HOST: relational-database-server
+      DB_HOST: db.cloud.local
       DB_USER: ${DB_APP_USER}
       DB_PASSWORD: ${DB_APP_PASSWORD}
       KC_INTERNAL_URL: http://authentication-identity-server:8080/auth
@@ -63,7 +96,12 @@ services:
       # Issuer hợp lệ: token xin qua proxy (cổng PROXY_PORT) hoặc trực tiếp qua cổng AUTH_PORT,
       # bằng tên PUBLIC_HOST (public IP khi chạy EC2) hoặc localhost (kiểm thử ngay trên máy chủ)
       OIDC_ISSUERS: >-
-        http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM},http://localhost/auth/realms/${KC_REALM},http://localhost:${AUTH_PORT}/auth/realms/${KC_REALM}
+        http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM},http://localhost/auth/realms/${KC_REALM},http://localhost:${AUTH_PORT}/auth/realms/${KC_REALM},https://${PUBLIC_DOMAIN}/auth/realms/${KC_REALM}
+      # Nâng cao: object storage bằng user MinIO quyền tối thiểu; token webhook của Alertmanager
+      S3_ENDPOINT: http://s3.cloud.local:9000
+      S3_ACCESS_KEY: ${MINIO_APP_USER}
+      S3_SECRET_KEY: ${MINIO_APP_PASSWORD}
+      ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN}
     ports: ["${APP_PORT}:8081"]
     networks:
       cloud-net:
@@ -77,6 +115,9 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    <<: *hardening
+    mem_limit: 256m
+    cpus: "1.0"
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 3. Database
@@ -88,6 +129,8 @@ services:
       MARIADB_DATABASE: minicloud
       DB_APP_USER: ${DB_APP_USER}
       DB_APP_PASSWORD: ${DB_APP_PASSWORD}
+      DB_BACKUP_USER: ${DB_BACKUP_USER}
+      DB_BACKUP_PASSWORD: ${DB_BACKUP_PASSWORD}
     volumes:
       - db-data:/var/lib/mysql
       - ./relational-database-server/init:/docker-entrypoint-initdb.d:ro
@@ -102,7 +145,32 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    <<: *hardening
+    mem_limit: 512m
+    cpus: "1.0"
     restart: unless-stopped
+
+  # Nâng cao A09: job sao lưu DB sang MinIO, chỉ chạy khi gọi (không phải container thường trực)
+  #   docker compose --profile ops run --rm db-backup
+  #   docker compose --profile ops run --rm --entrypoint python db-backup /app/restore.py
+  db-backup:
+    build: ./ops/db-backup
+    image: ${DOCKERHUB_USER}/myminicloud-db-backup:${IMAGE_TAG}
+    profiles: ["ops"]
+    dns: [10.10.10.53]
+    environment:
+      DB_HOST: db.cloud.local
+      DB_USER: ${DB_BACKUP_USER}
+      MYSQL_PWD: ${DB_BACKUP_PASSWORD}
+      S3_ENDPOINT: http://s3.cloud.local:9000
+      S3_ACCESS_KEY: ${MINIO_BACKUP_USER}
+      S3_SECRET_KEY: ${MINIO_BACKUP_PASSWORD}
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.90
+    <<: *hardening
+    mem_limit: 256m
+    restart: "no"
 
   # ---------------------------------------------------------------- 4. Authentication
   authentication-identity-server:
@@ -122,6 +190,8 @@ services:
       KC_REALM: ${KC_REALM}
       SV_PASSWORD: ${SV_PASSWORD}
       PUBLIC_HOST: ${PUBLIC_HOST}
+      # Tên miền HTTPS trên EC2 (redirect URI của client portal); khi chạy local để localhost
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
     volumes:
       - keycloak-data:/opt/keycloak/data
       - ./authentication-identity-server/realm-523H0008-523H0025.json:/opt/keycloak/data/import/realm-523H0008-523H0025.json:ro
@@ -137,6 +207,9 @@ services:
       timeout: 5s
       retries: 30
       start_period: 30s
+    <<: *hardening
+    mem_limit: 1g
+    cpus: "1.5"
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 5. Object storage
@@ -156,6 +229,14 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.50
         aliases: [minio]
+    <<: *hardening
+    mem_limit: 384m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 6. DNS
@@ -172,6 +253,14 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.53
         aliases: [dns-server]
+    <<: *hardening
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "+short", "+time=2", "ns.cloud.local"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 7. Monitoring
@@ -184,12 +273,21 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./monitoring-prometheus-server/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring-prometheus-server/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     ports: ["${PROM_PORT}:9090"]
     networks:
       cloud-net:
         ipv4_address: 10.10.10.60
         aliases: [prometheus]
+    <<: *hardening
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9090/-/healthy"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   monitoring-node-exporter-server:
@@ -207,6 +305,14 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.61
         aliases: [node-exporter]
+    <<: *hardening
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9100/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   web-frontend-exporter:
@@ -217,9 +323,111 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.62
     depends_on: [web-frontend-server1]
+    <<: *hardening
+    mem_limit: 32m
     restart: unless-stopped
 
-  # ---------------------------------------------------------------- 8. Visualization
+  # Nâng cao: CPU, RAM, mạng của từng container (tương đương CloudWatch Container Insights)
+  monitoring-cadvisor-server:
+    image: ghcr.io/google/cadvisor:v0.60.6
+    container_name: monitoring-cadvisor-server
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=15s
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project
+      - --disable_metrics=advtcp,cpu_topology,cpuLoad,cpuset,disk,hugetlb,memory_numa,percpu,perf_event,process,referenced_memory,resctrl,sched,tcp,udp
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.63
+        aliases: [cadvisor]
+    <<: *hardening
+    mem_limit: 192m
+    restart: unless-stopped
+
+  # Nâng cao: nhận cảnh báo từ Prometheus, gom nhóm rồi gọi webhook của app (tương đương SNS)
+  monitoring-alertmanager-server:
+    image: prom/alertmanager:v0.34.1
+    container_name: monitoring-alertmanager-server
+    # File cấu hình Alertmanager không đọc biến môi trường: ghi token webhook ra file trước khi chạy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        umask 077 && printf '%s' "$$ALERT_WEBHOOK_TOKEN" > /alertmanager/webhook-token &&
+        exec /bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml
+        --storage.path=/alertmanager --cluster.listen-address=
+        --web.external-url=http://${PUBLIC_HOST}:${ALERTMANAGER_PORT}
+    environment:
+      ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN}
+    volumes:
+      - ./monitoring-alertmanager-server/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports: ["${ALERTMANAGER_PORT}:9093"]
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.64
+        aliases: [alertmanager]
+    <<: *hardening
+    mem_limit: 96m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:9093/-/healthy"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- 8. Logging / Visualization
+  # Nâng cao: lưu log tập trung của mọi container (tương đương CloudWatch Logs)
+  logging-loki-server:
+    image: grafana/loki:3.7.8
+    container_name: logging-loki-server
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    volumes:
+      - ./logging-loki-server/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.71
+        aliases: [loki]
+    <<: *hardening
+    mem_limit: 384m
+    restart: unless-stopped
+
+  # Nâng cao: thu log stdout/stderr của container qua Docker API rồi đẩy sang Loki
+  logging-alloy-collector:
+    image: grafana/alloy:v1.20.1
+    container_name: logging-alloy-collector
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - --disable-reporting
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./logging-alloy-collector/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+    networks:
+      cloud-net:
+        ipv4_address: 10.10.10.72
+        aliases: [alloy]
+    depends_on: [logging-loki-server]
+    <<: *hardening
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/127.0.0.1/12345"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   monitoring-grafana-dashboard-server:
     image: grafana/grafana:13.2.4
     container_name: monitoring-grafana-dashboard-server
@@ -237,7 +445,15 @@ services:
       cloud-net:
         ipv4_address: 10.10.10.70
         aliases: [grafana]
-    depends_on: [monitoring-prometheus-server]
+    depends_on: [monitoring-prometheus-server, logging-loki-server, monitoring-alertmanager-server]
+    <<: *hardening
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 9. Reverse proxy / LB
@@ -246,6 +462,9 @@ services:
     image: ${DOCKERHUB_USER}/myminicloud-proxy:${IMAGE_TAG}
     container_name: api-gateway-proxy-server
     ports: ["${PROXY_PORT}:80"]
+    volumes:
+      # Thư mục thử thách Let's Encrypt (chỉ có nội dung khi xin chứng chỉ trên EC2)
+      - certbot-www:/var/www/certbot:ro
     networks:
       cloud-net:
         ipv4_address: 10.10.10.2
@@ -260,4 +479,12 @@ services:
         condition: service_healthy
       authentication-identity-server:
         condition: service_healthy
+    <<: *hardening
+    mem_limit: 128m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped

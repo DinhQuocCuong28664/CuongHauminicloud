@@ -2,6 +2,15 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+# Luật cảnh báo và nơi gửi cảnh báo
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['monitoring-alertmanager-server:9093']
+
 scrape_configs:
   # Prometheus tự giám sát chính nó
   - job_name: 'prometheus'
@@ -22,3 +31,29 @@ scrape_configs:
       - targets: ['web-frontend-exporter:9113']
         labels:
           instance: 'web-frontend-server'
+
+  # Nâng cao: CPU, RAM, mạng của từng container (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['monitoring-cadvisor-server:8080']
+    metric_relabel_configs:
+      # Chỉ giữ container của project MyMiniCloud (bỏ cgroup hệ thống và container của project khác)
+      - source_labels: [container_label_com_docker_compose_project]
+        regex: cuonghauminicloud
+        action: keep
+
+  # Nâng cao: metric riêng của API (số request, mã lỗi, độ trễ theo endpoint)
+  - job_name: 'app'
+    static_configs:
+      - targets: ['application-backend-server:8081']
+        labels:
+          instance: 'application-backend-server'
+
+  # Các thành phần của đường ống cảnh báo và log
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['monitoring-alertmanager-server:9093']
+
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['logging-loki-server:3100']

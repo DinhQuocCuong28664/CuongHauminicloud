@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# smoke-test.sh — chạy các test case phần cơ bản (T-B01…T-B10) và in PASS/FAIL.
+# smoke-test.sh — chạy các test case phần cơ bản (T-B01…T-B10), mở rộng (T-E01…T-E10)
+# và nâng cao (T-A01…T-A11, trong scripts/smoke-advanced.sh), in PASS/FAIL.
 # Chạy trên máy đang chạy cụm (máy local hoặc trong EC2), từ thư mục gốc dự án:
 #   bash scripts/smoke-test.sh [nhãn]        ví dụ: bash scripts/smoke-test.sh local
 # Kết quả ghi vào logs/smoke-<nhãn>.txt
@@ -11,6 +12,8 @@ set -a; . ./.env; set +a
 
 LABEL=${1:-local}
 H=${SMOKE_HOST:-localhost}
+# URL của gateway: mặc định http://<host>:<cổng proxy>; trên EC2 có HTTPS đặt SMOKE_BASE=https://<tên miền>
+P=${SMOKE_BASE:-http://$H:$PROXY_PORT}
 LOG="logs/smoke-${LABEL}.txt"
 NETSHOOT=nicolaka/netshoot:v0.16
 DBCLIENT=mariadb:11.4.13
@@ -60,7 +63,7 @@ GET :$WEB1_PORT/blog/ -> $c2 $t2"
 
 # ---------------------------------------------------------------- T-B02 App
 a=$(curl -s "http://$H:$APP_PORT/hello")
-b=$(curl -s "http://$H:$PROXY_PORT/api/hello")
+b=$(curl -s "$P/api/hello")
 [ "$a" = "$b" ] && [[ "$a" == *"Hello from App Server!"* ]]
 result T-B02 "App server: /hello trực tiếp và qua proxy giống nhau" $? "GET :$APP_PORT/hello      -> $a
 GET :$PROXY_PORT/api/hello -> $b"
@@ -122,9 +125,9 @@ datasource Prometheus: $g2
 dashboards: $g3"
 
 # ---------------------------------------------------------------- T-B09 Reverse proxy
-r1=$(code "http://$H:$PROXY_PORT/")
-r2=$(curl -s "http://$H:$PROXY_PORT/api/hello")
-r3=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "http://$H:$PROXY_PORT/auth/")
+r1=$(code "$P/")
+r2=$(curl -s "$P/api/hello")
+r3=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$P/auth/")
 [ "$r1" = 200 ] && [[ "$r2" == *"Hello from App Server!"* ]] && [[ "$r3" == 302*"/auth/admin/"* ]]
 result T-B09 "Proxy: / -> web, /api/ -> app, /auth/ -> Keycloak" $? "GET :$PROXY_PORT/          -> $r1
 GET :$PROXY_PORT/api/hello -> $r2
@@ -147,21 +150,21 @@ echo
 e1=""
 ok=0
 for p in blog1 blog2 blog3; do
-  page=$(curl -s "http://$H:$PROXY_PORT/blog/$p.html")
+  page=$(curl -s "$P/blog/$p.html")
   img=$(printf '%s' "$page" | grep -o 'src="/assets/[^"]*"' | head -1 | cut -d'"' -f2)
-  ci=$(code "http://$H:$PROXY_PORT$img")
+  ci=$(code "$P$img")
   back=$(printf '%s' "$page" | grep -c 'href="/"')
   title=$(printf '%s' "$page" | grep -o '<h1>[^<]*</h1>' | sed 's/<[^>]*>//g')
   e1="$e1$p.html: \"$title\" | ảnh $img -> $ci | link về trang chủ: $back
 "
   { [ "$ci" = 200 ] && [ "$back" -ge 1 ]; } || ok=1
 done
-links=$(curl -s "http://$H:$PROXY_PORT/" | grep -o 'href="/blog/blog[123].html"' | sort -u | wc -l)
+links=$(curl -s "$P/" | grep -o 'href="/blog/blog[123].html"' | sort -u | wc -l)
 [ "$ok" -eq 0 ] && [ "$links" -eq 3 ]
 result T-E01 "Blog cá nhân: 3 bài có ảnh, link về trang chủ, trang chủ liệt kê đủ" $? "${e1}trang chủ có link tới $links/3 bài"
 
 # ---------------------------------------------------------------- T-E02 /student (JSON)
-s1=$(curl -s "http://$H:$PROXY_PORT/api/student")
+s1=$(curl -s "$P/api/student")
 s1n=$(printf '%s' "$s1" | json "sum(1 for x in d if {'id','name','major','gpa'} <= set(x))")
 [ "$s1n" = 5 ]
 result T-E02 "API /student đọc students.json qua proxy: 5 sinh viên đủ 4 trường" $? "GET :$PROXY_PORT/api/student -> $s1n bản ghi
@@ -169,7 +172,7 @@ $(printf '%s' "$s1" | json "'\n'.join(f\"{x['id']} | {x['name']} | {x['major']} 
 
 # ---------------------------------------------------------------- T-E03 studentdb
 s3=$(docker exec relational-database-server sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -N -e "SELECT COUNT(*) FROM studentdb.students"' 2>/dev/null)
-s3a=$(curl -s "http://$H:$PROXY_PORT/api/students-db")
+s3a=$(curl -s "$P/api/students-db")
 s3n=$(printf '%s' "$s3a" | json "len(d)")
 [ "${s3:-0}" -ge 3 ] && [ "$s3n" = "$s3" ]
 result T-E03 "studentdb.students có ≥3 bản ghi, API /students-db đọc đúng từ MariaDB" $? "SELECT COUNT(*) FROM studentdb.students -> $s3
@@ -177,12 +180,12 @@ GET :$PROXY_PORT/api/students-db -> $s3n bản ghi
 $(printf '%s' "$s3a" | json "'\n'.join(f\"{x['student_id']} | {x['fullname']} | {x['dob']} | {x['major']}\" for x in d)")"
 
 # ---------------------------------------------------------------- T-E04 Keycloak realm + /secure
-TOKEN=$(curl -s -X POST "http://$H:$PROXY_PORT/auth/realms/$KC_REALM/protocol/openid-connect/token" \
+TOKEN=$(curl -s -X POST "$P/auth/realms/$KC_REALM/protocol/openid-connect/token" \
           -d grant_type=password -d "client_id=$OIDC_CLIENT_ID" -d username=sv01 --data-urlencode "password=$SV_PASSWORD" \
         | json "d.get('access_token','')")
-t1=$(curl -s -w ' [%{http_code}]' "http://$H:$PROXY_PORT/api/secure" -H "Authorization: Bearer $TOKEN")
-t2=$(curl -s -w ' [%{http_code}]' "http://$H:$PROXY_PORT/api/secure")
-t3=$(curl -s -w ' [%{http_code}]' "http://$H:$PROXY_PORT/api/secure" -H "Authorization: Bearer ${TOKEN%?????}AAAAA")
+t1=$(curl -s -w ' [%{http_code}]' "$P/api/secure" -H "Authorization: Bearer $TOKEN")
+t2=$(curl -s -w ' [%{http_code}]' "$P/api/secure")
+t3=$(curl -s -w ' [%{http_code}]' "$P/api/secure" -H "Authorization: Bearer ${TOKEN%?????}AAAAA")
 [[ "$t1" == *'"preferred_username":"sv01"'*'[200]' ]] && [[ "$t2" == *'[401]' ]] && [[ "$t3" == *'[401]' ]]
 result T-E04 "Realm $KC_REALM: token sv01 gọi /secure được, không token/token sai bị chặn" $? "token hợp lệ  -> $t1
 không token   -> $t2
@@ -229,18 +232,21 @@ g8=$(curl -s -u "$GF_ADMIN_USER:$GF_ADMIN_PASSWORD" "http://$H:$GRAFANA_PORT/api
 result T-E08 "Grafana: dashboard System Health có biểu đồ CPU, Memory, Network" $? "$g8"
 
 # ---------------------------------------------------------------- T-E09 /student/ qua proxy
-r9=$(curl -s "http://$H:$PROXY_PORT/student/")
+r9=$(curl -s "$P/student/")
 r9n=$(printf '%s' "$r9" | json "len(d)")
 [ "$r9" = "$s1" ] && [ "$r9n" = 5 ]
 result T-E09 "Proxy: /student/ trả danh sách sinh viên từ backend" $? "GET :$PROXY_PORT/student/ -> $r9n bản ghi, giống /api/student"
 
 # ---------------------------------------------------------------- T-E10 Load balancing
-lb=$(for i in 1 2 3 4 5 6; do curl -s -D - -o /dev/null "http://$H:$PROXY_PORT/" | tr -d '\r' | awk 'tolower($1)=="x-served-by:"{print $2}'; done | tr '\n' ' ')
+lb=$(for i in 1 2 3 4 5 6; do curl -s -D - -o /dev/null "$P/" | tr -d '\r' | awk 'tolower($1)=="x-served-by:"{print $2}'; done | tr '\n' ' ')
 n1=$(printf '%s' "$lb" | grep -o web1 | wc -l)
 n2=$(printf '%s' "$lb" | grep -o web2 | wc -l)
 [ "$n1" -eq 3 ] && [ "$n2" -eq 3 ]
 result T-E10 "Load balancing round robin: 6 request chia đều web1/web2" $? "X-Served-By: $lb
 (kiểm thử failover đầy đủ: bash scripts/lb-test.sh)"
+
+# Phần nâng cao ngoài đề
+. scripts/smoke-advanced.sh
 
 echo
 echo "Tổng kết: $pass PASS, $fail FAIL"

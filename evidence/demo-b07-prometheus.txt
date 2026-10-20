@@ -1,0 +1,14 @@
+$ curl -s http://localhost:9090/api/v1/targets | python -c "import sys,json; [print(t['labels']['job'], t['scrapeUrl'], t['health']) for t in json.load(sys.stdin)['data']['activeTargets']]"
+node http://monitoring-node-exporter-server:9100/metrics up
+prometheus http://localhost:9090/metrics up
+web http://web-frontend-exporter:9113/metrics up
+
+$ curl -s 'http://localhost:9090/api/v1/query?query=node_cpu_seconds_total' | python -c "import sys,json; r=json.load(sys.stdin)['data']['result']; print(len(r), 'series'); [print(x['metric']['cpu'], x['metric']['mode'], x['value'][1]) for x in r[:6]]"
+64 series
+0 idle 4572.01
+0 iowait 9.33
+0 irq 0
+0 nice 0.02
+0 softirq 53.1
+0 steal 0
+

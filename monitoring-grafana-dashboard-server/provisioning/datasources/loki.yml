@@ -1,0 +1,23 @@
+apiVersion: 1
+
+datasources:
+  # Log tập trung của mọi container (Alloy đẩy vào Loki)
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://logging-loki-server:3100
+    editable: false
+    jsonData:
+      maxLines: 1000
+
+  # Cảnh báo đang hoạt động trong Alertmanager
+  - name: Alertmanager
+    uid: alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://monitoring-alertmanager-server:9093
+    editable: false
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: false

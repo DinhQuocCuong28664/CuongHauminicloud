@@ -1,0 +1,43 @@
+# Server HTTPS trên EC2, nạp qua docker-compose.ec2.yml thay cho conf.d/default.conf.
+# Ảnh nginx chạy envsubst trên /etc/nginx/templates/*.template lúc khởi động: ${PUBLIC_DOMAIN} được thay
+# bằng tên miền <ip-dạng-gạch>.sslip.io; biến của nginx ($host...) giữ nguyên vì không phải biến môi trường.
+
+# Cổng 80: chỉ phục vụ thử thách của Let's Encrypt, còn lại chuyển hướng sang HTTPS
+server {
+    listen 80;
+    server_name _;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    # Healthcheck của Docker gọi http://127.0.0.1/healthz, không chuyển hướng
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${PUBLIC_DOMAIN};
+
+    # Chứng chỉ Let's Encrypt do job certbot xin (volume certbot-conf)
+    ssl_certificate     /etc/letsencrypt/live/${PUBLIC_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${PUBLIC_DOMAIN}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Áp cho các location không tự add_header (ví dụ /auth/ của Keycloak)
+    add_header Strict-Transport-Security $hsts_header always;
+
+    include /etc/nginx/snippets/routes.conf;
+}

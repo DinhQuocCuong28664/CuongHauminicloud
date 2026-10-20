@@ -1,0 +1,19 @@
+$ curl -sI http://localhost:8081/auth/
+HTTP/1.1 302 Found
+Location: http://localhost:8081/auth/admin/
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Robots-Tag: none
+
+
+$ curl -s http://localhost:8081/auth/realms/master/.well-known/openid-configuration | python -m json.tool | head -8
+{
+    "issuer": "http://localhost:8081/auth/realms/master",
+    "authorization_endpoint": "http://localhost:8081/auth/realms/master/protocol/openid-connect/auth",
+    "token_endpoint": "http://localhost:8081/auth/realms/master/protocol/openid-connect/token",
+    "introspection_endpoint": "http://localhost:8081/auth/realms/master/protocol/openid-connect/token/introspect",
+    "userinfo_endpoint": "http://localhost:8081/auth/realms/master/protocol/openid-connect/userinfo",
+    "end_session_endpoint": "http://localhost:8081/auth/realms/master/protocol/openid-connect/logout",
+    "frontchannel_logout_session_supported": true,
+

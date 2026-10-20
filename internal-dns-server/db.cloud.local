@@ -1,6 +1,6 @@
 $TTL 1H
 @   IN  SOA ns.cloud.local. admin.cloud.local. (
-            2026102002  ; serial (YYYYMMDDnn) - tăng mỗi lần sửa zone
+            2026102003  ; serial (YYYYMMDDnn) - tăng mỗi lần sửa zone
             1H          ; refresh
             15M         ; retry
             1W          ; expire
@@ -38,3 +38,17 @@ monitoring-prometheus-server         IN  A   10.10.10.60
 monitoring-node-exporter-server      IN  A   10.10.10.61
 web-frontend-exporter                IN  A   10.10.10.62
 monitoring-grafana-dashboard-server  IN  A   10.10.10.70
+
+; Nâng cao A10: tên dịch vụ mà application server dùng để kết nối, phân giải qua BIND9 (serial 2026102003)
+db                                   IN  A   10.10.10.30
+s3                                   IN  CNAME minio
+portal                               IN  CNAME proxy
+
+; Nâng cao: giám sát container, cảnh báo, log tập trung
+monitoring-cadvisor-server           IN  A   10.10.10.63
+cadvisor                             IN  A   10.10.10.63
+monitoring-alertmanager-server       IN  A   10.10.10.64
+alertmanager                         IN  A   10.10.10.64
+logging-loki-server                  IN  A   10.10.10.71
+loki                                 IN  A   10.10.10.71
+logging-alloy-collector              IN  A   10.10.10.72

@@ -1,0 +1,9 @@
+$ curl -s http://localhost:8085/hello
+{"message":"Hello from App Server!"}
+
+$ curl -s http://localhost/api/hello
+{"message":"Hello from App Server!"}
+
+$ curl -s http://localhost:8085/notes
+{"count":1,"notes":[{"created_at":"2026-10-19 18:04:48","id":1,"title":"Hello from MariaDB!"}],"source":"MariaDB minicloud.notes"}
+

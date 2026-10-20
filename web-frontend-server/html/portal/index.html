@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MyMiniCloud – Portal</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">MyMiniCloud</a>
+    <nav>
+      <a href="/">Trang chủ</a>
+      <a href="/blog/">Blog</a>
+      <a href="/portal/" class="active">Portal</a>
+      <span id="nav-user" class="nav-user" hidden></span>
+      <button id="btn-logout" class="btn btn-ghost" hidden>Đăng xuất</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Chưa đăng nhập -->
+    <section id="view-login" hidden>
+      <h1>MyMiniCloud Portal</h1>
+      <p>
+        Portal là ứng dụng web chạy trong trình duyệt, nối các server của MyMiniCloud thành một dịch vụ hoàn chỉnh:
+        đăng nhập qua Keycloak, đọc và ghi dữ liệu sinh viên trong MariaDB qua Flask API, lưu ảnh đại diện vào MinIO
+        và theo dõi cảnh báo từ Prometheus.
+      </p>
+      <button id="btn-login" class="btn btn-primary">Đăng nhập bằng Keycloak</button>
+      <p class="muted small">
+        Đăng nhập theo luồng Authorization Code + PKCE: trình duyệt không bao giờ nhận mật khẩu, chỉ nhận access token
+        do Keycloak ký. Tài khoản thử: <code>sv01</code> (quyền editor) và <code>sv02</code> (chỉ xem).
+      </p>
+      <div class="grid steps">
+        <div class="card"><h3>1. Chuyển sang Keycloak</h3><p>Portal tạo code_verifier ngẫu nhiên, gửi kèm code_challenge (SHA-256).</p></div>
+        <div class="card"><h3>2. Nhận authorization code</h3><p>Keycloak xác thực người dùng rồi trả code về /portal/.</p></div>
+        <div class="card"><h3>3. Đổi code lấy token</h3><p>Portal gửi code + code_verifier; chỉ đúng trình duyệt đã bắt đầu mới đổi được.</p></div>
+        <div class="card"><h3>4. Gọi API</h3><p>Mỗi request gửi header Authorization: Bearer; Flask kiểm tra chữ ký, audience, role.</p></div>
+      </div>
+      <p id="login-error" class="msg msg-error" hidden></p>
+    </section>
+
+    <!-- Đã đăng nhập -->
+    <section id="view-app" hidden>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="profile">Hồ sơ</button>
+        <button class="tab" data-tab="students">Sinh viên</button>
+        <button class="tab" data-tab="documents">Tài liệu</button>
+        <button class="tab" data-tab="ops">Vận hành</button>
+      </div>
+
+      <!-- Hồ sơ: thông tin từ token và ảnh đại diện -->
+      <div class="panel" data-panel="profile">
+        <div class="profile">
+          <div class="avatar-box">
+            <img id="avatar" alt="Ảnh đại diện" hidden>
+            <div id="avatar-empty" class="avatar-empty">Chưa có ảnh</div>
+            <form id="form-avatar">
+              <input type="file" id="avatar-file" accept="image/jpeg,image/png" required>
+              <button class="btn btn-primary" type="submit">Tải ảnh lên MinIO</button>
+            </form>
+            <p class="muted small">JPEG hoặc PNG, tối đa 2 MB. App lưu vào bucket <code>profile-pics</code>, trình duyệt đọc lại qua <code>/media/</code>.</p>
+          </div>
+          <div class="profile-info">
+            <h2 id="p-name"></h2>
+            <table class="kv">
+              <tr><th>Tài khoản</th><td id="p-username"></td></tr>
+              <tr><th>Email</th><td id="p-email"></td></tr>
+              <tr><th>Realm role</th><td id="p-roles"></td></tr>
+              <tr><th>Issuer</th><td id="p-issuer" class="mono"></td></tr>
+              <tr><th>Audience / client</th><td id="p-aud" class="mono"></td></tr>
+              <tr><th>Token hết hạn sau</th><td id="p-exp"></td></tr>
+            </table>
+            <details>
+              <summary>Payload của access token (đã giải mã base64url)</summary>
+              <pre id="p-token" class="mono"></pre>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sinh viên: CRUD trên studentdb.students -->
+      <div class="panel" data-panel="students" hidden>
+        <div class="panel-head">
+          <h2>Sinh viên <span class="muted small">(MariaDB <code>studentdb.students</code>)</span></h2>
+          <button id="btn-reload-students" class="btn btn-ghost">Tải lại</button>
+        </div>
+        <p id="students-note" class="muted small"></p>
+        <form id="form-student" class="form-inline">
+          <input type="hidden" id="s-id">
+          <input id="s-student-id" placeholder="Mã SV (SV006)" required maxlength="10">
+          <input id="s-fullname" placeholder="Họ tên" required maxlength="100">
+          <input id="s-dob" type="date">
+          <input id="s-major" placeholder="Ngành" maxlength="50">
+          <button class="btn btn-primary" type="submit" id="btn-save-student">Thêm</button>
+          <button class="btn btn-ghost" type="button" id="btn-cancel-edit" hidden>Huỷ sửa</button>
+        </form>
+        <table class="data">
+          <thead><tr><th>ID</th><th>Mã SV</th><th>Họ tên</th><th>Ngày sinh</th><th>Ngành</th><th></th></tr></thead>
+          <tbody id="students-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Tài liệu private trong bucket documents -->
+      <div class="panel" data-panel="documents" hidden>
+        <h2>Tài liệu private <span class="muted small">(MinIO <code>documents</code>)</span></h2>
+        <p class="muted small">
+          Bucket <code>documents</code> không cho truy cập ẩn danh. App dùng user MinIO quyền tối thiểu để đọc thay
+          người dùng, và chỉ khi token có role <code>editor</code>.
+        </p>
+        <table class="data">
+          <thead><tr><th>Tên</th><th>Dung lượng</th><th>Cập nhật</th><th></th></tr></thead>
+          <tbody id="documents-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Vận hành: cảnh báo từ Alertmanager và đường dẫn tới công cụ giám sát -->
+      <div class="panel" data-panel="ops" hidden>
+        <div class="panel-head">
+          <h2>Cảnh báo <span id="ops-firing" class="badge"></span></h2>
+          <button id="btn-reload-alerts" class="btn btn-ghost">Tải lại</button>
+        </div>
+        <p class="muted small">Prometheus đánh giá luật cảnh báo, Alertmanager gọi webhook của app, app lưu vào MariaDB <code>ops.alerts</code>.</p>
+        <table class="data">
+          <thead><tr><th>Trạng thái</th><th>Cảnh báo</th><th>Mức</th><th>Đối tượng</th><th>Nội dung</th><th>Bắt đầu</th><th>Kết thúc</th></tr></thead>
+          <tbody id="alerts-body"></tbody>
+        </table>
+        <h3>Công cụ giám sát</h3>
+        <div class="grid" id="ops-links"></div>
+      </div>
+
+      <!-- Nhật ký các lần gọi API: dùng request_id để tra log trong Grafana (Loki) -->
+      <div class="calls">
+        <h3>Nhật ký gọi API <span class="muted small">(request_id dùng để tra log trong Grafana → Logs)</span></h3>
+        <table class="data compact">
+          <thead><tr><th>Giờ</th><th>Request</th><th>Mã</th><th>Thời gian</th><th>request_id</th></tr></thead>
+          <tbody id="calls-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p id="toast" class="msg" hidden></p>
+  </main>
+
+  <footer>MyMiniCloud Portal · Đinh Quốc Cường (523H0008) &amp; Nguyễn Cao Hậu (523H0025) · served by __SERVER_NAME__</footer>
+  <script src="/portal/portal.js"></script>
+</body>
+</html>

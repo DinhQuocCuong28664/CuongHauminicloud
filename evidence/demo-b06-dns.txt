@@ -1,0 +1,6 @@
+$ docker run --rm --add-host host.docker.internal:host-gateway nicolaka/netshoot:v0.16 dig @host.docker.internal -p 1053 web-frontend-server.cloud.local +short
+10.10.10.10
+
+$ docker run --rm --add-host host.docker.internal:host-gateway nicolaka/netshoot:v0.16 dig @host.docker.internal -p 1053 web-frontend-server.cloud.local +noall +answer
+web-frontend-server.cloud.local. 3600 IN A	10.10.10.10
+

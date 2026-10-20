@@ -1,0 +1,71 @@
+// Grafana Alloy: đọc stdout/stderr của mọi container trong project qua Docker API rồi đẩy sang Loki.
+// Tương đương CloudWatch agent / Fluent Bit: ứng dụng chỉ cần ghi log ra stdout.
+
+discovery.docker "minicloud" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "10s"
+
+  // Chỉ lấy container của MyMiniCloud, bỏ qua container của project khác trên cùng máy
+  filter {
+    name   = "label"
+    values = ["com.docker.compose.project=cuonghauminicloud"]
+  }
+}
+
+// Gắn nhãn ít giá trị (container, service) để lọc nhanh; request_id, status... để trong nội dung log JSON
+discovery.relabel "minicloud" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+}
+
+loki.source.docker "minicloud" {
+  host             = "unix:///var/run/docker.sock"
+  targets          = discovery.docker.minicloud.targets
+  labels           = {"project" = "myminicloud"}
+  relabel_rules    = discovery.relabel.minicloud.rules
+  refresh_interval = "10s"
+  forward_to       = [loki.process.minicloud.receiver]
+}
+
+// Log JSON của proxy và app: lấy mức log làm nhãn "level" (ít giá trị), giữ nguyên dòng log
+loki.process "minicloud" {
+  stage.match {
+    selector = "{service=~\"api-gateway-proxy-server|application-backend-server\"}"
+
+    stage.json {
+      expressions = {level = "level", status = "status"}
+    }
+
+    stage.template {
+      source   = "level"
+      template = "{{ if .level }}{{ .level }}{{ else if .status }}{{ if ge (atoi .status) 500 }}error{{ else if ge (atoi .status) 400 }}warn{{ else }}info{{ end }}{{ else }}info{{ end }}"
+    }
+
+    stage.labels {
+      values = {level = ""}
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://logging-loki-server:3100/loki/api/v1/push"
+  }
+}

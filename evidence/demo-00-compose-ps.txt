@@ -1,0 +1,15 @@
+$ docker compose ps --format 'table {{.Name}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+NAME                                  IMAGE                                      STATUS                    PORTS
+api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:1.0     Up 21 seconds             0.0.0.0:80->80/tcp, [::]:80->80/tcp
+application-backend-server            dinhquoccuong286/myminicloud-app:1.0       Up 37 seconds (healthy)   0.0.0.0:8085->8081/tcp, [::]:8085->8081/tcp
+authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up 42 seconds (healthy)   0.0.0.0:8081->8080/tcp, [::]:8081->8080/tcp
+internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 42 seconds             0.0.0.0:1053->53/udp, [::]:1053->53/udp
+monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 42 seconds             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 42 seconds             0.0.0.0:9100->9100/tcp, [::]:9100->9100/tcp
+monitoring-prometheus-server          prom/prometheus:v3.15.0                    Up 42 seconds             0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+object-storage-server                 pgsty/minio:RELEASE.2026-08-04T00-00-00Z   Up 42 seconds             0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+relational-database-server            mariadb:11.4.13                            Up 42 seconds (healthy)   0.0.0.0:13306->3306/tcp, [::]:13306->3306/tcp
+web-frontend-exporter                 nginx/nginx-prometheus-exporter:1.5.3      Up 42 seconds             
+web-frontend-server1                  dinhquoccuong286/myminicloud-web:1.0       Up 42 seconds             0.0.0.0:18080->80/tcp, [::]:18080->80/tcp
+web-frontend-server2                  dinhquoccuong286/myminicloud-web:1.0       Up 42 seconds             0.0.0.0:8088->80/tcp, [::]:8088->80/tcp
+

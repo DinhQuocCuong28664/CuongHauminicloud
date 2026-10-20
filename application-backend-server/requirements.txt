@@ -3,3 +3,5 @@ gunicorn==26.2.0
 requests==2.34.2
 python-jose[cryptography]==3.5.0
 PyMySQL==1.2.3
+boto3==1.43.108
+prometheus-client==0.26.0

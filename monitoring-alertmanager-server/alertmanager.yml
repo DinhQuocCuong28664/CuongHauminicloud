@@ -1,0 +1,19 @@
+# Alertmanager nhận cảnh báo từ Prometheus, gom nhóm và gửi đi (tương đương CloudWatch Alarms -> SNS).
+# Đích nhận là webhook /alerts của application server; Portal đọc lại để hiển thị cho giảng viên.
+route:
+  receiver: minicloud-app
+  group_by: ['alertname', 'name', 'instance']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+
+receivers:
+  - name: minicloud-app
+    webhook_configs:
+      - url: http://application-backend-server:8081/alerts
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            # File do lệnh khởi động container ghi từ biến ALERT_WEBHOOK_TOKEN (không đưa bí mật vào Git)
+            credentials_file: /alertmanager/webhook-token
