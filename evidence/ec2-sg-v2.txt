@@ -1,13 +1,13 @@
 $ aws ec2 describe-security-groups --group-ids sg-075f476a5da63be72
-22     118.69.28.143/32, 118.69.30.25/32    SSH - My IP
+22     118.69.30.25/32                      SSH - My IP
 80     0.0.0.0/0                            Reverse proxy
 443    0.0.0.0/0                            HTTPS reverse proxy
-3000   118.69.28.143/32, 118.69.30.25/32    Grafana - My IP
-8080   118.69.28.143/32, 118.69.30.25/32    Web1 - My IP
-8081   118.69.28.143/32, 118.69.30.25/32    Keycloak - My IP
-8085   118.69.28.143/32, 118.69.30.25/32    App - My IP
-8088   118.69.28.143/32, 118.69.30.25/32    Web2 - My IP
-9000   118.69.28.143/32, 118.69.30.25/32    MinIO API - My IP
-9001   118.69.28.143/32, 118.69.30.25/32    MinIO Console - My IP
-9090   118.69.28.143/32, 118.69.30.25/32    Prometheus - My IP
+3000   118.69.30.25/32                      Grafana - My IP
+8080   118.69.30.25/32                      Web1 - My IP
+8081   118.69.30.25/32                      Keycloak - My IP
+8085   118.69.30.25/32                      App - My IP
+8088   118.69.30.25/32                      Web2 - My IP
+9000   118.69.30.25/32                      MinIO API - My IP
+9001   118.69.30.25/32                      MinIO Console - My IP
+9090   118.69.30.25/32                      Prometheus - My IP
 9093   118.69.30.25/32                      Alertmanager - My IP
