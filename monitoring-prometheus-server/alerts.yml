@@ -12,10 +12,13 @@ groups:
           summary: "Target {{ $labels.job }} ({{ $labels.instance }}) không phản hồi"
           description: "Prometheus không scrape được {{ $labels.instance }} trong 30 giây."
 
-      # Một web server trong cụm cân bằng tải biến mất (cAdvisor không còn thấy container)
+      # Một web server trong cụm cân bằng tải ngừng chạy. cAdvisor cập nhật container_last_seen mỗi ~15 giây
+      # cho container đang chạy; container đã dừng thì giá trị đứng yên (Docker Desktop) hoặc series biến mất (Linux),
+      # nên xét cả hai trường hợp.
       - alert: WebServerDown
         expr: >-
-          absent(container_last_seen{name="web-frontend-server1"})
+          max by (name) (time() - container_last_seen{name=~"web-frontend-server[12]"}) > 45
+          or absent(container_last_seen{name="web-frontend-server1"})
           or absent(container_last_seen{name="web-frontend-server2"})
         for: 15s
         labels:

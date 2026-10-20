@@ -68,7 +68,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "count(container_last_seen{container_label_com_docker_compose_project=\"cuonghauminicloud\"})",
+          "expr": "count(time() - container_last_seen{container_label_com_docker_compose_project=\"cuonghauminicloud\"} < 60)",
           "instant": true,
           "range": false
         }

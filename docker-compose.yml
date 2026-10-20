@@ -388,6 +388,9 @@ services:
     image: grafana/loki:3.7.8
     container_name: logging-loki-server
     command: ["-config.file=/etc/loki/loki-config.yml"]
+    # Kiểm thử tải đẩy hàng nghìn dòng log/giây: GOMEMLIMIT cho Go dọn bộ nhớ sớm, dưới giới hạn 1 GB của container
+    environment:
+      GOMEMLIMIT: 700MiB
     volumes:
       - ./logging-loki-server/loki-config.yml:/etc/loki/loki-config.yml:ro
       - loki-data:/loki
@@ -396,7 +399,7 @@ services:
         ipv4_address: 10.10.10.71
         aliases: [loki]
     <<: *hardening
-    mem_limit: 384m
+    mem_limit: 1g
     restart: unless-stopped
 
   # Nâng cao: thu log stdout/stderr của container qua Docker API rồi đẩy sang Loki
@@ -436,6 +439,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
+      # Dashboard log đọc nhiều dữ liệu từ Loki: cho Go dọn bộ nhớ sớm, dưới giới hạn 768 MB
+      GOMEMLIMIT: 560MiB
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring-grafana-dashboard-server/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
@@ -447,7 +452,7 @@ services:
         aliases: [grafana]
     depends_on: [monitoring-prometheus-server, logging-loki-server, monitoring-alertmanager-server]
     <<: *hardening
-    mem_limit: 512m
+    mem_limit: 768m
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
       interval: 15s

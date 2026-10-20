@@ -1,0 +1,8 @@
+Kiểm thử tải k6 — nhãn local
+web: 2 web server, 20 VU            185489 req   5874.2 req/s  p50    2.3 ms  p95    7.4 ms  max  1370.4 ms  lỗi  0.00%  web1/web2 = 92745/92744
+web: chỉ web1, 20 VU                184085 req   5810.0 req/s  p50    2.1 ms  p95    7.0 ms  max  3686.0 ms  lỗi  0.00%  web1/web2 = 184085/0
+failover: dừng/bật web2, 20 VU      391219 req   6224.3 req/s  p50    2.2 ms  p95    6.9 ms  max  3379.9 ms  lỗi  0.00%  web1/web2 = 268910/122309
+ratelimit: 30 req/s vào /api/hello     600 req     27.7 req/s  p50    0.3 ms  p95    1.6 ms  max     2.5 ms  lỗi  0.00%  200 = 220, 429 = 380
+api: /hello + /students-db, 20 VU     4774 req    149.0 req/s  p50  120.9 ms  p95  193.5 ms  max  1540.7 ms  lỗi  0.00%
+   GET /hello           p50  110.9 ms  p95  182.7 ms  max  1529.2 ms
+   GET /students-db     p50  132.6 ms  p95  199.6 ms  max  1540.7 ms

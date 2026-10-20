@@ -21,9 +21,9 @@
   },
   "panels": [
     {
-      "id": 23,
+      "id": 1,
       "type": "stat",
-      "title": "Target đang UP",
+      "title": "Target UP",
       "description": "",
       "gridPos": {
         "x": 0,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 2,
       "type": "stat",
       "title": "Target DOWN",
       "description": "",
@@ -135,9 +135,9 @@
       }
     },
     {
-      "id": 25,
+      "id": 3,
       "type": "stat",
-      "title": "Cảnh báo đang firing",
+      "title": "Cảnh báo firing",
       "description": "",
       "gridPos": {
         "x": 8,
@@ -194,9 +194,9 @@
       }
     },
     {
-      "id": 26,
+      "id": 4,
       "type": "stat",
-      "title": "Container đang chạy",
+      "title": "Container chạy",
       "description": "",
       "gridPos": {
         "x": 12,
@@ -215,7 +215,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "count(container_last_seen{container_label_com_docker_compose_project=\"cuonghauminicloud\"})",
+          "expr": "count(time() - container_last_seen{container_label_com_docker_compose_project=\"cuonghauminicloud\"} < 60)",
           "instant": true,
           "range": false
         }
@@ -249,9 +249,9 @@
       }
     },
     {
-      "id": 27,
+      "id": 5,
       "type": "stat",
-      "title": "CPU máy chủ",
+      "title": "CPU host",
       "description": "",
       "gridPos": {
         "x": 16,
@@ -313,9 +313,9 @@
       }
     },
     {
-      "id": 28,
+      "id": 6,
       "type": "stat",
-      "title": "RAM máy chủ đã dùng",
+      "title": "RAM host",
       "description": "",
       "gridPos": {
         "x": 20,
@@ -377,7 +377,7 @@
       }
     },
     {
-      "id": 29,
+      "id": 7,
       "type": "table",
       "title": "Cảnh báo đang hoạt động",
       "gridPos": {
@@ -428,7 +428,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 8,
       "type": "timeseries",
       "title": "Request/giây vào web (nginx) và API (Flask)",
       "description": "",
@@ -488,7 +488,7 @@
       }
     },
     {
-      "id": 31,
+      "id": 9,
       "type": "timeseries",
       "title": "Top 5 container theo RAM",
       "description": "",
@@ -539,7 +539,7 @@
       }
     },
     {
-      "id": 32,
+      "id": 10,
       "type": "timeseries",
       "title": "Độ trễ p95 của API",
       "description": "",
@@ -590,7 +590,7 @@
       }
     },
     {
-      "id": 33,
+      "id": 11,
       "type": "logs",
       "title": "Log lỗi gần nhất",
       "description": "",

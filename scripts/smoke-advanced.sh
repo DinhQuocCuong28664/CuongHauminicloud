@@ -78,8 +78,9 @@ o1=$(curl -s -H "$A1" -F "file=@object-storage-server/samples/avatar.jpg" "$P/ap
 o1u=$(printf '%s' "$o1" | json "d.get('url','')")
 o2=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' "$P${o1u}")
 o3=$(curl -s -o /dev/null -w '%{http_code}' -H "$A1" -F "file=@README.md" "$P/api/avatar")
-# Ghi ra file tạm: curl của Git Bash báo size_download = 0 khi ghi vào /dev/null
-o4f=$(mktemp)
+# Ghi ra file tạm trong thư mục dự án: curl của Git Bash là bản Windows (mingw), báo 0 byte khi ghi vào
+# /dev/null và không hiểu đường dẫn /tmp/... khi MSYS_NO_PATHCONV=1
+o4f=logs/.a04-download.tmp
 o4=$(curl -s -o "$o4f" -w '%{http_code}' -H "$A1" "$P/api/documents/report.pdf")
 o4="$o4 $(wc -c < "$o4f" | tr -d ' ')"; rm -f "$o4f"
 o5=$(code "$P/api/documents/report.pdf")

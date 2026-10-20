@@ -72,7 +72,7 @@
   },
   "panels": [
     {
-      "id": 18,
+      "id": 1,
       "type": "timeseries",
       "title": "Số dòng log/phút theo container",
       "description": "",
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 2,
       "type": "timeseries",
       "title": "Mã trạng thái tại gateway (đếm từ access log)",
       "description": "Thấy cả 429 do gateway giới hạn tốc độ, thứ mà metric của app không thấy",
@@ -182,7 +182,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 3,
       "type": "logs",
       "title": "Log theo container (lọc bằng ô Tìm chuỗi)",
       "description": "",
@@ -216,7 +216,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 4,
       "type": "logs",
       "title": "Truy vết một request theo request_id (proxy → app)",
       "description": "Dán giá trị header X-Request-ID vào ô request_id",
@@ -250,7 +250,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 5,
       "type": "logs",
       "title": "Log lỗi và cảnh báo",
       "description": "",

@@ -72,6 +72,8 @@ def logs(title, expr, x, y, w=24, h=12, desc=""):
 
 
 def dashboard(uid, title, desc, panels, variables=(), refresh="10s", time_from="now-30m"):
+    for i, p in enumerate(panels, 1):   # id panel đánh từ 1 trong mỗi dashboard (dùng cho viewPanel=<id>)
+        p["id"] = i
     return {
         "uid": uid, "title": title, "description": desc,
         "tags": ["myminicloud", "nang-cao", "523H0008", "523H0025"],
@@ -105,7 +107,7 @@ containers = dashboard(
     "containers-523h0008-523h0025", "Containers – MyMiniCloud (cAdvisor)",
     "Nâng cao A06: CPU, RAM, mạng của từng container, tương đương CloudWatch Container Insights",
     [
-        stat("Container đang chạy", f"count(container_last_seen{{{PROJECT}}})", 0, 0, w=6),
+        stat("Container đang chạy", f"count(time() - container_last_seen{{{PROJECT}}} < 60)", 0, 0, w=6),
         stat("Tổng RAM các container", f"sum(container_memory_working_set_bytes{{{PROJECT}}})", 6, 0, w=6, unit="bytes"),
         stat("Tổng CPU các container (% một lõi)",
              f"sum(rate(container_cpu_usage_seconds_total{{{PROJECT}}}[1m])) * 100", 12, 0, w=6, unit="percent", decimals=1),
@@ -193,16 +195,16 @@ overview = dashboard(
     "overview-523h0008-523h0025", "MyMiniCloud – Overview (523H0008 & 523H0025)",
     "Một màn hình tình trạng toàn hệ thống: target, cảnh báo, máy chủ, container, API, log lỗi",
     [
-        stat("Target đang UP", "sum(up)", 0, 0, w=4),
+        stat("Target UP", "sum(up)", 0, 0, w=4),
         stat("Target DOWN", "count(up == 0) or vector(0)", 4, 0, w=4,
              steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]),
-        stat("Cảnh báo đang firing", 'count(ALERTS{alertstate="firing"}) or vector(0)', 8, 0, w=4,
+        stat("Cảnh báo firing", 'count(ALERTS{alertstate="firing"}) or vector(0)', 8, 0, w=4,
              steps=[{"color": "green", "value": None}, {"color": "red", "value": 1}]),
-        stat("Container đang chạy", f"count(container_last_seen{{{PROJECT}}})", 12, 0, w=4),
-        stat("CPU máy chủ", '100 - avg(rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100', 16, 0, w=4,
+        stat("Container chạy", f"count(time() - container_last_seen{{{PROJECT}}} < 60)", 12, 0, w=4),
+        stat("CPU host", '100 - avg(rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100', 16, 0, w=4,
              unit="percent", decimals=1,
              steps=[{"color": "green", "value": None}, {"color": "orange", "value": 70}, {"color": "red", "value": 85}]),
-        stat("RAM máy chủ đã dùng", "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)", 20, 0, w=4,
+        stat("RAM host", "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)", 20, 0, w=4,
              unit="percent", decimals=1,
              steps=[{"color": "green", "value": None}, {"color": "orange", "value": 75}, {"color": "red", "value": 90}]),
         {
