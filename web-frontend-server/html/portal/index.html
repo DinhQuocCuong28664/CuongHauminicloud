@@ -20,7 +20,7 @@
   </header>
 
   <main>
-    <!-- Chưa đăng nhập -->
+    <!-- Signed out -->
     <section id="view-login" hidden>
       <h1>MyMiniCloud Portal</h1>
       <p>
@@ -42,7 +42,7 @@
       <p id="login-error" class="msg msg-error" hidden></p>
     </section>
 
-    <!-- Đã đăng nhập -->
+    <!-- Signed in -->
     <section id="view-app" hidden>
       <div class="tabs" role="tablist">
         <button class="tab active" data-tab="profile">Hồ sơ</button>
@@ -51,7 +51,7 @@
         <button class="tab" data-tab="ops">Vận hành</button>
       </div>
 
-      <!-- Hồ sơ: thông tin từ token và ảnh đại diện -->
+      <!-- Profile: token details and avatar -->
       <div class="panel" data-panel="profile">
         <div class="profile">
           <div class="avatar-box">
@@ -81,7 +81,7 @@
         </div>
       </div>
 
-      <!-- Sinh viên: CRUD trên studentdb.students -->
+      <!-- Students: CRUD on studentdb.students -->
       <div class="panel" data-panel="students" hidden>
         <div class="panel-head">
           <h2>Sinh viên <span class="muted small">(MariaDB <code>studentdb.students</code>)</span></h2>
@@ -103,7 +103,7 @@
         </table>
       </div>
 
-      <!-- Tài liệu private trong bucket documents -->
+      <!-- Private documents in the documents bucket -->
       <div class="panel" data-panel="documents" hidden>
         <h2>Tài liệu private <span class="muted small">(MinIO <code>documents</code>)</span></h2>
         <p class="muted small">
@@ -116,7 +116,7 @@
         </table>
       </div>
 
-      <!-- Vận hành: cảnh báo từ Alertmanager và đường dẫn tới công cụ giám sát -->
+      <!-- Operations: alerts from Alertmanager and links to the monitoring tools -->
       <div class="panel" data-panel="ops" hidden>
         <div class="panel-head">
           <h2>Cảnh báo <span id="ops-firing" class="badge"></span></h2>
@@ -131,7 +131,7 @@
         <div class="grid" id="ops-links"></div>
       </div>
 
-      <!-- Nhật ký các lần gọi API: dùng request_id để tra log trong Grafana (Loki) -->
+      <!-- API call log: use request_id to look up logs in Grafana (Loki) -->
       <div class="calls">
         <h3>Nhật ký gọi API <span class="muted small">(request_id dùng để tra log trong Grafana → Logs)</span></h3>
         <table class="data compact">

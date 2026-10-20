@@ -1,5 +1,5 @@
-# Loki chạy một tiến trình (monolithic), lưu log trên volume loki-data, giữ 7 ngày.
-# Tương đương CloudWatch Logs: nhận log từ Alloy, Grafana truy vấn bằng LogQL.
+# Loki runs as a single process (monolithic), stores logs on the loki-data volume, keeps 7 days.
+# Like CloudWatch Logs: receives logs from Alloy, Grafana queries them with LogQL.
 auth_enabled: false
 
 server:
@@ -29,7 +29,7 @@ schema_config:
         prefix: index_
         period: 24h
 
-# Đẩy chunk xuống đĩa sớm (mặc định giữ trong RAM tới 2 giờ) để RAM không tăng theo lượng log
+# Flush chunks to disk early (by default they stay in RAM up to 2 hours) so RAM does not grow with log volume
 ingester:
   chunk_idle_period: 5m
   max_chunk_age: 30m
@@ -39,7 +39,7 @@ limits_config:
   retention_period: 168h
   allow_structured_metadata: true
   volume_enabled: true
-  # Giới hạn tốc độ nhận log (vượt thì Alloy gửi lại sau), bảo vệ Loki khi kiểm thử tải
+  # Ingestion rate limit (Alloy retries when it is exceeded), protects Loki during load tests
   ingestion_rate_mb: 8
   ingestion_burst_size_mb: 16
   per_stream_rate_limit: 8MB

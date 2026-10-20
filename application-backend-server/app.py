@@ -21,7 +21,7 @@ from prometheus_client import (CONTENT_TYPE_LATEST, REGISTRY, CollectorRegistry,
 
 STUDENTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "students.json")
 
-# Bảng HTML khi mở API bằng trình duyệt; curl và client khác vẫn nhận JSON
+# HTML table when the API is opened in a browser; curl and other clients still get JSON
 TABLE_PAGE = """<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"><title>{{ title }}</title>
 <style>
@@ -53,19 +53,19 @@ def table_or_json(title, color, source, columns, rows):
         )
     return jsonify(rows)
 
-# ---------- Cấu hình OIDC (Keycloak) ----------
+# ---------- OIDC configuration (Keycloak) ----------
 KC_INTERNAL_URL = os.getenv("KC_INTERNAL_URL", "http://authentication-identity-server:8080/auth")
 KC_REALM = os.getenv("KC_REALM", "realm_523H0008_523H0025")
 OIDC_AUDIENCE = os.getenv("OIDC_AUDIENCE", "flask-app")
-# JWKS lấy qua mạng nội bộ cloud-net
+# JWKS is fetched over the internal cloud-net network
 OIDC_JWKS_URL = os.getenv(
     "OIDC_JWKS_URL", f"{KC_INTERNAL_URL}/realms/{KC_REALM}/protocol/openid-connect/certs"
 )
-# Issuer (claim "iss") là URL mà client đã dùng để xin token, tức URL công khai
-# (qua proxy hoặc qua cổng 8081), nên khác URL nội bộ ở trên. Liệt kê các issuer hợp lệ, cách nhau dấu phẩy.
+# The issuer ("iss" claim) is the URL the client used to request the token, i.e. the public URL
+# (through the proxy or port 8081), so it differs from the internal URL above. Comma-separated valid issuers.
 OIDC_ISSUERS = [s.strip() for s in os.getenv("OIDC_ISSUERS", "").split(",") if s.strip()]
 
-# ---------- Cấu hình database ----------
+# ---------- Database configuration ----------
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "relational-database-server"),
     "port": int(os.getenv("DB_PORT", "3306")),
@@ -75,28 +75,28 @@ DB_CONFIG = {
     "cursorclass": pymysql.cursors.DictCursor,
 }
 
-# ---------- Nâng cao: object storage (MinIO, API S3) ----------
-# App dùng user MinIO riêng chỉ có quyền trên profile-pics và documents (giống IAM role tối thiểu)
+# ---------- Advanced: object storage (MinIO, S3 API) ----------
+# The app uses its own MinIO user with rights on profile-pics and documents only (like a least-privilege IAM role)
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://object-storage-server:9000")
 AVATAR_BUCKET = os.getenv("AVATAR_BUCKET", "profile-pics")
 DOCUMENT_BUCKET = os.getenv("DOCUMENT_BUCKET", "documents")
 AVATAR_MAX_BYTES = 2 * 1024 * 1024
-# Nhận dạng ảnh theo vài byte đầu file, không tin phần mở rộng hay Content-Type do trình duyệt gửi
+# Detect images by their first bytes; do not trust the extension or the Content-Type sent by the browser
 IMAGE_SIGNATURES = {b"\xff\xd8\xff": ("jpg", "image/jpeg"), b"\x89PNG\r\n\x1a\n": ("png", "image/png")}
 
-# ---------- Nâng cao: cảnh báo từ Alertmanager ----------
+# ---------- Advanced: alerts from Alertmanager ----------
 ALERT_WEBHOOK_TOKEN = os.getenv("ALERT_WEBHOOK_TOKEN", "")
 
-# ---------- Nâng cao: metric Prometheus (RED: Rate, Errors, Duration) ----------
-# gunicorn chạy nhiều worker: mỗi worker ghi metric ra PROMETHEUS_MULTIPROC_DIR, /metrics gộp lại
-REQUESTS = Counter("minicloud_http_requests_total", "Số request HTTP tới API", ["method", "endpoint", "status"])
+# ---------- Advanced: Prometheus metrics (RED: Rate, Errors, Duration) ----------
+# gunicorn runs several workers: each writes metrics to PROMETHEUS_MULTIPROC_DIR, /metrics merges them
+REQUESTS = Counter("minicloud_http_requests_total", "HTTP requests to the API", ["method", "endpoint", "status"])
 LATENCY = Histogram(
-    "minicloud_http_request_duration_seconds", "Thời gian xử lý request", ["method", "endpoint"],
+    "minicloud_http_request_duration_seconds", "Request processing time", ["method", "endpoint"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5),
 )
 NOT_MEASURED = {"/metrics", "/health"}
 
-# ---------- Nâng cao: log JSON một dòng, có request_id để Loki truy vết qua proxy và app ----------
+# ---------- Advanced: single-line JSON log with request_id so Loki can trace across proxy and app ----------
 log = logging.getLogger("minicloud")
 _handler = logging.StreamHandler(sys.stdout)
 _handler.setFormatter(logging.Formatter("%(message)s"))
@@ -117,7 +117,7 @@ _jwks_fetched_at = 0
 
 
 def get_jwks():
-    """Tải JWKS của realm, cache 10 phút."""
+    """Fetch the realm JWKS, cached for 10 minutes."""
     global _jwks, _jwks_fetched_at
     now = time.time()
     if not _jwks or now - _jwks_fetched_at > 600:
@@ -127,7 +127,7 @@ def get_jwks():
 
 
 def signing_key_for(token):
-    """Chọn khoá công khai theo kid trong header của token."""
+    """Pick the public key matching the kid in the token header."""
     kid = jwt.get_unverified_header(token).get("kid")
     for key in get_jwks().get("keys", []):
         if key.get("kid") == kid:
@@ -146,7 +146,7 @@ def db_query(sql, database, args=None):
 
 
 def db_exec(sql, database, args=None):
-    """Câu lệnh ghi (INSERT/UPDATE/DELETE): commit và trả (lastrowid, rowcount)."""
+    """Write statement (INSERT/UPDATE/DELETE): commit and return (lastrowid, rowcount)."""
     conn = pymysql.connect(database=database, **DB_CONFIG)
     try:
         with conn.cursor() as cur:
@@ -180,7 +180,7 @@ app.config["MAX_CONTENT_LENGTH"] = AVATAR_MAX_BYTES + 64 * 1024
 @app.before_request
 def _start_request():
     g.t0 = time.perf_counter()
-    # Proxy gắn X-Request-ID cho mỗi request; gọi thẳng cổng 8085 thì app tự sinh
+    # The proxy sets X-Request-ID on every request; on direct calls to port 8085 the app generates one
     g.request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex
     g.user = None
 
@@ -199,7 +199,7 @@ def _finish_request(resp):
     return resp
 
 
-# ---------- Xác thực và phân quyền (RBAC) bằng access token của Keycloak ----------
+# ---------- Authentication and authorization (RBAC) with Keycloak access tokens ----------
 class AuthError(Exception):
     def __init__(self, message, status=401):
         super().__init__(message)
@@ -207,7 +207,7 @@ class AuthError(Exception):
 
 
 def verify_token():
-    """Kiểm tra issuer tin cậy, chữ ký RS256 theo kid, audience; trả về claims."""
+    """Check for a trusted issuer, the RS256 signature by kid and the audience; return the claims."""
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise AuthError("Missing Bearer token")
@@ -225,7 +225,7 @@ def verify_token():
 
 
 def require_auth(role=None):
-    """Decorator: bắt buộc token hợp lệ; nếu có role thì token phải chứa realm role đó (không có -> 403)."""
+    """Decorator: require a valid token; with a role, the token must carry that realm role (otherwise 403)."""
     def decorator(fn):
         @functools.wraps(fn)
         def wrapper(*args, **kwargs):
@@ -237,13 +237,13 @@ def require_auth(role=None):
             g.user = claims.get("preferred_username")
             g.roles = claims.get("realm_access", {}).get("roles", [])
             if role and role not in g.roles:
-                return jsonify(error=f"Forbidden: cần realm role '{role}'", roles=g.roles), 403
+                return jsonify(error=f"Forbidden: requires realm role '{role}'", roles=g.roles), 403
             return fn(*args, **kwargs)
         return wrapper
     return decorator
 
 
-# ================================================================ Endpoint của đề bài
+# ================================================================ Assignment endpoints
 @app.get("/hello")
 def hello():
     return jsonify(message="Hello from App Server!")
@@ -256,7 +256,7 @@ def health():
 
 @app.get("/notes")
 def notes():
-    """Đọc bảng minicloud.notes để kiểm tra kết nối App -> DB."""
+    """Read minicloud.notes to check the App -> DB connection."""
     try:
         rows = db_query("SELECT id, title, created_at FROM notes ORDER BY id", "minicloud")
     except pymysql.MySQLError as e:
@@ -268,7 +268,7 @@ def notes():
 
 @app.get("/student")
 def student():
-    """Mở rộng 2: danh sách sinh viên đọc từ file JSON."""
+    """Extension 2: student list read from a JSON file."""
     with open(STUDENTS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     return table_or_json(
@@ -279,7 +279,7 @@ def student():
 
 @app.get("/students-db")
 def students_db():
-    """Mở rộng 3: danh sách sinh viên đọc từ MariaDB studentdb.students."""
+    """Extension 3: student list read from MariaDB studentdb.students."""
     try:
         rows = db_query(
             "SELECT id, student_id, fullname, dob, major FROM students ORDER BY id", "studentdb"
@@ -305,10 +305,10 @@ def secure():
     )
 
 
-# ================================================================ Nâng cao
+# ================================================================ Advanced
 @app.get("/metrics")
 def metrics():
-    """Metric cho Prometheus (job app). Gateway chặn đường này từ bên ngoài."""
+    """Metrics for Prometheus (app job). The gateway blocks this path from outside."""
     if os.getenv("PROMETHEUS_MULTIPROC_DIR"):
         registry = CollectorRegistry()
         multiprocess.MultiProcessCollector(registry)
@@ -318,7 +318,7 @@ def metrics():
 
 
 def avatar_key(username):
-    """Ảnh đại diện hiện có của user (jpg hoặc png) trong bucket public, hoặc None."""
+    """Current avatar of the user (jpg or png) in the public bucket, or None."""
     for ext in ("jpg", "png"):
         key = f"{username}.{ext}"
         try:
@@ -343,7 +343,7 @@ def me():
     )
 
 
-# ---------- CRUD sinh viên (A03): đọc cần đăng nhập, ghi cần role editor ----------
+# ---------- Student CRUD (A03): reads need a login, writes need the editor role ----------
 STUDENT_ID_RE = re.compile(r"^[A-Za-z0-9]{3,10}$")
 STUDENT_COLS = "id, student_id, fullname, dob, major"
 
@@ -354,24 +354,24 @@ def student_row(row):
 
 
 def validate_student(data):
-    """Trả về (giá trị đã chuẩn hoá, None) hoặc (None, thông báo lỗi)."""
+    """Return (normalized values, None) or (None, error message)."""
     if not isinstance(data, dict):
-        return None, "Body phải là JSON object"
+        return None, "Body must be a JSON object"
     sid = str(data.get("student_id", "")).strip()
     name = str(data.get("fullname", "")).strip()
     major = str(data.get("major", "") or "").strip()
     dob = data.get("dob") or None
     if not STUDENT_ID_RE.match(sid):
-        return None, "student_id gồm 3–10 chữ hoặc số"
+        return None, "student_id must be 3-10 letters or digits"
     if not 1 <= len(name) <= 100:
-        return None, "fullname dài 1–100 ký tự"
+        return None, "fullname must be 1-100 characters"
     if len(major) > 50:
-        return None, "major tối đa 50 ký tự"
+        return None, "major must be at most 50 characters"
     if dob is not None:
         try:
             dob = datetime.date.fromisoformat(str(dob)).isoformat()
         except ValueError:
-            return None, "dob phải có dạng YYYY-MM-DD"
+            return None, "dob must use the YYYY-MM-DD format"
     return (sid, name, dob, major or None), None
 
 
@@ -394,7 +394,7 @@ def students_create():
     if err:
         return jsonify(error=err), 400
     if student_id_taken(values[0]):
-        return jsonify(error=f"student_id {values[0]} đã tồn tại"), 409
+        return jsonify(error=f"student_id {values[0]} already exists"), 409
     new_id, _ = db_exec("INSERT INTO students (student_id, fullname, dob, major) VALUES (%s, %s, %s, %s)",
                         "studentdb", values)
     row = db_query(f"SELECT {STUDENT_COLS} FROM students WHERE id = %s", "studentdb", (new_id,))[0]
@@ -406,12 +406,12 @@ def students_create():
 @require_auth("editor")
 def students_update(sid):
     if not db_query("SELECT id FROM students WHERE id = %s", "studentdb", (sid,)):
-        return jsonify(error=f"Không có sinh viên id={sid}"), 404
+        return jsonify(error=f"No student with id={sid}"), 404
     values, err = validate_student(request.get_json(silent=True))
     if err:
         return jsonify(error=err), 400
     if student_id_taken(values[0], exclude_id=sid):
-        return jsonify(error=f"student_id {values[0]} đã tồn tại"), 409
+        return jsonify(error=f"student_id {values[0]} already exists"), 409
     db_exec("UPDATE students SET student_id = %s, fullname = %s, dob = %s, major = %s WHERE id = %s",
             "studentdb", (*values, sid))
     row = db_query(f"SELECT {STUDENT_COLS} FROM students WHERE id = %s", "studentdb", (sid,))[0]
@@ -424,29 +424,29 @@ def students_update(sid):
 def students_delete(sid):
     _, count = db_exec("DELETE FROM students WHERE id = %s", "studentdb", (sid,))
     if not count:
-        return jsonify(error=f"Không có sinh viên id={sid}"), 404
+        return jsonify(error=f"No student with id={sid}"), 404
     log_json("info", "student deleted", request_id=g.request_id, user=g.user, id=sid)
     return "", 204
 
 
-# ---------- Ảnh đại diện (A04): upload qua app vào bucket public, đọc qua gateway /media/ ----------
+# ---------- Avatars (A04): uploaded through the app to the public bucket, read through gateway /media/ ----------
 @app.post("/avatar")
 @require_auth()
 def avatar_upload():
     f = request.files.get("file")
     if f is None:
-        return jsonify(error="Thiếu file (multipart field 'file')"), 400
+        return jsonify(error="Missing file (multipart field 'file')"), 400
     data = f.read(AVATAR_MAX_BYTES + 1)
     if len(data) > AVATAR_MAX_BYTES:
-        return jsonify(error="Ảnh tối đa 2 MB"), 413
+        return jsonify(error="Image must be at most 2 MB"), 413
     kind = next((v for sig, v in IMAGE_SIGNATURES.items() if data.startswith(sig)), None)
     if kind is None:
-        return jsonify(error="Chỉ nhận ảnh JPEG hoặc PNG"), 415
+        return jsonify(error="Only JPEG or PNG images are accepted"), 415
     ext, content_type = kind
     key = f"{g.user}.{ext}"
     s3().put_object(Bucket=AVATAR_BUCKET, Key=key, Body=data, ContentType=content_type,
                     CacheControl="public, max-age=60")
-    # Xoá bản định dạng còn lại để mỗi user chỉ có một ảnh
+    # Delete the other format so each user keeps a single avatar
     other = f"{g.user}.{'png' if ext == 'jpg' else 'jpg'}"
     s3().delete_object(Bucket=AVATAR_BUCKET, Key=other)
     _, version = avatar_key(g.user)
@@ -454,7 +454,7 @@ def avatar_upload():
     return jsonify(bucket=AVATAR_BUCKET, key=key, bytes=len(data), url=f"/media/{key}?v={version}"), 201
 
 
-# ---------- Tài liệu private (A04): chỉ editor tải được, app đọc thay người dùng ----------
+# ---------- Private documents (A04): editors only, the app reads them on behalf of the user ----------
 @app.get("/documents")
 @require_auth("editor")
 def documents_list():
@@ -470,14 +470,14 @@ def documents_get(name):
     try:
         obj = s3().get_object(Bucket=DOCUMENT_BUCKET, Key=name)
     except ClientError:
-        return jsonify(error=f"Không có tài liệu {name}"), 404
+        return jsonify(error=f"No document named {name}"), 404
     log_json("info", "document downloaded", request_id=g.request_id, user=g.user, key=name)
     return Response(obj["Body"].iter_chunks(64 * 1024), mimetype=obj.get("ContentType", "application/octet-stream"),
                     headers={"Content-Disposition": f'attachment; filename="{os.path.basename(name)}"',
                              "Content-Length": str(obj["ContentLength"])})
 
 
-# ---------- Cảnh báo (A07): Alertmanager gọi webhook, Portal đọc lại ----------
+# ---------- Alerts (A07): Alertmanager calls the webhook, the Portal reads them back ----------
 @app.post("/alerts")
 def alerts_webhook():
     sent = request.headers.get("Authorization", "").removeprefix("Bearer ")
@@ -510,7 +510,7 @@ def alerts_list():
     rows = db_query(
         "SELECT alertname, severity, target, status, summary, starts_at, ends_at, received_at"
         " FROM alerts ORDER BY received_at DESC LIMIT 30", "ops")
-    # Mọi mốc thời gian lưu theo UTC (Alertmanager gửi UTC, MariaDB chạy múi giờ UTC)
+    # All timestamps are stored in UTC (Alertmanager sends UTC, MariaDB runs in UTC)
     for r in rows:
         for k in ("starts_at", "ends_at", "received_at"):
             r[k] = r[k].isoformat() + "Z" if r[k] else None
@@ -520,7 +520,7 @@ def alerts_list():
 
 @app.errorhandler(413)
 def too_large(_e):
-    return jsonify(error="Request quá lớn (tối đa 2 MB)"), 413
+    return jsonify(error="Request too large (max 2 MB)"), 413
 
 
 @app.errorhandler(pymysql.MySQLError)

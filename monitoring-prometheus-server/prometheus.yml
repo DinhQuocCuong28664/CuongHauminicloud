@@ -2,7 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
-# Luật cảnh báo và nơi gửi cảnh báo
+# Alert rules and where alerts are sent
 rule_files:
   - /etc/prometheus/alerts.yml
 
@@ -12,44 +12,44 @@ alerting:
         - targets: ['monitoring-alertmanager-server:9093']
 
 scrape_configs:
-  # Prometheus tự giám sát chính nó
+  # Prometheus monitors itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # CPU, RAM, network, disk của máy chủ chạy Docker
+  # CPU, RAM, network and disk of the Docker host
   - job_name: 'node'
     static_configs:
       - targets: ['monitoring-node-exporter-server:9100']
 
-  # Mở rộng 7: giám sát web-frontend-server.
-  # Đề bài ghi target 'web-frontend-server:80' nhưng target đó DOWN: Prometheus đọc
-  # http://web-frontend-server:80/metrics và nginx trả 404 vì không tự xuất metric.
-  # web-frontend-exporter đọc /nginx_status (stub_status) của web1 rồi xuất ra định dạng Prometheus.
+  # Extension 7: monitor web-frontend-server.
+  # The assignment lists target 'web-frontend-server:80', but that target is DOWN: Prometheus reads
+  # http://web-frontend-server:80/metrics and nginx returns 404 because it exports no metrics itself.
+  # web-frontend-exporter reads /nginx_status (stub_status) of web1 and exposes it in Prometheus format.
   - job_name: 'web'
     static_configs:
       - targets: ['web-frontend-exporter:9113']
         labels:
           instance: 'web-frontend-server'
 
-  # Nâng cao: CPU, RAM, mạng của từng container (cAdvisor)
+  # Advanced: CPU, RAM and network per container (cAdvisor)
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['monitoring-cadvisor-server:8080']
     metric_relabel_configs:
-      # Chỉ giữ container của project MyMiniCloud (bỏ cgroup hệ thống và container của project khác)
+      # Keep only MyMiniCloud project containers (drop system cgroups and containers of other projects)
       - source_labels: [container_label_com_docker_compose_project]
         regex: cuonghauminicloud
         action: keep
 
-  # Nâng cao: metric riêng của API (số request, mã lỗi, độ trễ theo endpoint)
+  # Advanced: API metrics (request count, error codes, latency per endpoint)
   - job_name: 'app'
     static_configs:
       - targets: ['application-backend-server:8081']
         labels:
           instance: 'application-backend-server'
 
-  # Các thành phần của đường ống cảnh báo và log
+  # Components of the alerting and logging pipeline
   - job_name: 'alertmanager'
     static_configs:
       - targets: ['monitoring-alertmanager-server:9093']

@@ -1,4 +1,4 @@
--- Mở rộng 3: cơ sở dữ liệu studentdb với bảng students
+-- Extension 3: studentdb database with the students table
 CREATE DATABASE IF NOT EXISTS studentdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE studentdb;
 

@@ -1,7 +1,7 @@
 #!/bin/bash
-# Tạo user riêng cho ứng dụng thay vì dùng root. Mật khẩu lấy từ biến môi trường, không ghi cứng.
-# Gọi mariadb qua socket của server tạm thời trong lần khởi tạo (không dùng hàm docker_process_sql
-# vì khi file mount có quyền thực thi, như trên Windows, entrypoint chạy script chứ không "source" nó).
+# Create a dedicated application user instead of using root. Passwords come from the environment, never hard-coded.
+# Call mariadb through the socket of the temporary init server (not the docker_process_sql function,
+# because when the mounted file is executable, as on Windows, the entrypoint runs it instead of sourcing it).
 set -e
 
 mariadb --protocol=socket -uroot -p"${MARIADB_ROOT_PASSWORD}" <<EOSQL

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# get-token.sh — mở rộng 4: lấy access token của user trong realm qua token endpoint của Keycloak
-# (đi qua reverse proxy), giải mã phần payload, rồi gọi /api/secure với token đúng, không token và token bị sửa.
-#   bash scripts/get-token.sh [username]        (mặc định sv01)
-# Kết quả ghi vào evidence/e04-token-<username>.txt
+# get-token.sh — extension 4: get an access token for a realm user from the Keycloak token endpoint
+# (through the reverse proxy), decode the payload, then call /api/secure with a valid, a missing and a tampered token.
+#   bash scripts/get-token.sh [username]        (default sv01)
+# Results go to evidence/e04-token-<username>.txt
 set -u
 cd "$(dirname "$0")/.."
 set -a; . ./.env; set +a
@@ -47,4 +47,4 @@ echo
 echo "\$ curl $BASE/api/secure -H 'Authorization: Bearer <token bị sửa chữ ký>'"
 BAD="${TOKEN%?????}AAAAA"
 curl -s -w '  [HTTP %{http_code}]\n' "$BASE/api/secure" -H "Authorization: Bearer $BAD"
-} | tr -d '\r' | tee "evidence/e04-token-${USERNAME}.txt"   # Python trên Windows in \r\n ra pipe
+} | tr -d '\r' | tee "evidence/e04-token-${USERNAME}.txt"   # Python on Windows writes \r\n to pipes

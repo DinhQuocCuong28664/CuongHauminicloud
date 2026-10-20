@@ -1,18 +1,18 @@
 #!/bin/bash
-# user-data.sh — cloud-init chạy một lần khi EC2 Ubuntu 24.04 khởi động lần đầu:
-# thêm swap 2 GB, cài Docker Engine + Compose plugin từ repo chính thức của Docker.
+# user-data.sh — cloud-init runs it once on the first boot of the Ubuntu 24.04 EC2 instance:
+# add 2 GB of swap, install Docker Engine + the Compose plugin from the official Docker repository.
 set -euxo pipefail
 
 hostnamectl set-hostname minicloud-ec2
 
-# Swap 2 GB phòng khi Keycloak (JVM) cần thêm bộ nhớ trên máy 4 GB
+# 2 GB of swap in case Keycloak (JVM) needs more memory on the 4 GB machine
 fallocate -l 2G /swapfile
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
-# Docker Engine theo hướng dẫn chính thức (https://docs.docker.com/engine/install/ubuntu/)
+# Docker Engine per the official guide (https://docs.docker.com/engine/install/ubuntu/)
 apt-get update
 apt-get install -y ca-certificates curl bind9-dnsutils python3
 install -m 0755 -d /etc/apt/keyrings

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# launch.sh — tạo hạ tầng EC2 cho MyMiniCloud ở tài khoản B (profile default, ap-southeast-1):
-# key pair, security group, instance t3.medium Ubuntu 24.04 (gp3 30 GB). Chạy lại được:
-# tài nguyên đã có thì dùng lại. Ghi ID và địa chỉ vào scripts/ec2/instance.env (không commit).
+# launch.sh — create the MyMiniCloud EC2 infrastructure in account B (profile default, ap-southeast-1):
+# key pair, security group, t3.medium Ubuntu 24.04 instance (gp3 30 GB). Safe to rerun:
+# existing resources are reused. Writes IDs and addresses to scripts/ec2/instance.env (not committed).
 #   bash scripts/ec2/launch.sh
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
@@ -23,7 +23,7 @@ AMI=$(aws_ ssm get-parameter --name /aws/service/canonical/ubuntu/server/24.04/s
         --query Parameter.Value --output text)
 echo "VPC mặc định: $VPC | AMI Ubuntu 24.04: $AMI"
 
-# ---------- Key pair (ED25519, file .pem chỉ lưu trên máy này) ----------
+# ---------- Key pair (ED25519, the .pem file stays on this machine only) ----------
 if [ ! -s "$KEY.pem" ]; then
   aws_ ec2 create-key-pair --key-name "$KEY" --key-type ed25519 --key-format pem \
     --tag-specifications "ResourceType=key-pair,Tags=[{Key=Project,Value=$PROJECT}]" \
@@ -40,8 +40,8 @@ if [ "$SG" = "None" ]; then
          --description "MyMiniCloud 523H0008-523H0025: proxy public, cac cong quan tri chi My IP" \
          --tag-specifications "ResourceType=security-group,Tags=[{Key=Name,Value=$SG_NAME},{Key=Project,Value=$PROJECT}]" \
          --query GroupId --output text)
-  # 80 (reverse proxy) mở cho mọi người để giảng viên xem; SSH và cổng quản trị chỉ My IP.
-  # Không mở 3306 (DB), 9100 (node-exporter), 1053/udp (DNS).
+  # 80 (reverse proxy) is open to everyone so the lecturer can view it; SSH and admin ports are My IP only.
+  # 3306 (DB), 9100 (node-exporter) and 1053/udp (DNS) stay closed.
   perms="[{\"IpProtocol\":\"tcp\",\"FromPort\":80,\"ToPort\":80,\"IpRanges\":[{\"CidrIp\":\"0.0.0.0/0\",\"Description\":\"Reverse proxy\"}]}"
   for p in "22:SSH" "8080:Web1" "8088:Web2" "8085:App" "8081:Keycloak" "9000:MinIO API" "9001:MinIO Console" "9090:Prometheus" "3000:Grafana"; do
     port=${p%%:*}; desc=${p#*:}
@@ -51,9 +51,9 @@ if [ "$SG" = "None" ]; then
   echo "Đã tạo security group $SG_NAME ($SG)"
 fi
 
-# Nâng cao: thêm luật còn thiếu vào security group đã có (chạy lại không sao: luật trùng bị bỏ qua).
-# 443 (HTTPS của proxy) mở cho mọi người; 9093 (Alertmanager) và các cổng quản trị chỉ cho IP hiện tại của bạn
-ensure_rule() {   # ensure_rule <cổng> <CIDR> <mô tả>
+# Advanced: add missing rules to the existing security group (safe to rerun: duplicate rules are ignored).
+# 443 (proxy HTTPS) is open to everyone; 9093 (Alertmanager) and the admin ports only to your current IP
+ensure_rule() {   # ensure_rule <port> <CIDR> <description>
   out=$(aws --profile default --region ap-southeast-1 ec2 authorize-security-group-ingress --group-id "$SG" \
         --ip-permissions "[{\"IpProtocol\":\"tcp\",\"FromPort\":$1,\"ToPort\":$1,\"IpRanges\":[{\"CidrIp\":\"$2\",\"Description\":\"$3\"}]}]" 2>&1) \
     && echo "  + $1 $2 ($3)" || { echo "$out" | grep -q Duplicate || echo "$out"; }

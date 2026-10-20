@@ -11,13 +11,13 @@
   </defs>
   <rect width="800" height="360" fill="url(#sky)"/>
   <circle cx="640" cy="90" r="42" fill="#ffb347" opacity="0.9"/>
-  <!-- Đồi xa -->
+  <!-- Far hills -->
   <path d="M0 210 Q120 120 260 190 T520 180 T800 170 V360 H0 Z" fill="#9cc5a1"/>
-  <!-- Đồi gần -->
+  <!-- Near hills -->
   <path d="M0 250 Q160 180 330 240 T800 230 V360 H0 Z" fill="#5b8c5a"/>
-  <!-- Hồ -->
+  <!-- Lake -->
   <ellipse cx="420" cy="305" rx="300" ry="38" fill="url(#lake)"/>
-  <!-- Thông -->
+  <!-- Pines -->
   <g fill="#2d5a3d">
     <polygon points="90,250 110,180 130,250"/><rect x="106" y="250" width="8" height="18" fill="#5a3e2b"/>
     <polygon points="140,245 165,160 190,245"/><rect x="161" y="245" width="8" height="20" fill="#5a3e2b"/>

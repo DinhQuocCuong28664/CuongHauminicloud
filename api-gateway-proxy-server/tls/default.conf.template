@@ -1,8 +1,8 @@
-# Server HTTPS trên EC2, nạp qua docker-compose.ec2.yml thay cho conf.d/default.conf.
-# Ảnh nginx chạy envsubst trên /etc/nginx/templates/*.template lúc khởi động: ${PUBLIC_DOMAIN} được thay
-# bằng tên miền <ip-dạng-gạch>.sslip.io; biến của nginx ($host...) giữ nguyên vì không phải biến môi trường.
+# HTTPS server on EC2, mounted by docker-compose.ec2.yml in place of conf.d/default.conf.
+# The nginx image runs envsubst on /etc/nginx/templates/*.template at startup: ${PUBLIC_DOMAIN} becomes
+# the <dashed-ip>.sslip.io domain; nginx variables ($host...) stay as they are, they are not environment variables.
 
-# Cổng 80: chỉ phục vụ thử thách của Let's Encrypt, còn lại chuyển hướng sang HTTPS
+# Port 80: serve only the Let's Encrypt challenge, redirect everything else to HTTPS
 server {
     listen 80;
     server_name _;
@@ -12,14 +12,14 @@ server {
         default_type text/plain;
     }
 
-    # Healthcheck của Docker gọi http://127.0.0.1/healthz, không chuyển hướng
+    # The Docker healthcheck calls http://127.0.0.1/healthz, no redirect
     location = /healthz {
         access_log off;
         default_type text/plain;
         return 200 "ok\n";
     }
 
-    # Chuyển hướng về đúng tên miền có chứng chỉ (kể cả khi người dùng gõ địa chỉ IP)
+    # Redirect to the domain that has the certificate (even when the user typed the IP address)
     location / {
         return 301 https://${PUBLIC_DOMAIN}$request_uri;
     }
@@ -30,14 +30,14 @@ server {
     http2 on;
     server_name ${PUBLIC_DOMAIN};
 
-    # Chứng chỉ Let's Encrypt do job certbot xin (volume certbot-conf)
+    # Let's Encrypt certificate obtained by the certbot job (certbot-conf volume)
     ssl_certificate     /etc/letsencrypt/live/${PUBLIC_DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${PUBLIC_DOMAIN}/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_session_cache   shared:SSL:10m;
     ssl_session_timeout 1d;
 
-    # Áp cho các location không tự add_header (ví dụ /auth/ của Keycloak)
+    # Applies to locations without their own add_header (for example the Keycloak /auth/)
     add_header Strict-Transport-Security $hsts_header always;
 
     include /etc/nginx/snippets/routes.conf;

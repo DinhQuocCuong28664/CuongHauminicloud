@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# sync-realm.sh — nạp lại realm của nhóm từ file JSON vào Keycloak đang chạy.
-# "--import-realm" chỉ nhập khi realm CHƯA tồn tại, nên sau khi sửa realm-523H0008-523H0025.json
-# (thêm role, client...) phải xoá realm rồi khởi động lại Keycloak để nhập lại từ file.
-# sv01, sv02 được tạo lại với mật khẩu SV_PASSWORD trong .env; phiên đăng nhập cũ bị huỷ.
+# sync-realm.sh — reload the team realm from its JSON file into the running Keycloak.
+# "--import-realm" only imports a realm that does NOT exist yet, so after editing realm-523H0008-523H0025.json
+# (new roles, clients...) the realm must be deleted and Keycloak restarted to import it again.
+# sv01 and sv02 are recreated with SV_PASSWORD from .env; existing sessions are revoked.
 #   bash authentication-identity-server/sync-realm.sh
 set -eu
 export MSYS_NO_PATHCONV=1

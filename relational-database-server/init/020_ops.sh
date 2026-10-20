@@ -1,7 +1,7 @@
 #!/bin/bash
-# Phần nâng cao: database "ops" lưu cảnh báo nhận từ Alertmanager (A07) và user chỉ dùng để sao lưu (A09).
-# Chạy tự động ở lần khởi tạo volume đầu tiên; với volume đã có dữ liệu thì chạy bằng scripts/db-migrate.sh.
-# Mọi câu lệnh đều "IF NOT EXISTS" nên chạy lại nhiều lần không sao.
+# Advanced part: the "ops" database stores alerts received from Alertmanager (A07), plus a backup-only user (A09).
+# Runs automatically on the first volume initialization; on a volume that already has data use scripts/db-migrate.sh.
+# Every statement uses "IF NOT EXISTS", so it is safe to run repeatedly.
 set -e
 
 mariadb --protocol=socket -uroot -p"${MARIADB_ROOT_PASSWORD}" <<EOSQL
@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS ops.alerts (
   UNIQUE KEY uq_alert (fingerprint, starts_at)
 );
 
--- App ghi cảnh báo nhưng không được xoá
+-- The app writes alerts but may not delete them
 GRANT SELECT, INSERT, UPDATE ON ops.* TO '${DB_APP_USER}'@'%';
 
--- User sao lưu: chỉ đọc dữ liệu cần dump; được ghi vào database khôi phục thử studentdb_restore
+-- Backup user: read-only on the dumped data; may write to the studentdb_restore test-restore database
 CREATE USER IF NOT EXISTS '${DB_BACKUP_USER}'@'%' IDENTIFIED BY '${DB_BACKUP_PASSWORD}';
 GRANT SELECT, SHOW VIEW, LOCK TABLES, TRIGGER, EVENT ON studentdb.* TO '${DB_BACKUP_USER}'@'%';
 GRANT SELECT, SHOW VIEW, LOCK TABLES, TRIGGER, EVENT ON minicloud.* TO '${DB_BACKUP_USER}'@'%';

@@ -1,5 +1,5 @@
--- Minh hoạ CRUD trên studentdb.students (mở rộng 3)
--- Chạy: docker exec -i relational-database-server sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" --default-character-set=utf8mb4 -t' < relational-database-server/crud-demo.sql
+-- CRUD walkthrough on studentdb.students (extension 3)
+-- Run: docker exec -i relational-database-server sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" --default-character-set=utf8mb4 -t' < relational-database-server/crud-demo.sql
 USE studentdb;
 
 SELECT '1. READ - dữ liệu ban đầu' AS buoc;

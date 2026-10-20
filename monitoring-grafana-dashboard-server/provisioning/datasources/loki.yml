@@ -1,7 +1,7 @@
 apiVersion: 1
 
 datasources:
-  # Log tập trung của mọi container (Alloy đẩy vào Loki)
+  # Central logs of every container (Alloy pushes them to Loki)
   - name: Loki
     uid: loki
     type: loki
@@ -11,7 +11,7 @@ datasources:
     jsonData:
       maxLines: 1000
 
-  # Cảnh báo đang hoạt động trong Alertmanager
+  # Active alerts in Alertmanager
   - name: Alertmanager
     uid: alertmanager
     type: alertmanager

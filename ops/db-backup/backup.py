@@ -1,7 +1,7 @@
-"""Sao lưu MariaDB sang object storage (nâng cao A09, tương đương RDS snapshot lưu trên S3).
+"""Back up MariaDB to object storage (advanced A09, like an RDS snapshot stored on S3).
 
-Mỗi database dump riêng một file (khôi phục được sang database tên khác), nén gzip rồi đưa vào
-bucket db-backups. Bucket có lifecycle rule tự xoá bản cũ hơn 7 ngày (init-buckets.sh).
+Each database is dumped to its own file (restorable into a database with another name), gzipped and put
+into the db-backups bucket, whose lifecycle rule deletes copies older than 7 days (init-buckets.sh).
 
     docker compose --profile ops run --rm db-backup
 """
@@ -19,7 +19,7 @@ from botocore.config import Config
 sys.stdout.reconfigure(encoding="utf-8")
 
 DB_HOST = os.getenv("DB_HOST", "db.cloud.local")
-DB_USER = os.getenv("DB_USER", "minicloud_backup")   # mật khẩu đọc từ biến MYSQL_PWD, không đưa lên dòng lệnh
+DB_USER = os.getenv("DB_USER", "minicloud_backup")   # password comes from MYSQL_PWD, never on the command line
 DATABASES = os.getenv("BACKUP_DATABASES", "studentdb minicloud").split()
 BUCKET = os.getenv("BACKUP_BUCKET", "db-backups")
 

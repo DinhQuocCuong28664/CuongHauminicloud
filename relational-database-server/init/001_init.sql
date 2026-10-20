@@ -1,4 +1,4 @@
--- Chạy một lần khi volume dữ liệu còn trống (docker-entrypoint-initdb.d)
+-- Runs once while the data volume is still empty (docker-entrypoint-initdb.d)
 CREATE DATABASE IF NOT EXISTS minicloud CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE minicloud;
 

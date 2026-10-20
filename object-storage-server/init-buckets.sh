@@ -1,12 +1,12 @@
 #!/bin/sh
-# Tạo bucket, đặt policy và upload file mẫu bằng MinIO Client (mc) chạy trong một container dùng một lần.
-# Cách chạy (từ thư mục gốc dự án):  bash object-storage-server/init-buckets.sh
-#   demo          private      index.html            (phần cơ bản)
-#   profile-pics  public-read  avatar.jpg            (mở rộng 5: URL public; nâng cao A04: ảnh đại diện từ Portal)
-#   documents     private      report.pdf            (mở rộng 5: chỉ truy cập qua URL có chữ ký hoặc qua app)
-#   db-backups    private      bản sao lưu DB         (nâng cao A09: tự xoá sau 7 ngày)
-# Nâng cao: hai user MinIO quyền tối thiểu (giống IAM user/role): app và backup, không dùng tài khoản root.
-# Chạy lại nhiều lần không sao.
+# Create buckets, set policies and upload sample files with the MinIO Client (mc) in a throwaway container.
+# Usage (from the project root):  bash object-storage-server/init-buckets.sh
+#   demo          private      index.html            (basic part)
+#   profile-pics  public-read  avatar.jpg            (extension 5: public URL; advanced A04: Portal avatars)
+#   documents     private      report.pdf            (extension 5: only via a presigned URL or through the app)
+#   db-backups    private      DB backups            (advanced A09: expire after 7 days)
+# Advanced: two least-privilege MinIO users (like IAM users/roles): app and backup, never the root account.
+# Safe to run repeatedly.
 set -eu
 export MSYS_NO_PATHCONV=1
 
@@ -29,12 +29,12 @@ docker run --rm --network cloud-net \
     if [ -f /upload/samples/report.pdf ]; then
       mc cp /upload/samples/report.pdf local/documents/report.pdf
     fi
-    # profile-pics cho phép đọc ẩn danh; demo, documents, db-backups giữ private (mặc định)
+    # profile-pics allows anonymous reads; demo, documents, db-backups stay private (default)
     mc anonymous set download local/profile-pics
-    # Bản sao lưu cũ hơn 7 ngày tự bị xoá (tương đương S3 lifecycle rule); xoá rule cũ để chạy lại không bị trùng
+    # Backups older than 7 days are deleted (like an S3 lifecycle rule); drop old rules so reruns add no duplicates
     mc ilm rule rm --all --force local/db-backups >/dev/null 2>&1 || true
     mc ilm rule add --expire-days 7 local/db-backups
-    # User quyền tối thiểu cho application server và job sao lưu
+    # Least-privilege users for the application server and the backup job
     mc admin policy create local minicloud-app /policies/minicloud-app.json
     mc admin policy create local minicloud-backup /policies/minicloud-backup.json
     mc admin user add local "$MINIO_APP_USER" "$MINIO_APP_PASSWORD"

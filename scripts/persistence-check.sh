@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# persistence-check.sh — kiểm chứng dữ liệu nằm trong volume không mất khi xoá và tạo lại container:
-# ghi trạng thái, chạy "docker compose down" (không -v) rồi "up -d", ghi lại trạng thái và so sánh.
-#   bash scripts/persistence-check.sh         Kết quả ghi vào evidence/persistence-check.txt
+# persistence-check.sh — verify that volume data survives removing and recreating the containers:
+# record the state, run "docker compose down" (no -v) then "up -d", record the state again and compare.
+#   bash scripts/persistence-check.sh         Results go to evidence/persistence-check.txt
 set -u
 export MSYS_NO_PATHCONV=1
 cd "$(dirname "$0")/.."

@@ -1,5 +1,5 @@
-// Chỉ trả lời và đệ quy cho máy trong cloud-net (và chính container),
-// tránh thành open resolver khi chạy trên EC2
+// Answer and recurse only for hosts in cloud-net (and the container itself),
+// so it never becomes an open resolver on EC2
 acl cloudnet {
     10.10.10.0/24;
     127.0.0.1;
@@ -15,7 +15,7 @@ options {
     recursion yes;
     allow-recursion { cloudnet; };
 
-    // Tên ngoài zone cloud.local được chuyển tiếp ra DNS công cộng
+    // Names outside the cloud.local zone are forwarded to public DNS
     forwarders { 8.8.8.8; 1.1.1.1; };
     dnssec-validation auto;
 };

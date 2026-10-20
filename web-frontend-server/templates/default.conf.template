@@ -6,15 +6,15 @@ server {
     index index.html;
     charset utf-8;
 
-    # ${SERVER_NAME} được thay lúc khởi động (web1 hoặc web2)
+    # ${SERVER_NAME} is substituted at startup (web1 or web2)
     add_header X-Served-By ${SERVER_NAME} always;
 
     location / {
         try_files $uri $uri/ =404;
     }
 
-    # Nâng cao A01: Portal (ứng dụng một trang). CSP chỉ cho tải script, style, ảnh, request từ chính origin;
-    # add_header trong location thay thế header kế thừa nên khai báo lại X-Served-By
+    # Advanced A01: Portal (single-page app). CSP only allows scripts, styles, images and requests from the same origin;
+    # add_header inside a location replaces inherited headers, so X-Served-By is declared again
     location ^~ /portal/ {
         try_files $uri /portal/index.html;
         add_header X-Served-By ${SERVER_NAME} always;
@@ -22,14 +22,14 @@ server {
         add_header Cache-Control "no-cache" always;
     }
 
-    # alias phải có dấu / ở cuối, khớp với location /blog/
+    # alias needs a trailing /, matching location /blog/
     location ^~ /blog/ {
         alias /usr/share/nginx/html/blog/;
         index index.html;
         autoindex off;
     }
 
-    # Số liệu kết nối cho nginx-prometheus-exporter; chỉ exporter trong cloud-net được đọc
+    # Connection stats for nginx-prometheus-exporter; only the exporter in cloud-net may read them
     location = /nginx_status {
         stub_status;
         access_log off;

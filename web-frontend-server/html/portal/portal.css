@@ -1,4 +1,4 @@
-/* Bổ sung cho /styles.css, chỉ dùng trong Portal */
+/* Additions to /styles.css, used by the Portal only */
 [hidden] { display: none !important; }
 nav { display: flex; align-items: center; }
 nav a.active { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }

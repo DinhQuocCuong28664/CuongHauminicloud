@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ping-all.sh — mục 10 phần demo của đề: đứng trong container proxy, ping các server khác
-# trong cloud-net bằng tên (alias), in toàn bộ kết quả. Lưu vào evidence/ping-all.txt
+# ping-all.sh — demo item 10 of the assignment: from inside the proxy container, ping the other servers
+# in cloud-net by name (alias) and print the full output. Saved to evidence/ping-all.txt
 set -u
 export MSYS_NO_PATHCONV=1
 cd "$(dirname "$0")/.."

@@ -1,7 +1,7 @@
-"""Khôi phục thử bản sao lưu mới nhất sang một database riêng rồi so sánh với bản gốc (nâng cao A09).
+"""Test-restore the latest backup into a separate database and compare it with the source (advanced A09).
 
-Sao lưu chỉ có giá trị khi khôi phục được: script tải bản studentdb mới nhất từ bucket db-backups,
-kiểm tra sha256, nạp vào database studentdb_restore và so số dòng, tổng kiểm tra của từng bảng.
+A backup is only worth something if it restores: the script downloads the latest studentdb copy from db-backups,
+verifies sha256, loads it into studentdb_restore and compares row counts and checksums of every table.
 
     docker compose --profile ops run --rm --entrypoint python db-backup /app/restore.py
 """

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# run.sh — chạy các kịch bản k6 trong scripts/loadtest/scenarios.js bằng container grafana/k6 gắn vào cloud-net.
-#   bash scripts/loadtest/run.sh [nhãn]          ví dụ: bash scripts/loadtest/run.sh local   (hoặc ec2)
-# Kết quả: evidence/k6-<nhãn>-<kịch bản>.json (summary đầy đủ của k6) và evidence/k6-<nhãn>.txt (bảng tóm tắt).
-# k6 chạy cùng máy với hệ thống nên số liệu là số so sánh giữa các kịch bản, không phải năng lực tối đa.
+# run.sh — run the k6 scenarios in scripts/loadtest/scenarios.js with a grafana/k6 container attached to cloud-net.
+#   bash scripts/loadtest/run.sh [label]         e.g.: bash scripts/loadtest/run.sh local   (or ec2)
+# Output: evidence/k6-<label>-<scenario>.json (full k6 summary) and evidence/k6-<label>.txt (summary table).
+# k6 runs on the same machine as the stack, so the numbers compare scenarios; they are not maximum capacity.
 set -u
 export MSYS_NO_PATHCONV=1
 cd "$(dirname "$0")/../.."
@@ -10,17 +10,17 @@ LABEL=${1:-local}
 K6=grafana/k6:2.3.0
 OUTDIR=scripts/loadtest/out
 mkdir -p "$OUTDIR" evidence
-# Container k6 chạy bằng user riêng (không phải chủ thư mục trên Linux): cho phép ghi file kết quả
+# The k6 container runs as its own user (not the directory owner on Linux): allow it to write results
 chmod a+rwx "$OUTDIR"
 if python3 -c 'pass' >/dev/null 2>&1; then PY=python3; else PY=python; fi
 
-# Trên EC2 có HTTPS: K6_DOMAIN=<tên miền> -> k6 gọi https://<tên miền> nhưng phân giải thẳng tới proxy 10.10.10.2
-# (đi trong cloud-net, có TLS thật, chứng chỉ khớp tên miền)
+# On EC2 with HTTPS: K6_DOMAIN=<domain> -> k6 calls https://<domain> but resolves it straight to the proxy 10.10.10.2
+# (inside cloud-net, with real TLS and a certificate matching the domain)
 EXTRA=()
 if [ -n "${K6_DOMAIN:-}" ]; then
   EXTRA=(--add-host "$K6_DOMAIN:10.10.10.2" -e "GATEWAY=https://$K6_DOMAIN")
 fi
-k6() {   # k6 <kịch bản>   (IP tĩnh 10.10.10.91 để không chiếm IP của container đang tạm dừng)
+k6() {   # k6 <scenario>   (static IP 10.10.10.91 so it never takes the IP of a stopped container)
   docker run --rm --network cloud-net --ip 10.10.10.91 "${EXTRA[@]}" -v "$(pwd)/scripts/loadtest:/scripts" \
     -e SCENARIO="$1" -e OUT="/scripts/out/$1.json" "$K6" run --quiet /scripts/scenarios.js >/dev/null 2>&1
   cp "$OUTDIR/$1.json" "evidence/k6-$LABEL-$1.json"
@@ -45,7 +45,7 @@ wait; wait_healthy web-frontend-server2
 echo "== ratelimit"; sleep 3; k6 ratelimit
 echo "== api"; k6 api
 
-# Bảng tóm tắt
+# Summary table
 $PY - "$LABEL" <<'EOF' | tee "evidence/k6-$LABEL.txt"
 import json, sys
 sys.stdout.reconfigure(encoding="utf-8")

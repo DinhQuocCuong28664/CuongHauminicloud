@@ -1,5 +1,5 @@
-# Alertmanager nhận cảnh báo từ Prometheus, gom nhóm và gửi đi (tương đương CloudWatch Alarms -> SNS).
-# Đích nhận là webhook /alerts của application server; Portal đọc lại để hiển thị cho giảng viên.
+# Alertmanager receives alerts from Prometheus, groups them and forwards them (like CloudWatch Alarms -> SNS).
+# The receiver is the /alerts webhook of the application server; the Portal reads them back for the lecturer.
 route:
   receiver: minicloud-app
   group_by: ['alertname', 'name', 'instance']
@@ -15,5 +15,5 @@ receivers:
         http_config:
           authorization:
             type: Bearer
-            # File do lệnh khởi động container ghi từ biến ALERT_WEBHOOK_TOKEN (không đưa bí mật vào Git)
+            # Written by the container start command from ALERT_WEBHOOK_TOKEN (keeps the secret out of Git)
             credentials_file: /alertmanager/webhook-token

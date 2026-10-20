@@ -1,12 +1,12 @@
-# MyMiniCloud — nhóm Đinh Quốc Cường (523H0008) & Nguyễn Cao Hậu (523H0025)
-# 9 loại server; một số loại gồm nhiều container phụ trợ:
-#   Web: web1, web2 (cân bằng tải) · Monitoring: Prometheus, node-exporter, nginx-exporter, cAdvisor, Alertmanager
+# MyMiniCloud — team Đinh Quốc Cường (523H0008) & Nguyễn Cao Hậu (523H0025)
+# 9 server types; some types include several helper containers:
+#   Web: web1, web2 (load balanced) · Monitoring: Prometheus, node-exporter, nginx-exporter, cAdvisor, Alertmanager
 #   Logging/Visualization: Grafana, Loki, Alloy
-# Biến ${...} lấy từ file .env (xem .env.example)
+# ${...} variables come from the .env file (see .env.example)
 name: cuonghauminicloud
 
-# Thiết lập chung cho mọi service: tiến trình trong container không được tự nâng quyền (setuid),
-# log của Docker xoay vòng 3 file x 10 MB để không làm đầy ổ đĩa EC2
+# Shared settings for every service: container processes cannot gain privileges (setuid),
+# Docker logs rotate over 3 files x 10 MB so they cannot fill the EC2 disk
 x-hardening: &hardening
   security_opt: ["no-new-privileges:true"]
   logging:
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
 
   web-frontend-server2:
-    # Cùng image với web1, chỉ khác SERVER_NAME
+    # Same image as web1, only SERVER_NAME differs
     build: ./web-frontend-server
     image: ${DOCKERHUB_USER}/myminicloud-web:${IMAGE_TAG}
     container_name: web-frontend-server2
@@ -83,8 +83,8 @@ services:
     build: ./application-backend-server
     image: ${DOCKERHUB_USER}/myminicloud-app:${IMAGE_TAG}
     container_name: application-backend-server
-    # Nâng cao A10: hỏi DNS nội bộ BIND9 trước. DNS nhúng của Docker (127.0.0.11) vẫn trả tên container,
-    # tên khác (*.cloud.local) được chuyển tới 10.10.10.53, nên app kết nối DB và MinIO bằng tên trong zone cloud.local
+    # Advanced A10: ask the internal BIND9 DNS first. Docker's embedded DNS (127.0.0.11) still resolves container names,
+    # other names (*.cloud.local) go to 10.10.10.53, so the app reaches the DB and MinIO by names in the cloud.local zone
     dns: [10.10.10.53]
     environment:
       DB_HOST: db.cloud.local
@@ -93,11 +93,11 @@ services:
       KC_INTERNAL_URL: http://authentication-identity-server:8080/auth
       KC_REALM: ${KC_REALM}
       OIDC_AUDIENCE: ${OIDC_CLIENT_ID}
-      # Issuer hợp lệ: token xin qua proxy (cổng PROXY_PORT) hoặc trực tiếp qua cổng AUTH_PORT,
-      # bằng tên PUBLIC_HOST (public IP khi chạy EC2) hoặc localhost (kiểm thử ngay trên máy chủ)
+      # Valid issuers: tokens requested through the proxy (PROXY_PORT) or directly on AUTH_PORT,
+      # using PUBLIC_HOST (the public IP on EC2) or localhost (tests run on the host itself)
       OIDC_ISSUERS: >-
         http://${PUBLIC_HOST}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${PROXY_PORT}/auth/realms/${KC_REALM},http://${PUBLIC_HOST}:${AUTH_PORT}/auth/realms/${KC_REALM},http://localhost/auth/realms/${KC_REALM},http://localhost:${AUTH_PORT}/auth/realms/${KC_REALM},https://${PUBLIC_DOMAIN}/auth/realms/${KC_REALM}
-      # Nâng cao: object storage bằng user MinIO quyền tối thiểu; token webhook của Alertmanager
+      # Advanced: object storage through a least-privilege MinIO user; Alertmanager webhook token
       S3_ENDPOINT: http://s3.cloud.local:9000
       S3_ACCESS_KEY: ${MINIO_APP_USER}
       S3_SECRET_KEY: ${MINIO_APP_PASSWORD}
@@ -150,7 +150,7 @@ services:
     cpus: "1.0"
     restart: unless-stopped
 
-  # Nâng cao A09: job sao lưu DB sang MinIO, chỉ chạy khi gọi (không phải container thường trực)
+  # Advanced A09: DB backup job to MinIO, runs only on demand (not a long-running container)
   #   docker compose --profile ops run --rm db-backup
   #   docker compose --profile ops run --rm --entrypoint python db-backup /app/restore.py
   db-backup:
@@ -186,11 +186,11 @@ services:
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
       JAVA_OPTS_KC_HEAP: "-Xms256m -Xmx512m"
-      # Dùng trong file realm import (cú pháp ${...})
+      # Used by the realm import file (${...} syntax)
       KC_REALM: ${KC_REALM}
       SV_PASSWORD: ${SV_PASSWORD}
       PUBLIC_HOST: ${PUBLIC_HOST}
-      # Tên miền HTTPS trên EC2 (redirect URI của client portal); khi chạy local để localhost
+      # HTTPS domain on EC2 (redirect URI of the portal client); localhost when running locally
       PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
     volumes:
       - keycloak-data:/opt/keycloak/data
@@ -201,7 +201,7 @@ services:
         ipv4_address: 10.10.10.40
         aliases: [keycloak]
     healthcheck:
-      # Image không có curl: gọi /health/ready trên cổng quản trị 9000 bằng /dev/tcp của bash
+      # The image has no curl: call /health/ready on management port 9000 through bash /dev/tcp
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
       interval: 10s
       timeout: 5s
@@ -293,12 +293,12 @@ services:
   monitoring-node-exporter-server:
     image: prom/node-exporter:v1.12.1
     container_name: monitoring-node-exporter-server
-    # Đọc /proc, /sys của máy chủ (trên EC2 là VM Ubuntu) thay vì của riêng container
+    # Read /proc and /sys of the host (the Ubuntu VM on EC2) instead of the container's own
     command:
       - --path.rootfs=/host
     pid: host
     volumes:
-      # Không dùng rslave: Docker Desktop báo "/ is not a shared or slave mount"
+      # No rslave: Docker Desktop reports "/ is not a shared or slave mount"
       - /:/host:ro
     ports: ["${NODE_EXPORTER_PORT}:9100"]
     networks:
@@ -327,7 +327,7 @@ services:
     mem_limit: 32m
     restart: unless-stopped
 
-  # Nâng cao: CPU, RAM, mạng của từng container (tương đương CloudWatch Container Insights)
+  # Advanced: CPU, RAM and network per container (like CloudWatch Container Insights)
   monitoring-cadvisor-server:
     image: ghcr.io/google/cadvisor:v0.60.6
     container_name: monitoring-cadvisor-server
@@ -350,11 +350,11 @@ services:
     mem_limit: 192m
     restart: unless-stopped
 
-  # Nâng cao: nhận cảnh báo từ Prometheus, gom nhóm rồi gọi webhook của app (tương đương SNS)
+  # Advanced: receive alerts from Prometheus, group them, then call the app webhook (like SNS)
   monitoring-alertmanager-server:
     image: prom/alertmanager:v0.34.1
     container_name: monitoring-alertmanager-server
-    # File cấu hình Alertmanager không đọc biến môi trường: ghi token webhook ra file trước khi chạy
+    # The Alertmanager config cannot read environment variables: write the webhook token to a file first
     entrypoint: ["/bin/sh", "-c"]
     command:
       - >-
@@ -383,12 +383,12 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------- 8. Logging / Visualization
-  # Nâng cao: lưu log tập trung của mọi container (tương đương CloudWatch Logs)
+  # Advanced: central log storage for every container (like CloudWatch Logs)
   logging-loki-server:
     image: grafana/loki:3.7.8
     container_name: logging-loki-server
     command: ["-config.file=/etc/loki/loki-config.yml"]
-    # Kiểm thử tải đẩy hàng nghìn dòng log/giây: GOMEMLIMIT cho Go dọn bộ nhớ sớm, dưới giới hạn 1 GB của container
+    # Load tests push thousands of log lines/s: GOMEMLIMIT makes Go free memory early, below the 1 GB container limit
     environment:
       GOMEMLIMIT: 700MiB
     volumes:
@@ -402,7 +402,7 @@ services:
     mem_limit: 1g
     restart: unless-stopped
 
-  # Nâng cao: thu log stdout/stderr của container qua Docker API rồi đẩy sang Loki
+  # Advanced: collect container stdout/stderr through the Docker API and push it to Loki
   logging-alloy-collector:
     image: grafana/alloy:v1.20.1
     container_name: logging-alloy-collector
@@ -439,7 +439,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
-      # Dashboard log đọc nhiều dữ liệu từ Loki: cho Go dọn bộ nhớ sớm, dưới giới hạn 768 MB
+      # The log dashboard reads a lot of data from Loki: let Go free memory early, below the 768 MB limit
       GOMEMLIMIT: 560MiB
     volumes:
       - grafana-data:/var/lib/grafana
@@ -468,13 +468,13 @@ services:
     container_name: api-gateway-proxy-server
     ports: ["${PROXY_PORT}:80"]
     volumes:
-      # Thư mục thử thách Let's Encrypt (chỉ có nội dung khi xin chứng chỉ trên EC2)
+      # Let's Encrypt challenge directory (only has content while requesting a certificate on EC2)
       - certbot-www:/var/www/certbot:ro
     networks:
       cloud-net:
         ipv4_address: 10.10.10.2
         aliases: [proxy]
-    # nginx phân giải tên upstream lúc khởi động: các container đích phải có mặt trước
+    # nginx resolves upstream names at startup: the target containers must exist first
     depends_on:
       web-frontend-server1:
         condition: service_started

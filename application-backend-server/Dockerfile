@@ -10,14 +10,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py gunicorn.conf.py students.json ./
 
-# Không chạy ứng dụng bằng root
+# Do not run the application as root
 RUN adduser -D -H appuser
 USER appuser
 
-# Thư mục metric dùng chung giữa các worker gunicorn (xem gunicorn.conf.py)
+# Metric directory shared by the gunicorn workers (see gunicorn.conf.py)
 ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus \
     PYTHONUNBUFFERED=1
 
 EXPOSE 8081
-# gunicorn thay cho server phát triển của Flask
+# gunicorn instead of the Flask development server
 CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

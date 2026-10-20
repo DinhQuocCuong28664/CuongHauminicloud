@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# stop.sh — Stop (không Terminate) instance EC2 của MyMiniCloud để ngừng tính tiền giờ máy.
-# Ổ EBS 30 GB vẫn giữ (vẫn tính phí lưu trữ nhỏ); public IP được trả lại và sẽ đổi khi Start lại.
+# stop.sh — Stop (not Terminate) the MyMiniCloud EC2 instance to stop paying for instance hours.
+# The 30 GB EBS volume is kept (small storage charge); the public IP is released and changes on the next Start.
 #   bash scripts/ec2/stop.sh
 set -euo pipefail
 export MSYS_NO_PATHCONV=1

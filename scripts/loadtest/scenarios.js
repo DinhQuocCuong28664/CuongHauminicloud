@@ -1,9 +1,9 @@
-// Kịch bản kiểm thử tải k6 cho MyMiniCloud. Chọn kịch bản bằng biến SCENARIO, chạy qua scripts/loadtest/run.sh.
-//   web       : 20 người dùng ảo tải trang chủ qua gateway trong 30 giây (đo khả năng của cụm web + cân bằng tải)
-//   failover  : như web nhưng 60 giây; run.sh dừng web2 ở giây 20 và bật lại ở giây 40
-//   ratelimit : bắn đều 30 request/giây vào /api/hello từ một IP trong 20 giây (ngưỡng gateway: 10/giây, dồn 20)
-//   api       : 20 người dùng ảo gọi thẳng application server (không qua gateway, không bị rate limit):
-//               /hello (không chạm DB) và /students-db (đọc MariaDB)
+// k6 load test scenarios for MyMiniCloud. Pick one with the SCENARIO variable; run them through scripts/loadtest/run.sh.
+//   web       : 20 virtual users load the home page through the gateway for 30 seconds (web pool + load balancer)
+//   failover  : like web but 60 seconds; run.sh stops web2 at second 20 and starts it again at second 40
+//   ratelimit : a steady 30 requests/s to /api/hello from one IP for 20 seconds (gateway limit: 10/s, burst 20)
+//   api       : 20 virtual users call the application server directly (no gateway, no rate limit):
+//               /hello (no DB access) and /students-db (reads MariaDB)
 import http from 'k6/http';
 import { check } from 'k6';
 
@@ -21,7 +21,7 @@ const scenarios = {
 
 export const options = {
   scenarios: { [SCENARIO]: scenarios[SCENARIO] },
-  // 429 là kết quả mong đợi của kịch bản ratelimit, không tính là lỗi. Ngưỡng theo từng endpoint để summary có số liệu riêng.
+  // 429 is the expected result of the ratelimit scenario, not an error. Per-endpoint thresholds give the summary separate numbers.
   thresholds: SCENARIO === 'ratelimit' ? {} : {
     http_req_failed: ['rate<0.01'],
     ...(SCENARIO === 'api' ? {

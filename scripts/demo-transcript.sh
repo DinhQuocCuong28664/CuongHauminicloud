@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# demo-transcript.sh — chạy lại các lệnh demo theo bảng "YÊU CẦU DEMO & KIỂM THỬ" của đề và ghi
-# "$ lệnh" + output thật vào evidence/demo-*.txt (dùng để dựng ảnh terminal cho Chương 4).
-# Mật khẩu chỉ xuất hiện dưới dạng tên biến ($DB_ROOT_PASSWORD), không in giá trị.
+# demo-transcript.sh — rerun the demo commands from the "demo & test requirements" table of the assignment and record
+# "$ command" + the real output into evidence/demo-*.txt (used to render terminal images for Chapter 4).
+# Passwords appear only as variable names ($DB_ROOT_PASSWORD); their values are never printed.
 #   bash scripts/demo-transcript.sh
 set -u
 export MSYS_NO_PATHCONV=1
@@ -10,7 +10,7 @@ set -a; . ./.env; set +a
 mkdir -p evidence
 H=localhost
 
-# run "<lệnh hiển thị>"  — in lệnh rồi chạy đúng chuỗi đó (biến được thay khi chạy, không khi in)
+# run "<shown command>"  — print the command, then run that exact string (variables expand when run, not when printed)
 run() { printf '$ %s\n' "$1"; eval "$1" 2>&1 | tr -d '\r'; echo; }
 out() { exec > "evidence/$1.txt"; }
 

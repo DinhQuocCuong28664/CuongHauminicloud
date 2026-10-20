@@ -1,18 +1,18 @@
-// Grafana Alloy: đọc stdout/stderr của mọi container trong project qua Docker API rồi đẩy sang Loki.
-// Tương đương CloudWatch agent / Fluent Bit: ứng dụng chỉ cần ghi log ra stdout.
+// Grafana Alloy: reads stdout/stderr of every project container through the Docker API and pushes it to Loki.
+// Like the CloudWatch agent / Fluent Bit: applications only need to log to stdout.
 
 discovery.docker "minicloud" {
   host             = "unix:///var/run/docker.sock"
   refresh_interval = "10s"
 
-  // Chỉ lấy container của MyMiniCloud, bỏ qua container của project khác trên cùng máy
+  // Only MyMiniCloud containers; skip containers of other projects on the same host
   filter {
     name   = "label"
     values = ["com.docker.compose.project=cuonghauminicloud"]
   }
 }
 
-// Gắn nhãn ít giá trị (container, service) để lọc nhanh; request_id, status... để trong nội dung log JSON
+// Low-cardinality labels (container, service) for fast filtering; request_id, status... stay in the JSON log body
 discovery.relabel "minicloud" {
   targets = []
 
@@ -42,7 +42,7 @@ loki.source.docker "minicloud" {
   forward_to       = [loki.process.minicloud.receiver]
 }
 
-// Log JSON của proxy và app: lấy mức log làm nhãn "level" (ít giá trị), giữ nguyên dòng log
+// JSON logs of the proxy and app: use the log level as the "level" label (low cardinality), keep the line as is
 loki.process "minicloud" {
   stage.match {
     selector = "{service=~\"api-gateway-proxy-server|application-backend-server\"}"

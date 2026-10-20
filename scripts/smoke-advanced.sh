@@ -1,6 +1,6 @@
-# smoke-advanced.sh — các test case phần nâng cao (T-A01…T-A11), được smoke-test.sh "source" sau phần đề bài.
-# Dùng lại biến và hàm của smoke-test.sh: P (URL gateway), H, PY, result, code, json, NETSHOOT.
-# Đặt SKIP_ALERT_TEST=1 để bỏ qua T-A07 (dừng web2 khoảng 2 phút để chờ cảnh báo firing rồi resolved).
+# smoke-advanced.sh — advanced test cases (T-A01..T-A11), sourced by smoke-test.sh after the assignment part.
+# Reuses the variables and functions of smoke-test.sh: P (gateway URL), H, PY, result, code, json, NETSHOOT.
+# Set SKIP_ALERT_TEST=1 to skip T-A07 (stops web2 for about 2 minutes until the alert fires and resolves).
 
 echo
 echo "===================================================== Phần nâng cao (ngoài đề)"
@@ -17,7 +17,7 @@ T1=$(token sv01)
 T2=$(token sv02)
 A1="Authorization: Bearer $T1"
 A2="Authorization: Bearer $T2"
-loki() {   # loki <LogQL>  -> số dòng log khớp trong 10 phút gần nhất
+loki() {   # loki <LogQL>  -> number of matching log lines in the last 10 minutes
   docker run --rm --network cloud-net "$NETSHOOT" curl -s -G http://logging-loki-server:3100/loki/api/v1/query_range \
     --data-urlencode "query=$1" --data-urlencode "since=10m" --data-urlencode "limit=100" \
     | json "sum(len(s['values']) for s in d['data']['result'])"
@@ -73,13 +73,13 @@ POST   dữ liệu sai             -> $c3
 DELETE /api/students/$c_id        -> $c4
 DELETE lần hai                 -> $c5"
 
-# ---------------------------------------------------------------- T-A04 Ảnh đại diện và tài liệu private
+# ---------------------------------------------------------------- T-A04 Avatars and private documents
 o1=$(curl -s -H "$A1" -F "file=@object-storage-server/samples/avatar.jpg" "$P/api/avatar")
 o1u=$(printf '%s' "$o1" | json "d.get('url','')")
 o2=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' "$P${o1u}")
 o3=$(curl -s -o /dev/null -w '%{http_code}' -H "$A1" -F "file=@README.md" "$P/api/avatar")
-# Ghi ra file tạm trong thư mục dự án: curl của Git Bash là bản Windows (mingw), báo 0 byte khi ghi vào
-# /dev/null và không hiểu đường dẫn /tmp/... khi MSYS_NO_PATHCONV=1
+# Write to a temp file inside the project: Git Bash curl is the Windows (mingw) build, reports 0 bytes for
+# /dev/null and does not understand /tmp/... paths when MSYS_NO_PATHCONV=1
 o4f=logs/.a04-download.tmp
 o4=$(curl -s -o "$o4f" -w '%{http_code}' -H "$A1" "$P/api/documents/report.pdf")
 o4="$o4 $(wc -c < "$o4f" | tr -d ' ')"; rm -f "$o4f"
@@ -96,7 +96,7 @@ GET  /api/documents/report.pdf không token -> $o5
 PUT  /media/hack.jpg                     -> $o6
 GET  :$MINIO_API_PORT/documents/report.pdf ẩn danh -> $o7"
 
-# ---------------------------------------------------------------- T-A05 Log tập trung (Loki)
+# ---------------------------------------------------------------- T-A05 Centralized logs (Loki)
 rid=$(curl -s -D - -o /dev/null "$P/api/students-db" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-request-id"{print $2}')
 l1=0; l2=0
 for i in $(seq 1 12); do
@@ -111,7 +111,7 @@ result T-A05 "Loki: log mọi container; một request_id tra được ở cả 
 dòng log ở proxy: $l1, ở app: $l2 (sau $((i * 5)) s)
 số container có log trong Loki: $l3"
 
-# ---------------------------------------------------------------- T-A06 Giám sát container và API
+# ---------------------------------------------------------------- T-A06 Container and API monitoring
 m1=$(curl -s "http://$H:$PROM_PORT/api/v1/targets" | json "' '.join(t['labels']['job']+'='+t['health'] for t in d['data']['activeTargets'] if t['labels']['job'] in ('cadvisor','app','alertmanager','loki'))")
 m2=$(prom 'count(time() - container_last_seen{container_label_com_docker_compose_project="cuonghauminicloud"} < 60)')
 m3=$(prom 'sum(minicloud_http_requests_total)')
@@ -124,7 +124,7 @@ container được cAdvisor theo dõi: $m2
 tổng request API đã đếm: $m3, p95 5 phút: $m4 s
 dashboard tag nang-cao: $m5"
 
-# ---------------------------------------------------------------- T-A07 Cảnh báo: dừng web2 -> firing -> resolved
+# ---------------------------------------------------------------- T-A07 Alerting: stop web2 -> firing -> resolved
 alert_state() { curl -s -H "$A1" "$P/api/alerts" | json "next((a['status'] for a in d['alerts'] if a['alertname']=='WebServerDown'), 'none')"; }
 w_rules=$(curl -s "http://$H:$PROM_PORT/api/v1/rules" | json "sum(len(g['rules']) for g in d['data']['groups'])")
 if [ "${SKIP_ALERT_TEST:-0}" = 1 ]; then
@@ -147,7 +147,7 @@ docker start web-frontend-server2 -> app nhận resolved sau ${tr_} s"
 fi
 
 # ---------------------------------------------------------------- T-A08 Gateway: rate limit, header, HTTPS
-# Gửi song song 20 luồng: gửi tuần tự qua HTTPS (mỗi request bắt tay TLS mới) có thể chậm hơn ngưỡng 10 request/giây
+# Send from 20 parallel streams: sequential HTTPS requests (a new TLS handshake each) may stay below 10 requests/s
 g1=$(seq 1 40 | xargs -P 20 -I{} curl -s -o /dev/null -w '%{http_code}\n' "$P/api/hello" | sort | uniq -c | awk '{printf "%s×%s ", $2, $1}')
 sleep 3
 g2=$(curl -s -D - -o /dev/null "$P/api/hello" | tr -d '\r' | awk -F': ' 'tolower($1) ~ /^(x-content-type-options|x-frame-options|x-request-id|referrer-policy|strict-transport-security)$/ {printf "%s ", $1}')
@@ -171,14 +171,14 @@ header: $g2
 GET /api/metrics -> $g3, POST /api/alerts -> $g4
 $tls_info"
 
-# ---------------------------------------------------------------- T-A09 Sao lưu và khôi phục
+# ---------------------------------------------------------------- T-A09 Backup and restore
 b1=$(docker compose --profile ops run --rm db-backup 2>/dev/null); b1c=$?
 b2=$(docker compose --profile ops run --rm --entrypoint python db-backup /app/restore.py 2>/dev/null); b2c=$?
 [ "$b1c" = 0 ] && [ "$b2c" = 0 ] && [[ "$b2" == *"khôi phục đúng"* ]] && [[ "$b1" == *"xoá sau 7 ngày"* ]]
 result T-A09 "Sao lưu MariaDB sang MinIO (db-backups, lifecycle 7 ngày) và khôi phục thử khớp bản gốc" $? "$(printf '%s\n' "$b1" | grep -E 'sql.gz +dump|Lifecycle')
 $(printf '%s\n' "$b2" | grep -E 'sha256|students|KẾT LUẬN')"
 
-# ---------------------------------------------------------------- T-A10 Service discovery qua DNS nội bộ
+# ---------------------------------------------------------------- T-A10 Service discovery through internal DNS
 d1=$(docker exec application-backend-server getent hosts db.cloud.local | awk '{print $1}')
 d2=$(docker exec application-backend-server getent hosts s3.cloud.local | awk '{print $1, $2}')
 d3=$(docker exec application-backend-server printenv DB_HOST S3_ENDPOINT | tr '\n' ' ')
@@ -190,7 +190,7 @@ getent hosts s3.cloud.local -> $d2 (CNAME)
 GET /api/notes (đọc DB qua db.cloud.local) -> $d4"
 
 # ---------------------------------------------------------------- T-A11 Compose hardening
-# Chờ tối đa 60 giây cho container vừa khởi động lại (web2 ở T-A07) qua healthcheck
+# Wait up to 60 seconds for the container restarted in T-A07 (web2) to pass its healthcheck
 for i in $(seq 1 12); do
   h1=$(docker compose ps --format '{{.Name}} {{.Status}}' | grep -c '(healthy)')
   [ "$h1" -ge 14 ] && break; sleep 5

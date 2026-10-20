@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# lb-test.sh — mở rộng 10: kiểm chứng proxy cân bằng tải round robin giữa web-frontend-server1 và 2,
-# và khả năng chịu lỗi khi một web server dừng.
-#   bash scripts/lb-test.sh          Kết quả ghi vào evidence/e10-lb-test.txt
+# lb-test.sh — extension 10: verify that the proxy round-robins between web-frontend-server1 and 2
+# and keeps serving when one web server stops.
+#   bash scripts/lb-test.sh          Results go to evidence/e10-lb-test.txt
 set -u
 cd "$(dirname "$0")/.."
 set -a; . ./.env; set +a
@@ -9,7 +9,7 @@ H=${SMOKE_HOST:-localhost}
 URL="http://$H:$PROXY_PORT/"
 mkdir -p evidence
 
-# In mỗi request một dòng: mã HTTP, thời gian, web server đã phục vụ, upstream proxy đã thử
+# One line per request: HTTP code, time, serving web server, upstreams the proxy tried
 hit() {
   for i in $(seq 1 "$1"); do
     curl -s -D - -o /dev/null -w 'time: %{time_total}\n' "$URL" | tr -d '\r' | awk -v n="$i" '

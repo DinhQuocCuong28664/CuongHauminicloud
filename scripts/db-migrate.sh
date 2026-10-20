@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# db-migrate.sh — chạy lại các script khởi tạo có thể chạy nhiều lần (020_ops.sh...) trên volume MariaDB đã có dữ liệu.
-# Script trong /docker-entrypoint-initdb.d chỉ tự chạy khi volume còn trống, nên phần nâng cao cần lệnh này
-# trên máy đã chạy bản cũ (máy cá nhân, EC2).
+# db-migrate.sh — rerun the idempotent init scripts (020_ops.sh...) on a MariaDB volume that already has data.
+# Scripts in /docker-entrypoint-initdb.d only run on an empty volume, so the advanced part needs this command
+# on machines that ran the old version (personal machine, EC2).
 #   bash scripts/db-migrate.sh
 set -eu
 export MSYS_NO_PATHCONV=1

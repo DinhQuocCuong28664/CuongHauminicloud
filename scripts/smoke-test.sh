@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# smoke-test.sh — chạy các test case phần cơ bản (T-B01…T-B10), mở rộng (T-E01…T-E10)
-# và nâng cao (T-A01…T-A11, trong scripts/smoke-advanced.sh), in PASS/FAIL.
-# Chạy trên máy đang chạy cụm (máy local hoặc trong EC2), từ thư mục gốc dự án:
-#   bash scripts/smoke-test.sh [nhãn]        ví dụ: bash scripts/smoke-test.sh local
-# Kết quả ghi vào logs/smoke-<nhãn>.txt
+# smoke-test.sh — runs the basic (T-B01..T-B10), extension (T-E01..T-E10)
+# and advanced (T-A01..T-A11, in scripts/smoke-advanced.sh) test cases and prints PASS/FAIL.
+# Run it on the machine hosting the stack (local or on EC2), from the project root:
+#   bash scripts/smoke-test.sh [label]       e.g.: bash scripts/smoke-test.sh local
+# Results go to logs/smoke-<label>.txt
 set -u
-export MSYS_NO_PATHCONV=1   # Git Bash: không đổi các tham số dạng /path
+export MSYS_NO_PATHCONV=1   # Git Bash: do not rewrite /path arguments
 
 cd "$(dirname "$0")/.."
 set -a; . ./.env; set +a
 
 LABEL=${1:-local}
 H=${SMOKE_HOST:-localhost}
-# URL của gateway: mặc định http://<host>:<cổng proxy>; trên EC2 có HTTPS đặt SMOKE_BASE=https://<tên miền>
+# Gateway URL: http://<host>:<proxy port> by default; on EC2 with HTTPS set SMOKE_BASE=https://<domain>
 P=${SMOKE_BASE:-http://$H:$PROXY_PORT}
 LOG="logs/smoke-${LABEL}.txt"
 NETSHOOT=nicolaka/netshoot:v0.16
@@ -20,17 +20,17 @@ DBCLIENT=mariadb:11.4.13
 mkdir -p logs
 exec > >(tee "$LOG") 2>&1
 
-# Kéo trước các image công cụ (dig, mariadb client, mc) để log kéo image không lẫn vào kết quả kiểm thử
+# Pre-pull the tool images (dig, mariadb client, mc) so image pull logs do not mix with the test results
 for img in "$NETSHOOT" "$DBCLIENT" pgsty/mc:RELEASE.2026-10-18T00-00-00Z; do
   docker image inspect "$img" >/dev/null 2>&1 || docker pull -q "$img" >/dev/null
 done
 
-# Trên Windows "python3" có thể là lối tắt Microsoft Store không chạy được
+# On Windows "python3" may be a Microsoft Store shortcut that does not run
 if python3 -c 'pass' >/dev/null 2>&1; then PY=python3; else PY=python; fi
 
-# dig tới cổng DNS đã publish trên máy host. Docker Desktop: đi qua host.docker.internal.
-# Linux (EC2): dùng mạng host, gọi 127.0.0.1 (docker-proxy chuyển vào cloud-net với nguồn là gateway
-# 10.10.10.1, nằm trong ACL của bind9; còn đi từ bridge mặc định 172.17.0.0/16 sẽ bị REFUSED).
+# dig against the DNS port published on the host. Docker Desktop: go through host.docker.internal.
+# Linux (EC2): use the host network and call 127.0.0.1 (docker-proxy forwards into cloud-net from the gateway
+# 10.10.10.1, which the bind9 ACL allows; queries from the default bridge 172.17.0.0/16 would be REFUSED).
 if docker info --format '{{.OperatingSystem}}' 2>/dev/null | grep -q 'Docker Desktop'; then
   dig_host() { docker run --rm --add-host host.docker.internal:host-gateway "$NETSHOOT" dig @host.docker.internal -p "$DNS_PORT" "$@"; }
 else
@@ -39,7 +39,7 @@ fi
 
 pass=0
 fail=0
-result() {   # result <id> <mô tả> <mã thoát 0=đạt> [chi tiết]
+result() {   # result <id> <description> <exit code 0=pass> [details]
   if [ "$3" -eq 0 ]; then echo "[PASS] $1  $2"; pass=$((pass + 1))
   else echo "[FAIL] $1  $2"; fail=$((fail + 1)); fi
   if [ -n "${4:-}" ]; then printf '%s\n' "$4" | sed 's/^/         /'; fi
@@ -133,7 +133,7 @@ result T-B09 "Proxy: / -> web, /api/ -> app, /auth/ -> Keycloak" $? "GET :$PROXY
 GET :$PROXY_PORT/api/hello -> $r2
 GET :$PROXY_PORT/auth/     -> $r3"
 
-# ---------------------------------------------------------------- T-B10 Mạng cloud-net
+# ---------------------------------------------------------------- T-B10 cloud-net network
 pg=$(docker exec api-gateway-proxy-server sh -c '
   for h in web app-server db keycloak minio prometheus grafana dns-server node-exporter; do
     printf "%-14s " "$h"; ping -c 3 -q "$h" | grep "packet loss"
@@ -204,7 +204,7 @@ result T-E05 "MinIO: profile-pics public, documents private (chỉ mở được
 GET :$MINIO_API_PORT/documents/report.pdf (ẩn danh)           -> $o2
 GET documents/report.pdf bằng presigned URL (hết hạn 10 phút) -> $o3"
 
-# ---------------------------------------------------------------- T-E06 DNS records mới
+# ---------------------------------------------------------------- T-E06 New DNS records
 e6=""
 ok=0
 for pair in app-backend:10.10.10.20 minio:10.10.10.50 keycloak:10.10.10.40; do
@@ -245,7 +245,7 @@ n2=$(printf '%s' "$lb" | grep -o web2 | wc -l)
 result T-E10 "Load balancing round robin: 6 request chia đều web1/web2" $? "X-Served-By: $lb
 (kiểm thử failover đầy đủ: bash scripts/lb-test.sh)"
 
-# Phần nâng cao ngoài đề
+# Advanced part beyond the assignment
 . scripts/smoke-advanced.sh
 
 echo

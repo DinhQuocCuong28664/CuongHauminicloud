@@ -1,17 +1,17 @@
-// MyMiniCloud Portal: SPA đăng nhập Keycloak theo Authorization Code + PKCE (RFC 7636), không dùng thư viện ngoài.
-// Mọi request đều cùng origin (gateway định tuyến /auth/ tới Keycloak, /api/ tới Flask) nên không cần CORS.
+// MyMiniCloud Portal: SPA that signs in to Keycloak with Authorization Code + PKCE (RFC 7636), no external libraries.
+// Every request is same-origin (the gateway routes /auth/ to Keycloak and /api/ to Flask), so no CORS is needed.
 'use strict';
 
 const REALM = 'realm_523H0008_523H0025';
 const CLIENT_ID = 'portal';
 const OIDC = `${location.origin}/auth/realms/${REALM}/protocol/openid-connect`;
 const REDIRECT_URI = `${location.origin}/portal/`;
-const STORE = sessionStorage;            // token chỉ sống trong tab hiện tại
+const STORE = sessionStorage;            // tokens live only in the current tab
 
 const $ = (id) => document.getElementById(id);
 const show = (el, on = true) => { el.hidden = !on; };
 
-// ---------------------------------------------------------------- PKCE và token
+// ---------------------------------------------------------------- PKCE and tokens
 function b64url(bytes) {
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -52,7 +52,7 @@ async function tokenRequest(body) {
   }));
 }
 
-// Quay lại từ Keycloak với ?code=...&state=...
+// Back from Keycloak with ?code=...&state=...
 async function handleCallback() {
   const q = new URLSearchParams(location.search);
   if (q.has('error')) throw new Error(q.get('error_description') || q.get('error'));
@@ -69,7 +69,7 @@ async function handleCallback() {
 
 function tokens() { return JSON.parse(STORE.getItem('tokens') || 'null'); }
 
-// Access token Keycloak sống 5 phút: làm mới bằng refresh token khi còn dưới 30 giây
+// Keycloak access tokens live 5 minutes: refresh with the refresh token when under 30 seconds remain
 async function accessToken() {
   const t = tokens();
   if (!t) return null;
@@ -91,7 +91,7 @@ function logout() {
   location.assign(`${OIDC}/logout?${params}`);
 }
 
-// ---------------------------------------------------------------- Gọi API và ghi nhật ký
+// ---------------------------------------------------------------- API calls and request log
 async function api(method, path, body, { raw = false } = {}) {
   const token = await accessToken();
   if (!token) { location.reload(); throw new Error('Phiên đăng nhập đã hết'); }
@@ -137,13 +137,13 @@ function showError(e) {
 }
 function showLoginError(text) { const el = $('login-error'); el.textContent = text; show(el); }
 
-// ---------------------------------------------------------------- Hồ sơ
+// ---------------------------------------------------------------- Profile
 let me = null;
 
 async function loadProfile() {
   me = await api('GET', '/me');
   $('nav-user').textContent = me.username;
-  // Tên tiếng Việt: họ đứng trước tên (claim name của Keycloak ghép theo kiểu tên trước họ)
+  // Vietnamese names put the family name first (the Keycloak name claim puts the given name first)
   $('p-name').textContent = [me.family_name, me.given_name].filter(Boolean).join(' ') || me.name || me.username;
   $('p-username').textContent = me.username;
   $('p-email').textContent = me.email || '';
@@ -189,7 +189,7 @@ $('form-avatar').addEventListener('submit', async (ev) => {
   } catch (e) { showError(e); }
 });
 
-// ---------------------------------------------------------------- Sinh viên (CRUD)
+// ---------------------------------------------------------------- Students (CRUD)
 async function loadStudents() {
   const data = await api('GET', '/students');
   const body = $('students-body');
@@ -255,7 +255,7 @@ async function deleteStudent(s) {
   } catch (e) { showError(e); }
 }
 
-// ---------------------------------------------------------------- Tài liệu private
+// ---------------------------------------------------------------- Private documents
 async function loadDocuments() {
   const body = $('documents-body');
   body.innerHTML = '';
@@ -289,7 +289,7 @@ async function downloadDocument(name) {
   } catch (e) { showError(e); }
 }
 
-// ---------------------------------------------------------------- Vận hành
+// ---------------------------------------------------------------- Operations
 async function loadAlerts() {
   const body = $('alerts-body');
   body.innerHTML = '';
@@ -353,7 +353,7 @@ for (const tab of document.querySelectorAll('.tab')) {
   });
 }
 
-// ---------------------------------------------------------------- Khởi động
+// ---------------------------------------------------------------- Startup
 $('btn-login').onclick = login;
 $('btn-logout').onclick = logout;
 

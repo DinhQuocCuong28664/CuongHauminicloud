@@ -1,8 +1,8 @@
-# Luật cảnh báo của MyMiniCloud (Prometheus đánh giá mỗi 15 giây, gửi sang Alertmanager)
+# MyMiniCloud alert rules (Prometheus evaluates them every 15 seconds and sends them to Alertmanager)
 groups:
   - name: minicloud-availability
     rules:
-      # Một target ngừng trả metric (exporter, Prometheus, app...)
+      # A target stopped returning metrics (exporter, Prometheus, app...)
       - alert: TargetDown
         expr: up == 0
         for: 30s
@@ -12,9 +12,9 @@ groups:
           summary: "Target {{ $labels.job }} ({{ $labels.instance }}) không phản hồi"
           description: "Prometheus không scrape được {{ $labels.instance }} trong 30 giây."
 
-      # Một web server trong cụm cân bằng tải ngừng chạy. cAdvisor cập nhật container_last_seen mỗi ~15 giây
-      # cho container đang chạy; container đã dừng thì giá trị đứng yên (Docker Desktop) hoặc series biến mất (Linux),
-      # nên xét cả hai trường hợp.
+      # A web server in the load-balanced pool stopped. cAdvisor updates container_last_seen every ~15 seconds
+      # for running containers; for a stopped container the value freezes (Docker Desktop) or the series disappears (Linux),
+      # so both cases are covered.
       - alert: WebServerDown
         expr: >-
           max by (name) (time() - container_last_seen{name=~"web-frontend-server[12]"}) > 45

@@ -1,6 +1,6 @@
 $TTL 1H
 @   IN  SOA ns.cloud.local. admin.cloud.local. (
-            2026102003  ; serial (YYYYMMDDnn) - tăng mỗi lần sửa zone
+            2026102003  ; serial (YYYYMMDDnn) - bump on every record change
             1H          ; refresh
             15M         ; retry
             1W          ; expire
@@ -28,7 +28,7 @@ relational-database-server           IN  A   10.10.10.30
 authentication-identity-server       IN  A   10.10.10.40
 object-storage-server                IN  A   10.10.10.50
 
-; Mở rộng 6: tên ngắn cho các dịch vụ (serial 2026102002)
+; Extension 6: short service names (serial 2026102002)
 app-backend                          IN  A   10.10.10.20
 minio                                IN  A   10.10.10.50
 keycloak                             IN  A   10.10.10.40
@@ -39,12 +39,12 @@ monitoring-node-exporter-server      IN  A   10.10.10.61
 web-frontend-exporter                IN  A   10.10.10.62
 monitoring-grafana-dashboard-server  IN  A   10.10.10.70
 
-; Nâng cao A10: tên dịch vụ mà application server dùng để kết nối, phân giải qua BIND9 (serial 2026102003)
+; Advanced A10: service names the application server connects to, resolved by BIND9 (serial 2026102003)
 db                                   IN  A   10.10.10.30
 s3                                   IN  CNAME minio
 portal                               IN  CNAME proxy
 
-; Nâng cao: giám sát container, cảnh báo, log tập trung
+; Advanced: container monitoring, alerting, central logging
 monitoring-cadvisor-server           IN  A   10.10.10.63
 cadvisor                             IN  A   10.10.10.63
 monitoring-alertmanager-server       IN  A   10.10.10.64

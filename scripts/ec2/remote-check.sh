@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# remote-check.sh — kiểm thử MyMiniCloud trên EC2 từ máy cá nhân, qua Internet (đúng như người dùng bên ngoài).
-#   bash scripts/ec2/remote-check.sh        Kết quả ghi vào evidence/ec2-remote-check.txt
+# remote-check.sh — test MyMiniCloud on EC2 from a personal machine over the Internet (as an outside user would).
+#   bash scripts/ec2/remote-check.sh        Results go to evidence/ec2-remote-check.txt
 set -u
 export MSYS_NO_PATHCONV=1
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -9,7 +9,7 @@ cd "$ROOT"
 set -a; . ./.env; set +a
 if python3 -c 'pass' >/dev/null 2>&1; then PY=python3; else PY=python; fi
 export PYTHONUTF8=1
-# curl của Git Bash là bản Windows: không ghi được vào /dev/null, nên bỏ nội dung vào file tạm trong dự án
+# Git Bash curl is the Windows build: it cannot write to /dev/null, so bodies go to a temp file in the project
 NUL=logs/.remote-check.tmp
 IP=$PUBLIC_IP
 DOMAIN="$(printf '%s' "$IP" | tr . -).sslip.io"
@@ -24,7 +24,7 @@ echo
 echo "### HTTPS (cổng 443 mở cho Internet; cổng 80 chỉ chuyển hướng)"
 line "GET http://$IP/" "$(curl -s -o "$NUL" -m 8 -w '%{http_code} %{redirect_url}' "http://$IP/")"
 line "GET http://$DOMAIN/portal/" "$(curl -s -o "$NUL" -m 8 -w '%{http_code} %{redirect_url}' "http://$DOMAIN/portal/")"
-# curl bản Windows dùng Schannel, không in thông tin chứng chỉ: đọc bằng openssl
+# Windows curl uses Schannel and prints no certificate details: read them with openssl
 cert=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
        | openssl x509 -noout -subject -issuer -enddate 2>/dev/null | tr -d '\r' | tr '\n' ';')
 line "Chứng chỉ của $DOMAIN" "$cert"

@@ -1,8 +1,8 @@
-"""Sinh 4 dashboard Grafana phần nâng cao (provisioning/dashboards/*.json).
+"""Generate the 4 advanced Grafana dashboards (provisioning/dashboards/*.json).
 
     python monitoring-grafana-dashboard-server/build_dashboards.py
 
-Viết bằng script thay vì sửa JSON tay để dễ đọc truy vấn PromQL/LogQL và giữ bố cục nhất quán.
+Built by a script instead of hand-edited JSON so PromQL/LogQL queries stay readable and the layout consistent.
 """
 import json
 import os
@@ -72,7 +72,7 @@ def logs(title, expr, x, y, w=24, h=12, desc=""):
 
 
 def dashboard(uid, title, desc, panels, variables=(), refresh="10s", time_from="now-30m"):
-    for i, p in enumerate(panels, 1):   # id panel đánh từ 1 trong mỗi dashboard (dùng cho viewPanel=<id>)
+    for i, p in enumerate(panels, 1):   # panel ids start at 1 in each dashboard (used by viewPanel=<id>)
         p["id"] = i
     return {
         "uid": uid, "title": title, "description": desc,
@@ -165,7 +165,7 @@ api = dashboard(
     ],
 )
 
-# ---------------------------------------------------------------- 3. Log tập trung (Loki)
+# ---------------------------------------------------------------- 3. Centralized logs (Loki)
 SEL = '{container=~"$container"}'
 logs_db = dashboard(
     "logs-523h0008-523h0025", "Logs – MyMiniCloud (Loki)",
@@ -190,7 +190,7 @@ logs_db = dashboard(
                textbox("request_id", "request_id", "none")],
 )
 
-# ---------------------------------------------------------------- 4. Tổng quan
+# ---------------------------------------------------------------- 4. Overview
 overview = dashboard(
     "overview-523h0008-523h0025", "MyMiniCloud – Overview (523H0008 & 523H0025)",
     "Một màn hình tình trạng toàn hệ thống: target, cảnh báo, máy chủ, container, API, log lỗi",
