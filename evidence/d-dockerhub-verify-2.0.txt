@@ -1,0 +1,8 @@
+myminicloud-web public 63
+   tags: ['1.0', '2.0', 'latest']
+myminicloud-app public 55
+   tags: ['1.0', '2.0', 'latest']
+myminicloud-proxy public 48
+   tags: ['1.0', '2.0', 'latest']
+myminicloud-db-backup public 0
+   tags: ['2.0', 'latest']

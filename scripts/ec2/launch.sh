@@ -51,6 +51,20 @@ if [ "$SG" = "None" ]; then
   echo "Đã tạo security group $SG_NAME ($SG)"
 fi
 
+# Nâng cao: thêm luật còn thiếu vào security group đã có (chạy lại không sao: luật trùng bị bỏ qua).
+# 443 (HTTPS của proxy) mở cho mọi người; 9093 (Alertmanager) và các cổng quản trị chỉ cho IP hiện tại của bạn
+ensure_rule() {   # ensure_rule <cổng> <CIDR> <mô tả>
+  out=$(aws --profile default --region ap-southeast-1 ec2 authorize-security-group-ingress --group-id "$SG" \
+        --ip-permissions "[{\"IpProtocol\":\"tcp\",\"FromPort\":$1,\"ToPort\":$1,\"IpRanges\":[{\"CidrIp\":\"$2\",\"Description\":\"$3\"}]}]" 2>&1) \
+    && echo "  + $1 $2 ($3)" || { echo "$out" | grep -q Duplicate || echo "$out"; }
+}
+echo "Kiểm tra luật của $SG"
+ensure_rule 443 0.0.0.0/0 "HTTPS reverse proxy"
+for p in "22:SSH" "8080:Web1" "8088:Web2" "8085:App" "8081:Keycloak" "9000:MinIO API" "9001:MinIO Console" \
+         "9090:Prometheus" "3000:Grafana" "9093:Alertmanager"; do
+  ensure_rule "${p%%:*}" "$MYIP" "${p#*:} - My IP"
+done
+
 # ---------- Instance ----------
 IID=$(aws_ ec2 describe-instances --filters "Name=tag:Name,Values=$NAME" \
         "Name=instance-state-name,Values=pending,running,stopping,stopped" \

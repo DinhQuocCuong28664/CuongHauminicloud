@@ -1,17 +1,21 @@
 NAME                                  CPU %     MEM USAGE / LIMIT
-authentication-identity-server        0.24%     530.2MiB / 3.742GiB
-application-backend-server            0.01%     70.66MiB / 3.742GiB
-api-gateway-proxy-server              0.00%     5.254MiB / 3.742GiB
-web-frontend-exporter                 0.00%     16.59MiB / 3.742GiB
-web-frontend-server2                  0.00%     8.625MiB / 3.742GiB
-monitoring-grafana-dashboard-server   1.86%     460.7MiB / 3.742GiB
-web-frontend-server1                  0.00%     3.434MiB / 3.742GiB
-relational-database-server            0.01%     124.8MiB / 3.742GiB
-monitoring-prometheus-server          0.44%     108.9MiB / 3.742GiB
-object-storage-server                 0.00%     131.9MiB / 3.742GiB
-monitoring-node-exporter-server       0.00%     22.5MiB / 3.742GiB
-internal-dns-server                   0.00%     38.35MiB / 3.742GiB
+api-gateway-proxy-server              0.00%     5.586MiB / 128MiB
+authentication-identity-server        0.21%     593.2MiB / 1GiB
+monitoring-grafana-dashboard-server   1.00%     200.9MiB / 768MiB
+application-backend-server            5.29%     131.1MiB / 256MiB
+web-frontend-exporter                 0.00%     7.031MiB / 32MiB
+web-frontend-server2                  0.00%     3.395MiB / 64MiB
+logging-alloy-collector               0.28%     73.29MiB / 192MiB
+internal-dns-server                   4.85%     25.56MiB / 128MiB
+relational-database-server            0.01%     90.73MiB / 512MiB
+monitoring-prometheus-server          0.65%     48.19MiB / 512MiB
+object-storage-server                 3.69%     167MiB / 384MiB
+monitoring-node-exporter-server       0.01%     8.383MiB / 64MiB
+logging-loki-server                   0.93%     69.2MiB / 1GiB
+web-frontend-server1                  0.00%     3.422MiB / 64MiB
+monitoring-cadvisor-server            4.02%     20.29MiB / 192MiB
+monitoring-alertmanager-server        0.00%     15.08MiB / 96MiB
 
                total        used        free      shared  buff/cache   available
-Mem:           3.7Gi       1.7Gi       355Mi       3.8Mi       2.0Gi       2.1Gi
-Swap:          2.0Gi          0B       2.0Gi
+Mem:           3.7Gi       2.1Gi       213Mi       4.3Mi       1.7Gi       1.7Gi
+Swap:          2.0Gi        64Ki       2.0Gi

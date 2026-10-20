@@ -1,0 +1,8 @@
+Kiểm thử tải k6 — nhãn ec2
+web: 2 web server, 20 VU             38335 req   1277.5 req/s  p50   13.1 ms  p95   33.7 ms  max   111.6 ms  lỗi  0.00%  web1/web2 = 19168/19167
+web: chỉ web1, 20 VU                 37476 req   1248.9 req/s  p50   12.7 ms  p95   31.1 ms  max  2042.9 ms  lỗi  0.00%  web1/web2 = 37476/0
+failover: dừng/bật web2, 20 VU       76982 req   1282.9 req/s  p50   13.1 ms  p95   33.2 ms  max  2019.1 ms  lỗi  0.00%  web1/web2 = 56312/20670
+ratelimit: 30 req/s vào /api/hello     601 req     30.0 req/s  p50    0.5 ms  p95    2.5 ms  max     4.8 ms  lỗi  0.00%  200 = 220, 429 = 381
+api: /hello + /students-db, 20 VU     2256 req     74.0 req/s  p50  268.3 ms  p95  441.5 ms  max   527.7 ms  lỗi  0.00%
+   GET /hello           p50  242.0 ms  p95  411.3 ms  max   470.9 ms
+   GET /students-db     p50  294.5 ms  p95  463.2 ms  max   527.7 ms

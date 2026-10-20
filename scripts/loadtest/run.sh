@@ -10,10 +10,18 @@ LABEL=${1:-local}
 K6=grafana/k6:2.3.0
 OUTDIR=scripts/loadtest/out
 mkdir -p "$OUTDIR" evidence
+# Container k6 chạy bằng user riêng (không phải chủ thư mục trên Linux): cho phép ghi file kết quả
+chmod a+rwx "$OUTDIR"
 if python3 -c 'pass' >/dev/null 2>&1; then PY=python3; else PY=python; fi
 
+# Trên EC2 có HTTPS: K6_DOMAIN=<tên miền> -> k6 gọi https://<tên miền> nhưng phân giải thẳng tới proxy 10.10.10.2
+# (đi trong cloud-net, có TLS thật, chứng chỉ khớp tên miền)
+EXTRA=()
+if [ -n "${K6_DOMAIN:-}" ]; then
+  EXTRA=(--add-host "$K6_DOMAIN:10.10.10.2" -e "GATEWAY=https://$K6_DOMAIN")
+fi
 k6() {   # k6 <kịch bản>   (IP tĩnh 10.10.10.91 để không chiếm IP của container đang tạm dừng)
-  docker run --rm --network cloud-net --ip 10.10.10.91 -v "$(pwd)/scripts/loadtest:/scripts" \
+  docker run --rm --network cloud-net --ip 10.10.10.91 "${EXTRA[@]}" -v "$(pwd)/scripts/loadtest:/scripts" \
     -e SCENARIO="$1" -e OUT="/scripts/out/$1.json" "$K6" run --quiet /scripts/scenarios.js >/dev/null 2>&1
   cp "$OUTDIR/$1.json" "evidence/k6-$LABEL-$1.json"
 }

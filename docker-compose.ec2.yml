@@ -1,0 +1,30 @@
+# Bổ sung cho EC2: HTTPS bằng chứng chỉ Let's Encrypt cho tên miền <ip-dạng-gạch>.sslip.io (biến PUBLIC_DOMAIN).
+#   docker compose -f docker-compose.yml -f docker-compose.ec2.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.ec2.yml --profile tls run --rm certbot certonly ...
+# Trên máy cá nhân chỉ dùng docker-compose.yml (HTTP).
+services:
+  api-gateway-proxy-server:
+    ports: ["443:443"]
+    environment:
+      # Ảnh nginx thay ${PUBLIC_DOMAIN} trong /etc/nginx/templates/*.template lúc khởi động
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+      NGINX_ENVSUBST_FILTER: PUBLIC_DOMAIN
+    volumes:
+      - ./api-gateway-proxy-server/tls/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - certbot-conf:/etc/letsencrypt:ro
+
+  authentication-identity-server:
+    environment:
+      # Issuer cố định theo URL HTTPS công khai, dù token được xin qua đường nào
+      KC_HOSTNAME: https://${PUBLIC_DOMAIN}/auth
+
+  # Job xin và gia hạn chứng chỉ (webroot: proxy phục vụ /.well-known/acme-challenge/ từ volume certbot-www)
+  certbot:
+    image: certbot/certbot:v5.8.0
+    profiles: ["tls"]
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+
+volumes:
+  certbot-conf:

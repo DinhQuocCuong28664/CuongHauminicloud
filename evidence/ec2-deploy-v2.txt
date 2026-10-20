@@ -1,0 +1,98 @@
+== 1. Chờ cloud-init cài Docker trên 13.212.88.223
+Docker version 29.9.1, build dfc520d
+Docker Compose version v5.6.0
+               total        used        free      shared  buff/cache   available
+Mem:           3.7Gi       1.6Gi       774Mi       3.8Mi       1.6Gi       2.1Gi
+Swap:          2.0Gi          0B       2.0Gi
+== 2. Gửi mã nguồn và .env (tên miền 13-212-88-223.sslip.io)
+== 3. docker compose pull + up (HTTP)
+ Image grafana/loki:3.7.8 Pulled 
+ Image dinhquoccuong286/myminicloud-db-backup:2.0 Pulled 
+ Image grafana/alloy:v1.20.1 Pulled 
+ Container authentication-identity-server Healthy 
+ Container api-gateway-proxy-server Starting 
+ Container api-gateway-proxy-server Started 
+  api-gateway-proxy-server: healthy
+== 4. Chứng chỉ Let's Encrypt cho 13-212-88-223.sslip.io, chuyển sang HTTPS
+ Container application-backend-server Healthy 
+ Container authentication-identity-server Healthy 
+ Container api-gateway-proxy-server Starting 
+ Container api-gateway-proxy-server Started 
+  authentication-identity-server: healthy
+  api-gateway-proxy-server: healthy
+== 5. Cập nhật dữ liệu từ bản cũ, cron sao lưu và gia hạn chứng chỉ
+Logging into http://localhost:8080/auth as user admin of realm master
+realm master: sslRequired = external
+chờ Keycloak healthy
+Logging into http://localhost:8080/auth as user admin of realm master
+đã xoá realm realm_523H0008_523H0025
+chờ Keycloak healthy.........
+Logging into http://localhost:8080/auth as user admin of realm master
+client: flask-app portal
+role sv01: viewer editor
+role sv02: viewer
+== 020_ops.sh
+020_ops.sh: database ops, bảng alerts, user minicloud_backup
+  init-buckets: ok
+15 19 * * * cd $HOME/CuongHauminicloud && docker compose --profile ops run --rm db-backup >> logs/backup.log 2>&1 # MyMiniCloud sao lưu 02:15 giờ VN
+30 20 * * 1 cd $HOME/CuongHauminicloud && docker compose -f docker-compose.yml -f docker-compose.ec2.yml --profile tls run --rm certbot renew -q && docker exec api-gateway-proxy-server nginx -s reload # MyMiniCloud gia hạn chứng chỉ
+== 6. Smoke test trên EC2 (gateway https://13-212-88-223.sslip.io)
+Tổng kết: 30 PASS, 1 FAIL
+$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@13.212.88.223
+ubuntu@minicloud-ec2
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+7.0.0-1014-aws
+2
+               total        used        free      shared  buff/cache   available
+Mem:           3.7Gi       2.1Gi       215Mi       4.3Mi       1.7Gi       1.7Gi
+$ docker compose ps
+NAME                                  IMAGE                                      STATUS
+api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:2.0     Up 3 minutes (healthy)
+application-backend-server            dinhquoccuong286/myminicloud-app:2.0       Up 6 minutes (healthy)
+authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up 3 minutes (healthy)
+internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 6 minutes (healthy)
+logging-alloy-collector               grafana/alloy:v1.20.1                      Up 6 minutes (healthy)
+logging-loki-server                   grafana/loki:3.7.8                         Up 6 minutes
+monitoring-alertmanager-server        prom/alertmanager:v0.34.1                  Up 6 minutes (healthy)
+monitoring-cadvisor-server            ghcr.io/google/cadvisor:v0.60.6            Up 6 minutes (healthy)
+monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 6 minutes (healthy)
+monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 6 minutes (healthy)
+monitoring-prometheus-server          prom/prometheus:v3.15.0                    Up 6 minutes (healthy)
+object-storage-server                 pgsty/minio:RELEASE.2026-08-04T00-00-00Z   Up 6 minutes (healthy)
+relational-database-server            mariadb:11.4.13                            Up 6 minutes (healthy)
+web-frontend-exporter                 nginx/nginx-prometheus-exporter:1.5.3      Up 6 minutes
+web-frontend-server1                  dinhquoccuong286/myminicloud-web:2.0       Up 6 minutes (healthy)
+web-frontend-server2                  dinhquoccuong286/myminicloud-web:2.0       Up 45 seconds (healthy)
+[PASS] T-B01  Web server: / và /blog/ trả 200
+[PASS] T-B02  App server: /hello trực tiếp và qua proxy giống nhau
+[PASS] T-B03  Database: có database minicloud, bảng notes, app đọc được
+[PASS] T-B04  Auth server: Keycloak chạy, admin đăng nhập, tạo được user
+[PASS] T-B05  Storage: tạo bucket demo, upload index.html, console mở được
+[PASS] T-B06  DNS: web-frontend-server.cloud.local -> 10.10.10.10
+[PASS] T-B07  Monitoring: target node-exporter UP, có metric node_cpu_seconds_total
+[PASS] T-B08  Grafana: datasource Prometheus OK, có dashboard Node Exporter Full
+[PASS] T-B09  Proxy: / -> web, /api/ -> app, /auth/ -> Keycloak
+[PASS] T-B10  Mạng: ping 9 server từ trong proxy, không mất gói
+[PASS] T-E01  Blog cá nhân: 3 bài có ảnh, link về trang chủ, trang chủ liệt kê đủ
+[PASS] T-E02  API /student đọc students.json qua proxy: 5 sinh viên đủ 4 trường
+[PASS] T-E03  studentdb.students có ≥3 bản ghi, API /students-db đọc đúng từ MariaDB
+[PASS] T-E04  Realm realm_523H0008_523H0025: token sv01 gọi /secure được, không token/token sai bị chặn
+[PASS] T-E05  MinIO: profile-pics public, documents private (chỉ mở được bằng URL có chữ ký)
+[PASS] T-E06  DNS: thêm app-backend, minio, keycloak vào zone cloud.local
+[PASS] T-E07  Prometheus: job 'web' giám sát web-frontend-server UP
+[PASS] T-E08  Grafana: dashboard System Health có biểu đồ CPU, Memory, Network
+[PASS] T-E09  Proxy: /student/ trả danh sách sinh viên từ backend
+[PASS] T-E10  Load balancing round robin: 6 request chia đều web1/web2
+[PASS] T-A01  Portal: trang /portal/ có CSP; client portal bắt buộc PKCE, không cho đăng nhập bằng mật khẩu
+[PASS] T-A02  RBAC: sv01 (editor) được ghi, sv02 (viewer) chỉ đọc, không token bị chặn
+[PASS] T-A03  CRUD /api/students trên MariaDB: thêm 201, sửa 200, dữ liệu sai 400, xoá 204, xoá lại 404
+[PASS] T-A04  MinIO qua app: upload ảnh vào profile-pics, đọc qua /media/; documents chỉ editor tải được
+[PASS] T-A05  Loki: log mọi container; một request_id tra được ở cả proxy và app
+[PASS] T-A06  cAdvisor theo dõi từng container, app xuất metric RED, Grafana có 4 dashboard nâng cao
+[PASS] T-A07  Cảnh báo: dừng web2 -> WebServerDown firing, gửi tới app; bật lại -> resolved
+[FAIL] T-A08  Gateway: rate limit 429, header bảo mật, chặn /api/metrics và POST /api/alerts, HTTPS khi chạy EC2
+[PASS] T-A09  Sao lưu MariaDB sang MinIO (db-backups, lifecycle 7 ngày) và khôi phục thử khớp bản gốc
+[PASS] T-A10  DNS nội bộ: app kết nối DB, MinIO bằng tên cloud.local do BIND9 phân giải
+[PASS] T-A11  Compose: mọi container có giới hạn RAM, no-new-privileges; 14 container có healthcheck đều healthy
+Tổng kết: 30 PASS, 1 FAIL
+Portal: https://13-212-88-223.sslip.io/portal/

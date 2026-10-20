@@ -12,5 +12,7 @@ set -a; . ./.env; set +a
 kcadm() { docker exec authentication-identity-server /opt/keycloak/bin/kcadm.sh "$@" --config /tmp/kcadm.config; }
 
 kcadm config credentials --server http://localhost:8080/auth --realm master --user "$KC_ADMIN" --password "$KC_ADMIN_PASSWORD"
-kcadm update realms/master -s sslRequired=NONE
+# Mặc định NONE (chạy HTTP qua public IP). Khi EC2 đã có HTTPS: bash post-start.sh EXTERNAL
+# (chỉ yêu cầu HTTPS với địa chỉ công khai, như mặc định của Keycloak)
+kcadm update realms/master -s "sslRequired=${1:-NONE}"
 echo "realm master: sslRequired = $(kcadm get realms/master --fields sslRequired | tr -d ' \r\n{}"' | cut -d: -f2)"

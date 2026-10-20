@@ -1,28 +1,37 @@
-Kiểm thử từ máy cá nhân (118.69.28.143) tới EC2 13.212.241.134 — 2026-10-20 04:26:00 +0700
+Kiểm thử từ máy cá nhân (118.69.30.25) tới EC2 13.212.88.223 (13-212-88-223.sslip.io) — 2026-10-20 23:28:10 +0700
 
-### Qua reverse proxy (cổng 80, mở cho Internet)
-GET http://13.212.241.134/                     -> 200 <title>MyMiniCloud – Home</title>
-GET http://13.212.241.134/blog/                -> 200
-GET http://13.212.241.134/blog/blog1.html      -> 200
-GET http://13.212.241.134/api/hello            -> {"message":"Hello from App Server!"}
-GET http://13.212.241.134/student/             -> 5 sinh viên
-GET http://13.212.241.134/api/students-db      -> 4 bản ghi từ MariaDB
-GET http://13.212.241.134/auth/                -> 302 http://13.212.241.134/auth/admin/
-4 request liên tiếp, header X-Served-By     -> web1 web2 web1 web2 
-GET /api/secure (token sv01 xin qua 13.212.241.134) -> {"audience":"flask-app","issuer":"http://13.212.241.134/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"} [200]
-GET /api/secure (không token)                 -> {"error":"Missing Bearer token"} [401]
+### HTTPS (cổng 443 mở cho Internet; cổng 80 chỉ chuyển hướng)
+GET http://13.212.88.223/                          -> 301 https://13-212-88-223.sslip.io/
+GET http://13-212-88-223.sslip.io/portal/          -> 301 https://13-212-88-223.sslip.io/portal/
+Chứng chỉ của 13-212-88-223.sslip.io         -> subject=CN=13-212-88-223.sslip.io;issuer=C=US, O=Let's Encrypt, CN=YE1;notAfter=Jan 18 15:12:31 2027 GMT;
+Header HSTS                                        -> max-age=31536000
+
+### Qua reverse proxy bằng HTTPS
+GET https://13-212-88-223.sslip.io/                -> 200 <title>MyMiniCloud – Home</title>
+GET https://13-212-88-223.sslip.io/blog/blog1.html -> 200
+GET https://13-212-88-223.sslip.io/portal/         -> 200 <title>MyMiniCloud – Portal</title>
+GET https://13-212-88-223.sslip.io/api/hello       -> {"message":"Hello from App Server!"}
+GET https://13-212-88-223.sslip.io/student/        -> 5 sinh viên
+GET https://13-212-88-223.sslip.io/api/students-db -> 4 bản ghi từ MariaDB
+GET https://13-212-88-223.sslip.io/auth/           -> 302 https://13-212-88-223.sslip.io/auth/admin/
+4 request liên tiếp, header X-Served-By         -> web2 web1 web2 web1 
+issuer của token sv01                            -> https://13-212-88-223.sslip.io/auth/realms/realm_523H0008_523H0025
+GET /api/secure (token sv01)                       -> {"audience":"flask-app","issuer":"https://13-212-88-223.sslip.io/auth/realms/realm_523H0008_523H0025","message":"Secure resource OK","preferred_username":"sv01"} [200]
+GET /api/me (token sv01)                           -> sv01 ['viewer', 'editor'] /media/sv01.jpg?v=32eb39333084
+GET /api/secure (không token)                     -> {"error":"Missing Bearer token"} [401]
 
 ### Cổng trực tiếp (Security Group chỉ mở cho My IP)
-Web1  http://13.212.241.134:8080/              -> 200
-Web2  http://13.212.241.134:8088/              -> 200
-App   http://13.212.241.134:8085/hello         -> {"message":"Hello from App Server!"}
-Keycloak http://13.212.241.134:8081/auth/      -> 302
-MinIO public http://13.212.241.134:9000/profile-pics/avatar.jpg -> 200
-MinIO private http://13.212.241.134:9000/documents/report.pdf -> 403
-MinIO Console http://13.212.241.134:9001/      -> 200
-Prometheus http://13.212.241.134:9090/-/ready  -> 200
-Grafana http://13.212.241.134:3000/api/health  -> 200
+Web1  http://13.212.88.223:8080/                   -> 200
+Web2  http://13.212.88.223:8088/                   -> 200
+App   http://13.212.88.223:8085/hello              -> {"message":"Hello from App Server!"}
+Keycloak http://13.212.88.223:8081/auth/           -> 302
+MinIO public http://13.212.88.223:9000/profile-pics/avatar.jpg -> 200
+MinIO private http://13.212.88.223:9000/documents/report.pdf -> 403
+MinIO Console http://13.212.88.223:9001/           -> 200
+Prometheus http://13.212.88.223:9090/-/ready       -> 200
+Alertmanager http://13.212.88.223:9093/-/ready     -> 200
+Grafana http://13.212.88.223:3000/api/health       -> 200
 
 ### Cổng KHÔNG mở trong Security Group (phải bị chặn)
-TCP 13.212.241.134:3306                        -> timeout (bị Security Group chặn)
-TCP 13.212.241.134:9100                        -> timeout (bị Security Group chặn)
+TCP 13.212.88.223:3306                             -> timeout (bị Security Group chặn)
+TCP 13.212.88.223:9100                             -> timeout (bị Security Group chặn)

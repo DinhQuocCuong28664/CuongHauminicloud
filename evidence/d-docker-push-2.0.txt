@@ -1,0 +1,24 @@
+$ docker push dinhquoccuong286/myminicloud-web:2.0
+56f355be4ecc: Pushed
+9ac4db74ef35: Pushed
+2.0: digest: sha256:ace56902dfec314786b0d19795fcf635f637729f0b1368dbe0b9f0e3aec7f09f size: 856
+$ docker push dinhquoccuong286/myminicloud-web:latest
+latest: digest: sha256:ace56902dfec314786b0d19795fcf635f637729f0b1368dbe0b9f0e3aec7f09f size: 856
+$ docker push dinhquoccuong286/myminicloud-app:2.0
+4a8851e6dfac: Pushed
+b1fc59693c6b: Pushed
+2.0: digest: sha256:0529ca74205b943743107799e4d72a4c8d59bc50a52c66d799275b2095113239 size: 856
+$ docker push dinhquoccuong286/myminicloud-app:latest
+latest: digest: sha256:0529ca74205b943743107799e4d72a4c8d59bc50a52c66d799275b2095113239 size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:2.0
+5e62307672ba: Pushed
+aafd11bc1b28: Pushed
+2.0: digest: sha256:6d499786f74d593797dde177b1268e10e6622f838f044996747421214eb40835 size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:latest
+latest: digest: sha256:6d499786f74d593797dde177b1268e10e6622f838f044996747421214eb40835 size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:2.0
+a830af46f24f: Pushed
+0fda145cf53c: Pushed
+2.0: digest: sha256:71f7a1d160ccd08d2c8a357fa8fc2d1899039a102f0067bcbbc828996d6d4628 size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:latest
+latest: digest: sha256:71f7a1d160ccd08d2c8a357fa8fc2d1899039a102f0067bcbbc828996d6d4628 size: 856

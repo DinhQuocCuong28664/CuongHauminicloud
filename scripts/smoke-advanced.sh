@@ -26,7 +26,7 @@ prom() { curl -s "http://$H:$PROM_PORT/api/v1/query" --data-urlencode "query=$1"
 
 # ---------------------------------------------------------------- T-A01 Portal + PKCE
 p1=$(code "$P/portal/")
-p1h=$(curl -s -D - -o /dev/null "$P/portal/" | tr -d '\r' | awk -F': ' 'tolower($1)=="content-security-policy"{print $2}')
+p1h=$(curl -s -D - -o /dev/null "$P/portal/" | tr -d '\r' | awk 'tolower($0) ~ /^content-security-policy:/ {sub(/^[^:]*: */, ""); print}')
 p1t=$(curl -s "$P/portal/" | grep -o '<title>[^<]*</title>')
 AUTH="$P/auth/realms/$KC_REALM/protocol/openid-connect/auth?client_id=portal&response_type=code&scope=openid&redirect_uri=$(printf '%s' "$P/portal/" | sed 's/:/%3A/g; s#/#%2F#g')"
 p1a=$(code "$AUTH&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256")
@@ -113,9 +113,9 @@ số container có log trong Loki: $l3"
 
 # ---------------------------------------------------------------- T-A06 Giám sát container và API
 m1=$(curl -s "http://$H:$PROM_PORT/api/v1/targets" | json "' '.join(t['labels']['job']+'='+t['health'] for t in d['data']['activeTargets'] if t['labels']['job'] in ('cadvisor','app','alertmanager','loki'))")
-m2=$(prom 'count(container_last_seen{container_label_com_docker_compose_project="cuonghauminicloud"})')
+m2=$(prom 'count(time() - container_last_seen{container_label_com_docker_compose_project="cuonghauminicloud"} < 60)')
 m3=$(prom 'sum(minicloud_http_requests_total)')
-m4=$(prom 'histogram_quantile(0.95, sum by (le) (rate(minicloud_http_request_duration_seconds_bucket[5m])))')
+m4=$(prom 'round(histogram_quantile(0.95, sum by (le) (rate(minicloud_http_request_duration_seconds_bucket[5m]))), 0.001)')
 m5=$(curl -s -u "$GF_ADMIN_USER:$GF_ADMIN_PASSWORD" "http://$H:$GRAFANA_PORT/api/search?tag=nang-cao" | json "len(d)")
 [[ "$m1" != *down* ]] && [[ "$m1" == *cadvisor=up* ]] && [[ "$m1" == *app=up* ]] && [ "${m2:-0}" -ge 16 ] \
   && [ "${m3%.*}" -gt 0 ] && [ "$m5" -ge 4 ]
@@ -147,7 +147,8 @@ docker start web-frontend-server2 -> app nhận resolved sau ${tr_} s"
 fi
 
 # ---------------------------------------------------------------- T-A08 Gateway: rate limit, header, HTTPS
-g1=$(for i in $(seq 1 40); do code "$P/api/hello"; echo; done | sort | uniq -c | awk '{printf "%s×%s ", $2, $1}')
+# Gửi song song 20 luồng: gửi tuần tự qua HTTPS (mỗi request bắt tay TLS mới) có thể chậm hơn ngưỡng 10 request/giây
+g1=$(seq 1 40 | xargs -P 20 -I{} curl -s -o /dev/null -w '%{http_code}\n' "$P/api/hello" | sort | uniq -c | awk '{printf "%s×%s ", $2, $1}')
 sleep 3
 g2=$(curl -s -D - -o /dev/null "$P/api/hello" | tr -d '\r' | awk -F': ' 'tolower($1) ~ /^(x-content-type-options|x-frame-options|x-request-id|referrer-policy|strict-transport-security)$/ {printf "%s ", $1}')
 g3=$(code "$P/api/metrics")
@@ -165,7 +166,7 @@ issuer của token: $g7"
 fi
 [[ "$g1" == *429* ]] && [[ "$g1" == *200* ]] && [ "$g3" = 404 ] && [ "$g4" = 403 ] && [ "$tls_ok" = 0 ] \
   && [[ "${g2,,}" == *x-request-id* ]] && [[ "${g2,,}" == *x-content-type-options* ]]
-result T-A08 "Gateway: rate limit 429, header bảo mật, chặn /api/metrics và POST /api/alerts, HTTPS khi chạy EC2" $? "40 request liên tiếp /api/hello -> $g1
+result T-A08 "Gateway: rate limit 429, header bảo mật, chặn /api/metrics và POST /api/alerts, HTTPS khi chạy EC2" $? "40 request /api/hello (20 luồng song song) -> $g1
 header: $g2
 GET /api/metrics -> $g3, POST /api/alerts -> $g4
 $tls_info"

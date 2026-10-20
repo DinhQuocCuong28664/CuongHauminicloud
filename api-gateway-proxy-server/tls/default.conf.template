@@ -19,8 +19,9 @@ server {
         return 200 "ok\n";
     }
 
+    # Chuyển hướng về đúng tên miền có chứng chỉ (kể cả khi người dùng gõ địa chỉ IP)
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://${PUBLIC_DOMAIN}$request_uri;
     }
 }
 
