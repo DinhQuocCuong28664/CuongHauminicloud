@@ -151,7 +151,7 @@ e1=""
 ok=0
 for p in blog1 blog2 blog3; do
   page=$(curl -s "$P/blog/$p.html")
-  img=$(printf '%s' "$page" | grep -o 'src="/assets/[^"]*"' | head -1 | cut -d'"' -f2)
+  img=$(printf '%s' "$page" | grep -o '<img src="/assets/[^"]*"' | head -1 | cut -d'"' -f2)
   ci=$(code "$P$img")
   back=$(printf '%s' "$page" | grep -c 'href="/"')
   title=$(printf '%s' "$page" | grep -o '<h1>[^<]*</h1>' | sed 's/<[^>]*>//g')

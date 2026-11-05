@@ -124,13 +124,16 @@ container được cAdvisor theo dõi: $m2
 tổng request API đã đếm: $m3, p95 5 phút: $m4 s
 dashboard tag nang-cao: $m5"
 
-# ---------------------------------------------------------------- T-A07 Cảnh báo: dừng web2 -> firing -> resolved
-alert_state() { curl -s -H "$A1" "$P/api/alerts" | json "next((a['status'] for a in d['alerts'] if a['alertname']=='WebServerDown'), 'none')"; }
+# ---------------------------------------------------------------- T-A07 Alerting: stop web2 -> firing -> resolved
+# Only count the web2 alert raised during this run: rows left "firing" by an earlier run (for example when
+# Docker was shut down before the resolved notification arrived) must not make the test pass or hang.
+alert_state() { curl -s -H "$A1" "$P/api/alerts" | json "next((a['status'] for a in d['alerts'] if a['alertname']=='WebServerDown' and a['target']=='web-frontend-server2' and a['starts_at']>='$alert_since'), 'none')"; }
 w_rules=$(curl -s "http://$H:$PROM_PORT/api/v1/rules" | json "sum(len(g['rules']) for g in d['data']['groups'])")
 if [ "${SKIP_ALERT_TEST:-0}" = 1 ]; then
   echo "[SKIP] T-A07  Cảnh báo (SKIP_ALERT_TEST=1); số luật cảnh báo: $w_rules"
 else
   T1=$(token sv01); A1="Authorization: Bearer $T1"
+  alert_since=$(date -u +%Y-%m-%dT%H:%M:%S)
   docker stop web-frontend-server2 >/dev/null
   t0=$(date +%s); f=none
   while [ $(( $(date +%s) - t0 )) -lt 150 ]; do f=$(alert_state); [ "$f" = firing ] && break; sleep 5; done
@@ -188,6 +191,20 @@ result T-A10 "DNS nội bộ: app kết nối DB, MinIO bằng tên cloud.local 
 getent hosts db.cloud.local -> $d1
 getent hosts s3.cloud.local -> $d2 (CNAME)
 GET /api/notes (đọc DB qua db.cloud.local) -> $d4"
+
+# ---------------------------------------------------------------- T-A12 Live status board on the home page
+web2_state() { curl -s "$P/api/status" | json "next(s['status'] for s in d['services'] if s['id']=='web2')"; }
+u1=$(curl -s "$P/api/status" | json "'%d/%d %d' % (d['summary']['up'], d['summary']['total'], len({s['role_no'] for s in d['services'] if s['group']=='core'}))")
+u2=$(curl -s -D - -o /dev/null "$P/" | tr -d '\r' | awk 'tolower($0) ~ /^content-security-policy:/ {print "csp"}')
+u3=$(curl -s "$P/" | grep -c 'src="/assets/home.js"')
+docker stop web-frontend-server2 >/dev/null
+td=-; for i in $(seq 1 10); do [ "$(web2_state)" = down ] && { td=$i; break; }; sleep 1; done
+docker start web-frontend-server2 >/dev/null
+tu=-; for i in $(seq 1 30); do [ "$(web2_state)" = up ] && { tu=$i; break; }; sleep 1; done
+[[ "$u1" == "10/10 9" ]] && [ "$u2" = csp ] && [ "$u3" = 1 ] && [ "$td" != - ] && [ "$tu" != - ]
+result T-A12 "Trang chủ: bảng trạng thái live (/api/status) đủ 9 vai trò, đổi màu khi một web server dừng" $? "GET /api/status -> UP $u1 vai trò; trang chủ có CSP: ${u2:-không}, nạp home.js: $u3
+docker stop web-frontend-server2 -> web2 thành down sau ${td} s
+docker start web-frontend-server2 -> web2 thành up sau ${tu} s"
 
 # ---------------------------------------------------------------- T-A11 Compose hardening
 # Chờ tối đa 60 giây cho container vừa khởi động lại (web2 ở T-A07) qua healthcheck

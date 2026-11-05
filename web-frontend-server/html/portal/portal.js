@@ -10,6 +10,21 @@ const STORE = sessionStorage;            // token chỉ sống trong tab hiện 
 
 const $ = (id) => document.getElementById(id);
 const show = (el, on = true) => { el.hidden = !on; };
+const icon = (name, cls = 'ic') => window.mmcIcon(name, cls);   // from /assets/shell.js
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+function emptyRow(cols, iconName, text, cls = '') {
+  const tr = el('tr');
+  const td = el('td', `empty ${cls}`);
+  td.colSpan = cols;
+  td.append(icon(iconName), document.createTextNode(text));
+  tr.append(td);
+  return tr;
+}
 
 // ---------------------------------------------------------------- PKCE và token
 function b64url(bytes) {
@@ -113,12 +128,12 @@ async function api(method, path, body, { raw = false } = {}) {
 }
 
 function logCall(method, path, status, ms, requestId) {
-  const tr = document.createElement('tr');
-  const cls = status >= 500 ? 'st-err' : status >= 400 ? 'st-warn' : 'st-ok';
-  tr.innerHTML = `<td>${new Date().toLocaleTimeString('vi-VN')}</td><td class="mono"></td>
-    <td class="${cls}">${status}</td><td>${ms.toFixed(0)} ms</td><td class="mono small"></td>`;
-  tr.children[1].textContent = `${method} /api${path}`;
-  tr.children[4].textContent = requestId || '';
+  const tr = el('tr');
+  const badge = el('span', `badge ${status >= 500 ? 'badge-err' : status >= 400 ? 'badge-warn' : 'badge-ok'}`, String(status));
+  const code = el('td');
+  code.append(badge);
+  tr.append(el('td', 'nowrap', new Date().toLocaleTimeString('vi-VN')), el('td', 'mono', `${method} /api${path}`),
+    code, el('td', 'num', `${ms.toFixed(0)} ms`), el('td', 'mono small', requestId || ''));
   const body = $('calls-body');
   body.prepend(tr);
   while (body.children.length > 12) body.lastChild.remove();
@@ -142,8 +157,8 @@ let me = null;
 
 async function loadProfile() {
   me = await api('GET', '/me');
-  $('nav-user').textContent = me.username;
-  // Tên tiếng Việt: họ đứng trước tên (claim name của Keycloak ghép theo kiểu tên trước họ)
+  $('nav-user').replaceChildren(icon('user'), el('span', '', me.username));
+  // Vietnamese names put the family name first (the Keycloak name claim puts the given name first)
   $('p-name').textContent = [me.family_name, me.given_name].filter(Boolean).join(' ') || me.name || me.username;
   $('p-username').textContent = me.username;
   $('p-email').textContent = me.email || '';
@@ -158,7 +173,9 @@ async function loadProfile() {
   $('p-aud').textContent = `${[].concat(me.audience).join(', ')} / ${me.client}`;
   $('p-token').textContent = JSON.stringify(decodeJwt(tokens().access), null, 2);
   setAvatar(me.avatar_url);
-  $('students-note').textContent = me.roles.includes('editor')
+  const editor = me.roles.includes('editor');
+  $('students-note').className = editor ? 'alert' : 'alert alert-warn';
+  $('students-note').textContent = editor
     ? 'Bạn có role editor: được thêm, sửa, xoá.'
     : 'Bạn chỉ có role viewer: nút ghi vẫn hiện để thấy server từ chối (403), quyền được kiểm tra ở Flask chứ không chỉ ở giao diện.';
 }
@@ -174,7 +191,28 @@ function tickExpiry() {
   if (!t) return;
   const left = t.expiresAt - Math.floor(Date.now() / 1000);
   $('p-exp').textContent = left > 0 ? `${Math.floor(left / 60)} phút ${left % 60} giây (tự làm mới bằng refresh token)` : 'đã hết hạn';
+  const claims = decodeJwt(t.access);
+  const life = Math.max(1, claims.exp - claims.iat);
+  const pct = Math.max(0, Math.min(100, (left / life) * 100));
+  $('p-exp-bar').style.width = `${pct}%`;
+  $('p-exp-bar').classList.toggle('low', pct < 25);
 }
+
+// Avatar drop zone: the <input type=file> covers the zone, so clicking and dropping both work natively
+$('avatar-file').addEventListener('change', () => {
+  const f = $('avatar-file').files[0];
+  $('avatar-file-name').textContent = f ? `${f.name} · ${(f.size / 1024).toFixed(0)} KB` : 'Chọn hoặc kéo ảnh vào đây';
+});
+for (const [ev, on] of [['dragenter', true], ['dragover', true], ['dragleave', false], ['drop', false]]) {
+  $('avatar-drop').addEventListener(ev, () => $('avatar-drop').classList.toggle('over', on));
+}
+
+$('btn-copy-token').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('p-token').textContent);
+    toast('Đã sao chép payload của token');
+  } catch (e) { toast('Trình duyệt không cho sao chép tự động', 'error'); }
+});
 
 $('form-avatar').addEventListener('submit', async (ev) => {
   ev.preventDefault();
@@ -189,22 +227,36 @@ $('form-avatar').addEventListener('submit', async (ev) => {
   } catch (e) { showError(e); }
 });
 
-// ---------------------------------------------------------------- Sinh viên (CRUD)
+// ---------------------------------------------------------------- Students (CRUD)
+let students = [];
+
 async function loadStudents() {
   const data = await api('GET', '/students');
+  students = data.students;
+  renderStudents();
+}
+
+function renderStudents() {
+  const q = $('students-search').value.trim().toLowerCase();
+  const rows = students.filter((s) => !q || [s.student_id, s.fullname, s.major || '', s.dob || '']
+    .some((v) => String(v).toLowerCase().includes(q)));
   const body = $('students-body');
-  body.innerHTML = '';
-  for (const s of data.students) {
-    const tr = document.createElement('tr');
-    for (const v of [s.id, s.student_id, s.fullname, s.dob || '', s.major || '']) {
-      const td = document.createElement('td');
-      td.textContent = v;
-      tr.append(td);
-    }
-    const td = document.createElement('td');
-    td.className = 'actions';
-    const edit = Object.assign(document.createElement('button'), { className: 'btn btn-small', textContent: 'Sửa' });
-    const del = Object.assign(document.createElement('button'), { className: 'btn btn-small btn-danger', textContent: 'Xoá' });
+  body.replaceChildren();
+  $('students-count').textContent = q ? `${rows.length} / ${students.length} sinh viên` : `${students.length} sinh viên`;
+  if (!rows.length) {
+    body.append(emptyRow(6, 'users', q ? 'Không có sinh viên khớp từ khoá.' : 'Chưa có sinh viên nào.'));
+    return;
+  }
+  const editing = $('s-id').value;
+  for (const s of rows) {
+    const tr = el('tr', String(s.id) === editing ? 'editing' : '');
+    tr.append(el('td', 'num', s.id), el('td', 'mono', s.student_id), el('td', '', s.fullname),
+      el('td', 'nowrap', s.dob ? new Date(`${s.dob}T00:00:00`).toLocaleDateString('vi-VN') : ''), el('td', '', s.major || ''));
+    const td = el('td', 'actions');
+    const edit = el('button', 'btn btn-small', 'Sửa');
+    const del = el('button', 'btn btn-small btn-danger', 'Xoá');
+    edit.type = 'button';
+    del.type = 'button';
     edit.onclick = () => startEdit(s);
     del.onclick = () => deleteStudent(s);
     td.append(edit, ' ', del);
@@ -212,6 +264,7 @@ async function loadStudents() {
     body.append(tr);
   }
 }
+$('students-search').addEventListener('input', renderStudents);
 
 function startEdit(s) {
   $('s-id').value = s.id;
@@ -220,13 +273,19 @@ function startEdit(s) {
   $('s-dob').value = s.dob || '';
   $('s-major').value = s.major || '';
   $('btn-save-student').textContent = `Lưu #${s.id}`;
+  $('form-title').textContent = `Sửa sinh viên #${s.id} (${s.student_id})`;
   show($('btn-cancel-edit'));
+  renderStudents();
+  $('form-student').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  $('s-fullname').focus({ preventScroll: true });
 }
 function resetForm() {
   $('form-student').reset();
   $('s-id').value = '';
   $('btn-save-student').textContent = 'Thêm';
+  $('form-title').textContent = 'Thêm sinh viên';
   show($('btn-cancel-edit'), false);
+  renderStudents();
 }
 
 $('form-student').addEventListener('submit', async (ev) => {
@@ -246,35 +305,56 @@ $('form-student').addEventListener('submit', async (ev) => {
 $('btn-cancel-edit').onclick = resetForm;
 $('btn-reload-students').onclick = () => loadStudents().catch(showError);
 
+// Confirmation uses a native modal <dialog> (focus trap, Esc to cancel) instead of window.confirm
+function confirmDialog(text) {
+  const dlg = $('confirm-dialog');
+  $('confirm-text').textContent = text;
+  dlg.returnValue = '';
+  return new Promise((resolve) => {
+    dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true });
+    dlg.showModal();
+    $('confirm-cancel').focus();
+  });
+}
+
 async function deleteStudent(s) {
-  if (!confirm(`Xoá sinh viên ${s.student_id} – ${s.fullname}?`)) return;
+  if (!(await confirmDialog(`Sinh viên ${s.student_id} – ${s.fullname} sẽ bị xoá khỏi studentdb.students.`))) return;
   try {
     await api('DELETE', `/students/${s.id}`);
     toast(`Đã xoá ${s.student_id}`);
+    if ($('s-id').value === String(s.id)) resetForm();
     await loadStudents();
   } catch (e) { showError(e); }
 }
 
-// ---------------------------------------------------------------- Tài liệu private
+// ---------------------------------------------------------------- Private documents
+function formatBytes(n) {
+  return n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(2)} MB` : `${(n / 1024).toFixed(1)} KB`;
+}
+
 async function loadDocuments() {
   const body = $('documents-body');
-  body.innerHTML = '';
+  body.replaceChildren();
   try {
     const data = await api('GET', '/documents');
+    if (!data.documents.length) body.append(emptyRow(4, 'file', 'Bucket documents đang trống.'));
     for (const d of data.documents) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td class="mono"></td><td></td><td></td><td></td>';
-      tr.children[0].textContent = d.name;
-      tr.children[1].textContent = `${(d.bytes / 1024 / 1024).toFixed(2)} MB`;
-      tr.children[2].textContent = new Date(d.modified).toLocaleString('vi-VN');
-      const btn = Object.assign(document.createElement('button'), { className: 'btn btn-small', textContent: 'Tải về' });
+      const name = el('span', 'file-name');
+      name.append(icon('file'), document.createTextNode(d.name));
+      const nameTd = el('td');
+      nameTd.append(name);
+      const btn = el('button', 'btn btn-small');
+      btn.type = 'button';
+      btn.append(icon('download'), document.createTextNode('Tải về'));
       btn.onclick = () => downloadDocument(d.name);
-      tr.children[3].append(btn);
+      const act = el('td', 'actions');
+      act.append(btn);
+      const tr = el('tr');
+      tr.append(nameTd, el('td', 'num', formatBytes(d.bytes)), el('td', 'nowrap', new Date(d.modified).toLocaleString('vi-VN')), act);
       body.append(tr);
     }
   } catch (e) {
-    body.innerHTML = '<tr><td colspan="4" class="st-warn"></td></tr>';
-    body.querySelector('td').textContent = e.status === 403 ? `403 – ${e.message}` : e.message;
+    body.append(emptyRow(4, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
   }
 }
 
@@ -289,31 +369,47 @@ async function downloadDocument(name) {
   } catch (e) { showError(e); }
 }
 
-// ---------------------------------------------------------------- Vận hành
+// ---------------------------------------------------------------- Operations
+async function loadSystemSummary() {
+  try {
+    const res = await fetch('/api/status', { cache: 'no-store' });
+    const data = await res.json();
+    const { up, total } = data.summary;
+    $('ops-stat-up').replaceChildren(document.createTextNode(String(up)), el('small', '', ` / ${total}`));
+    $('ops-stat-up').className = `stat-value ${up === total ? 'status-up' : 'status-down'}`;
+  } catch (e) {
+    $('ops-stat-up').textContent = '–';
+  }
+}
+
 async function loadAlerts() {
   const body = $('alerts-body');
-  body.innerHTML = '';
+  body.replaceChildren();
+  loadSystemSummary();
   try {
     const data = await api('GET', '/alerts');
     $('ops-firing').textContent = `${data.firing} đang firing`;
     $('ops-firing').className = data.firing ? 'badge badge-red' : 'badge badge-green';
-    if (!data.alerts.length) body.innerHTML = '<tr><td colspan="7" class="muted">Chưa có cảnh báo nào.</td></tr>';
+    $('ops-stat-firing').textContent = String(data.firing);
+    $('ops-stat-firing').className = `stat-value ${data.firing ? 'status-down' : 'status-up'}`;
+    $('ops-stat-resolved').textContent = String(data.alerts.filter((a) => a.status !== 'firing').length);
+    if (!data.alerts.length) body.append(emptyRow(7, 'bell', 'Chưa có cảnh báo nào.'));
+    const fmt = (v) => (v ? new Date(v).toLocaleString('vi-VN') : '');
     for (const a of data.alerts) {
-      const tr = document.createElement('tr');
-      const fmt = (v) => (v ? new Date(v).toLocaleString('vi-VN') : '');
-      for (const [v, cls] of [[a.status, a.status === 'firing' ? 'st-err' : 'st-ok'], [a.alertname], [a.severity],
-        [a.target], [a.summary], [fmt(a.starts_at)], [fmt(a.ends_at)]]) {
-        const td = document.createElement('td');
-        td.textContent = v || '';
-        if (cls) td.className = cls;
-        tr.append(td);
-      }
+      const firing = a.status === 'firing';
+      const st = el('td');
+      st.append(el('span', `badge ${firing ? 'badge-err' : 'badge-ok'}`, a.status));
+      const sev = el('td');
+      sev.append(el('span', `badge ${a.severity === 'critical' ? 'badge-err' : a.severity === 'warning' ? 'badge-warn' : 'badge-gray'}`, a.severity || '–'));
+      const tr = el('tr');
+      tr.append(st, el('td', 'mono', a.alertname), sev, el('td', 'mono small', a.target || ''), el('td', '', a.summary || ''),
+        el('td', 'nowrap small', fmt(a.starts_at)), el('td', 'nowrap small', fmt(a.ends_at)));
       body.append(tr);
     }
   } catch (e) {
     $('ops-firing').textContent = '';
-    body.innerHTML = '<tr><td colspan="7" class="st-warn"></td></tr>';
-    body.querySelector('td').textContent = e.status === 403 ? `403 – ${e.message}` : e.message;
+    for (const id of ['ops-stat-firing', 'ops-stat-resolved']) $(id).textContent = '–';
+    body.append(emptyRow(7, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
   }
 }
 $('btn-reload-alerts').onclick = loadAlerts;
@@ -321,23 +417,22 @@ $('btn-reload-alerts').onclick = loadAlerts;
 function renderOpsLinks() {
   const host = location.hostname;
   const links = [
-    ['Grafana – Tổng quan', `http://${host}:3000/d/overview-523h0008-523h0025`],
-    ['Grafana – Logs (Loki)', `http://${host}:3000/d/logs-523h0008-523h0025`],
-    ['Grafana – Container', `http://${host}:3000/d/containers-523h0008-523h0025`],
-    ['Grafana – API RED', `http://${host}:3000/d/api-red-523h0008-523h0025`],
-    ['Prometheus – Alerts', `http://${host}:9090/alerts`],
-    ['Alertmanager', `http://${host}:9093/`],
+    ['chart', 'Grafana – Tổng quan', `http://${host}:3000/d/overview-523h0008-523h0025`],
+    ['log', 'Grafana – Logs (Loki)', `http://${host}:3000/d/logs-523h0008-523h0025`],
+    ['box', 'Grafana – Container', `http://${host}:3000/d/containers-523h0008-523h0025`],
+    ['activity', 'Grafana – API RED', `http://${host}:3000/d/api-red-523h0008-523h0025`],
+    ['bell', 'Prometheus – Alerts', `http://${host}:9090/alerts`],
+    ['bell', 'Alertmanager', `http://${host}:9093/`],
   ];
-  $('ops-links').innerHTML = '';
-  for (const [title, url] of links) {
-    const card = document.createElement('a');
-    card.className = 'card link-card';
+  $('ops-links').replaceChildren();
+  for (const [ic, title, url] of links) {
+    const card = el('a', 'card');
     card.href = url;
     card.target = '_blank';
     card.rel = 'noopener';
-    card.innerHTML = '<h3></h3><p class="mono small"></p>';
-    card.querySelector('h3').textContent = title;
-    card.querySelector('p').textContent = url;
+    const h = el('h3');
+    h.append(icon(ic), document.createTextNode(title), icon('external', 'ic ext'));
+    card.append(h, el('p', 'mono muted', url));
     $('ops-links').append(card);
   }
 }
@@ -346,7 +441,10 @@ function renderOpsLinks() {
 const loaders = { profile: loadProfile, students: loadStudents, documents: loadDocuments, ops: loadAlerts };
 for (const tab of document.querySelectorAll('.tab')) {
   tab.addEventListener('click', () => {
-    for (const t of document.querySelectorAll('.tab')) t.classList.toggle('active', t === tab);
+    for (const t of document.querySelectorAll('.tab')) {
+      t.classList.toggle('active', t === tab);
+      t.setAttribute('aria-selected', String(t === tab));
+    }
     for (const p of document.querySelectorAll('.panel')) show(p, p.dataset.panel === tab.dataset.tab);
     location.hash = tab.dataset.tab;
     loaders[tab.dataset.tab]().catch(showError);
@@ -368,6 +466,7 @@ $('btn-logout').onclick = logout;
     return;
   }
   show($('view-app'));
+  show($('portal-nav'));
   show($('nav-user'));
   show($('btn-logout'));
   renderOpsLinks();
