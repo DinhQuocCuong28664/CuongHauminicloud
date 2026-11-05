@@ -4,21 +4,50 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MyMiniCloud – Blog</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/assets/theme.js"></script>
+  <script src="/assets/shell.js" defer></script>
 </head>
 <body>
-  <header>
-    <a class="brand" href="/">MyMiniCloud</a>
-    <nav>
-      <a href="/">Trang chủ</a>
-      <a href="/blog/">Blog</a>
-    </nav>
+  <header class="topbar">
+    <button class="icon-btn menu-btn" id="menu-toggle" aria-label="Mở menu" aria-expanded="false" aria-controls="sidebar">
+      <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg>
+    </button>
+    <a class="brand" href="/">
+      <svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>
+      MyMiniCloud <small>Blog</small>
+    </a>
+    <span class="served" title="Web server đã trả trang này (header X-Served-By)"><span class="served-label">Served by</span> __SERVER_NAME__</span>
+    <div class="topbar-right">
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button">
+        <svg class="ic ic-moon" aria-hidden="true"><use href="/assets/icons.svg#moon"/></svg>
+        <svg class="ic ic-sun" aria-hidden="true"><use href="/assets/icons.svg#sun"/></svg>
+      </button>
+    </div>
   </header>
 
-  <main>
-    <h1>MyMiniCloud – Blog</h1>
-    <p><span class="badge">Served by __SERVER_NAME__</span></p>
-    <p>Blog cá nhân của nhóm Cường – Hậu: công nghệ, du lịch và học tập.</p>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Điều hướng chính">
+      <p class="side-label">Điều hướng</p>
+      <a class="side-link" href="/" data-nav="home"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#home"/></svg>Tổng quan</a>
+      <a class="side-link" href="/blog/" data-nav="blog"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg>Blog</a>
+      <a class="side-link" href="/portal/" data-nav="portal"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#portal"/></svg>Portal</a>
+      <p class="side-label">Bài viết</p>
+      <a class="side-link" href="/blog/blog1.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#box"/></svg>Container và máy ảo</a>
+      <a class="side-link" href="/blog/blog2.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#web"/></svg>Đà Lạt 3 ngày</a>
+      <a class="side-link" href="/blog/blog3.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#app"/></svg>Học Docker Compose</a>
+      <p class="side-label">Công cụ</p>
+      <div id="tool-links"></div>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+    <div class="page-head"><div>
+      <div class="crumbs"><a href="/">Tổng quan</a> / Blog</div>
+      <h1>MyMiniCloud – Blog</h1>
+      <p>Blog cá nhân của nhóm Cường – Hậu: công nghệ, du lịch và học tập.</p>
+    </div></div>
 
     <div class="post-list">
       <a class="post-card" href="/blog/blog1.html">
@@ -47,9 +76,11 @@
       </a>
     </div>
 
-    <p><a href="/">← Back</a></p>
-  </main>
+    <p class="section"><a href="/">← Về trang tổng quan</a></p>
+      </div>
+    </main>
+  </div>
 
-  <footer>MyMiniCloud · Môn Điện toán đám mây · TDTU 2026</footer>
+  <footer class="site-footer">MyMiniCloud · Đinh Quốc Cường (523H0008) &amp; Nguyễn Cao Hậu (523H0025) · Môn Điện toán đám mây · TDTU 2026</footer>
 </body>
 </html>

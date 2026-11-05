@@ -5,9 +5,12 @@ import json
 import logging
 import os
 import re
+import socket
 import sys
+import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor, wait
 
 import boto3
 import pymysql
@@ -315,6 +318,107 @@ def metrics():
     else:
         registry = REGISTRY
     return Response(generate_latest(registry), mimetype=CONTENT_TYPE_LATEST)
+
+
+# ---------- Public system status for the home page (read-only, no secrets) ----------
+STATUS_TIMEOUT = float(os.getenv("STATUS_TIMEOUT", "1.5"))
+STATUS_CACHE_SECONDS = float(os.getenv("STATUS_CACHE_SECONDS", "3"))
+STATUS_DNS_NAME = os.getenv("STATUS_DNS_NAME", "db.cloud.local")
+_status_pool = ThreadPoolExecutor(max_workers=16, thread_name_prefix="status")
+_status_lock = threading.Lock()
+_status_cache = {"at": 0.0, "body": None}
+
+
+def _probe_http(url):
+    resp = requests.get(url, timeout=STATUS_TIMEOUT, allow_redirects=False)
+    if resp.status_code >= 400:
+        raise RuntimeError(f"HTTP {resp.status_code}")
+    return f"HTTP {resp.status_code}"
+
+
+def _probe_db():
+    db_query("SELECT 1 AS ok", "studentdb")
+    return "SELECT 1 ok"
+
+
+def _probe_dns():
+    ip = socket.getaddrinfo(STATUS_DNS_NAME, None, socket.AF_INET)[0][4][0]
+    return f"{STATUS_DNS_NAME} -> {ip}"
+
+
+# (id, group, role number, role, technology, container, probe)
+STATUS_CHECKS = [
+    ("proxy", "core", 9, "Reverse Proxy / LB", "nginx", "api-gateway-proxy-server",
+     lambda: _probe_http("http://api-gateway-proxy-server/healthz")),
+    ("web1", "core", 1, "Web Server", "nginx", "web-frontend-server1",
+     lambda: _probe_http("http://web-frontend-server1/")),
+    ("web2", "core", 1, "Web Server", "nginx", "web-frontend-server2",
+     lambda: _probe_http("http://web-frontend-server2/")),
+    ("app", "core", 2, "Application Server", "Flask + gunicorn", "application-backend-server", lambda: "this request"),
+    ("db", "core", 3, "Database Server", "MariaDB", "relational-database-server", _probe_db),
+    ("auth", "core", 4, "Authentication Server", "Keycloak", "authentication-identity-server",
+     lambda: _probe_http(f"{KC_INTERNAL_URL}/realms/{KC_REALM}")),
+    ("storage", "core", 5, "Object Storage", "MinIO", "object-storage-server",
+     lambda: _probe_http(f"{S3_ENDPOINT}/minio/health/live")),
+    ("dns", "core", 6, "DNS Server", "BIND9", "internal-dns-server", _probe_dns),
+    ("monitoring", "core", 7, "Monitoring", "Prometheus", "monitoring-prometheus-server",
+     lambda: _probe_http("http://monitoring-prometheus-server:9090/-/ready")),
+    ("grafana", "core", 8, "Visualization", "Grafana", "monitoring-grafana-dashboard-server",
+     lambda: _probe_http("http://monitoring-grafana-dashboard-server:3000/api/health")),
+    ("node-exporter", "extra", 7, "Host metrics", "Node Exporter", "monitoring-node-exporter-server",
+     lambda: _probe_http("http://monitoring-node-exporter-server:9100/")),
+    ("cadvisor", "extra", 7, "Container metrics", "cAdvisor", "monitoring-cadvisor-server",
+     lambda: _probe_http("http://monitoring-cadvisor-server:8080/healthz")),
+    ("alertmanager", "extra", 7, "Alerting", "Alertmanager", "monitoring-alertmanager-server",
+     lambda: _probe_http("http://monitoring-alertmanager-server:9093/-/ready")),
+    ("loki", "extra", 8, "Log storage", "Loki", "logging-loki-server",
+     # /ready can stay at 503 ("waiting for 15s") on a single-binary Loki that still serves queries,
+     # so check the query API instead
+     lambda: _probe_http("http://logging-loki-server:3100/loki/api/v1/labels")),
+    ("alloy", "extra", 8, "Log collector", "Grafana Alloy", "logging-alloy-collector",
+     lambda: _probe_http("http://logging-alloy-collector:12345/-/ready")),
+]
+
+
+def _timed(probe):
+    t0 = time.perf_counter()
+    try:
+        detail, ok = probe(), True
+    except Exception as e:  # report only the exception type, never internal error text
+        detail, ok = ("unreachable" if isinstance(e, (OSError, requests.RequestException)) else str(e)[:40]), False
+    return ok, detail, round((time.perf_counter() - t0) * 1000, 1)
+
+
+def collect_status():
+    futures = [_status_pool.submit(_timed, c[6]) for c in STATUS_CHECKS]
+    wait(futures, timeout=STATUS_TIMEOUT + 0.5)
+    services = []
+    for (sid, group, num, role, tech, container, _), fut in zip(STATUS_CHECKS, futures):
+        ok, detail, ms = fut.result() if fut.done() else (False, "timeout", None)
+        services.append({"id": sid, "group": group, "role_no": num, "role": role, "tech": tech,
+                         "container": container, "status": "up" if ok else "down",
+                         "latency_ms": ms, "detail": detail})
+    core = [s for s in services if s["group"] == "core"]
+    return {
+        "checked_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "summary": {"up": sum(s["status"] == "up" for s in core), "total": len(core),
+                    "extra_up": sum(s["status"] == "up" for s in services if s["group"] == "extra"),
+                    "extra_total": len(services) - len(core)},
+        "services": services,
+    }
+
+
+@app.get("/status")
+def status():
+    """Health of every MiniCloud container, checked from inside cloud-net. Cached briefly so polling is cheap."""
+    with _status_lock:
+        if _status_cache["body"] is None or time.time() - _status_cache["at"] > STATUS_CACHE_SECONDS:
+            _status_cache["body"] = collect_status()
+            _status_cache["at"] = time.time()
+        body = _status_cache["body"]
+    resp = jsonify(body)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 def avatar_key(username):

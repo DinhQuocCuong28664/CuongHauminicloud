@@ -9,8 +9,13 @@ server {
     # ${SERVER_NAME} is substituted at startup (web1 or web2)
     add_header X-Served-By ${SERVER_NAME} always;
 
+    # Same-origin only CSP for the home page and the blog (no inline scripts or styles, no CDN).
+    # Browsers revalidate pages and assets (ETag) so a rebuilt image shows up without a hard reload.
     location / {
         try_files $uri $uri/ =404;
+        add_header X-Served-By ${SERVER_NAME} always;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'" always;
+        add_header Cache-Control "no-cache" always;
     }
 
     # Advanced A01: Portal (single-page app). CSP only allows scripts, styles, images and requests from the same origin;
@@ -27,6 +32,9 @@ server {
         alias /usr/share/nginx/html/blog/;
         index index.html;
         autoindex off;
+        add_header X-Served-By ${SERVER_NAME} always;
+        add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'" always;
+        add_header Cache-Control "no-cache" always;
     }
 
     # Connection stats for nginx-prometheus-exporter; only the exporter in cloud-net may read them
