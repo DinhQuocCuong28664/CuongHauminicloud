@@ -9,39 +9,33 @@
   <script src="/assets/theme.js"></script>
   <script src="/assets/shell.js" defer></script>
 </head>
-<body>
-  <header class="topbar">
-    <button class="icon-btn menu-btn" id="menu-toggle" aria-label="Mở menu" aria-expanded="false" aria-controls="sidebar">
-      <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg>
-    </button>
-    <a class="brand" href="/">
-      <svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>
-      MyMiniCloud <small>Blog</small>
-    </a>
-    <span class="served" title="Web server đã trả trang này (header X-Served-By)"><span class="served-label">Served by</span> __SERVER_NAME__</span>
-    <div class="topbar-right">
-      <button class="icon-btn theme-toggle" id="theme-toggle" type="button">
-        <svg class="ic ic-moon" aria-hidden="true"><use href="/assets/icons.svg#moon"/></svg>
-        <svg class="ic ic-sun" aria-hidden="true"><use href="/assets/icons.svg#sun"/></svg>
-      </button>
+<body id="top">
+  <header class="site-header" id="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/"><svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>MyMiniCloud</a>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+        <a href="/" data-nav="home">Tổng quan</a>
+        <a href="/blog/" data-nav="blog">Blog</a>
+        <a href="/portal/" data-nav="portal">Portal</a>
+        <details class="menu" id="tools-menu">
+          <summary>Công cụ <svg class="ic chev" aria-hidden="true"><use href="/assets/icons.svg#chevron-down"/></svg></summary>
+          <div class="menu-panel" id="tool-links"></div>
+        </details>
+      </nav>
+      <div class="header-right">
+        <span class="served" title="Web server đã trả trang này (header X-Served-By)"><span class="served-label">phục vụ bởi</span> __SERVER_NAME__</span>
+        <button class="icon-btn theme-toggle" id="theme-toggle" type="button">
+          <svg class="ic ic-moon" aria-hidden="true"><use href="/assets/icons.svg#moon"/></svg>
+          <svg class="ic ic-sun" aria-hidden="true"><use href="/assets/icons.svg#sun"/></svg>
+        </button>
+        <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="main-nav">
+          <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="Điều hướng chính">
-      <p class="side-label">Điều hướng</p>
-      <a class="side-link" href="/" data-nav="home"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#home"/></svg>Tổng quan</a>
-      <a class="side-link" href="/blog/" data-nav="blog"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg>Blog</a>
-      <a class="side-link" href="/portal/" data-nav="portal"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#portal"/></svg>Portal</a>
-      <p class="side-label">Bài viết</p>
-      <a class="side-link" href="/blog/blog1.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#box"/></svg>Container và máy ảo</a>
-      <a class="side-link" href="/blog/blog2.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#web"/></svg>Đà Lạt 3 ngày</a>
-      <a class="side-link" href="/blog/blog3.html"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#app"/></svg>Học Docker Compose</a>
-      <p class="side-label">Công cụ</p>
-      <div id="tool-links"></div>
-    </nav>
-
-    <main class="content">
+  <main class="content">
       <div class="content-inner">
         <div class="crumbs"><a href="/">Tổng quan</a> / <a href="/blog/">Blog</a> / Container khác máy ảo ở điểm nào?</div>
         <div class="article-layout">
@@ -106,9 +100,48 @@
         <aside class="toc" aria-label="Mục lục"><h3>Mục lục</h3><ol id="toc-list"></ol></aside>
         </div>
       </div>
-    </main>
-  </div>
+  </main>
 
-  <footer class="site-footer">MyMiniCloud · Đinh Quốc Cường (523H0008) &amp; Nguyễn Cao Hậu (523H0025) · Môn Điện toán đám mây · TDTU 2026</footer>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">MyMiniCloud</p>
+          <p>Hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container, triển khai trên máy cá nhân và AWS EC2.</p>
+        </div>
+        <div>
+          <h2>Trang</h2>
+          <ul>
+            <li><a href="/">Tổng quan</a></li>
+            <li><a href="/blog/">Blog</a></li>
+            <li><a href="/portal/">Portal</a></li>
+            <li><a href="/#kien-truc">Kiến trúc</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Dịch vụ</h2>
+          <ul>
+            <li><a href="/#trang-thai">Web, Application, Database</a></li>
+            <li><a href="/#trang-thai">Keycloak, MinIO, DNS</a></li>
+            <li><a href="/#trang-thai">Prometheus, Grafana</a></li>
+            <li><a href="/#can-bang-tai">Gateway và cân bằng tải</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Nhóm thực hiện</h2>
+          <ul>
+            <li>Đinh Quốc Cường · 523H0008</li>
+            <li>Nguyễn Cao Hậu · 523H0025</li>
+            <li>GV hướng dẫn: TS. Bùi Quy Anh</li>
+            <li>Trường Đại học Tôn Đức Thắng</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MyMiniCloud · Môn Điện toán đám mây</span>
+        <span>Trang do __SERVER_NAME__ phục vụ · <a href="#top">Lên đầu trang ↑</a></span>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Metric, log và cảnh báo: ba cách nhìn vào một hệ thống – MyMiniCloud Blog</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/assets/theme.js"></script>
+  <script src="/assets/shell.js" defer></script>
+</head>
+<body id="top">
+  <header class="site-header" id="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/"><svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>MyMiniCloud</a>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+        <a href="/" data-nav="home">Tổng quan</a>
+        <a href="/blog/" data-nav="blog">Blog</a>
+        <a href="/portal/" data-nav="portal">Portal</a>
+        <details class="menu" id="tools-menu">
+          <summary>Công cụ <svg class="ic chev" aria-hidden="true"><use href="/assets/icons.svg#chevron-down"/></svg></summary>
+          <div class="menu-panel" id="tool-links"></div>
+        </details>
+      </nav>
+      <div class="header-right">
+        <span class="served" title="Web server đã trả trang này (header X-Served-By)"><span class="served-label">phục vụ bởi</span> __SERVER_NAME__</span>
+        <button class="icon-btn theme-toggle" id="theme-toggle" type="button">
+          <svg class="ic ic-moon" aria-hidden="true"><use href="/assets/icons.svg#moon"/></svg>
+          <svg class="ic ic-sun" aria-hidden="true"><use href="/assets/icons.svg#sun"/></svg>
+        </button>
+        <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="main-nav">
+          <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+      <div class="content-inner">
+        <div class="crumbs"><a href="/">Tổng quan</a> / <a href="/blog/">Blog</a> / Metric, log và cảnh báo: ba cách nhìn vào một hệ thống</div>
+        <div class="article-layout">
+    <article class="post">
+      <span class="tag">Công nghệ</span>
+      <h1>Metric, log và cảnh báo: ba cách nhìn vào một hệ thống</h1>
+      <p class="meta"><span>Nguyễn Cao Hậu · 05/11/2026 · Served by __SERVER_NAME__</span><span id="reading-time"></span></p>
+
+      <figure>
+        <img src="/assets/blog4-observability.svg" alt="Ba khung minh hoạ metric, log và cảnh báo">
+        <figcaption>Metric cho biết con số, log kể lại từng sự việc, cảnh báo gọi người khi cần.</figcaption>
+      </figure>
+
+      <p>
+        Khi MyMiniCloud còn ít container, nhóm chỉ cần <code>docker ps</code> là biết hệ thống có ổn không. Lên tới 16
+        container thì cách đó không còn đủ. Phần nâng cao của đồ án vì thế có ba công cụ quan sát, mỗi công cụ trả lời một
+        câu hỏi riêng.
+      </p>
+
+      <h2>Metric: con số theo thời gian</h2>
+      <p>
+        Metric là các con số được đo đều đặn: số request mỗi giây, tỉ lệ lỗi, độ trễ, CPU và RAM của từng container.
+        Prometheus cứ vài giây lại hỏi các exporter một lần và lưu lại thành chuỗi thời gian. Với API, nhóm theo dõi ba chỉ
+        số theo cách gọi RED: <strong>R</strong>ate (tốc độ), <strong>E</strong>rrors (lỗi) và
+        <strong>D</strong>uration (thời gian xử lý, xem ở mức p95). Metric rẻ, gọn và hợp để vẽ biểu đồ, nhưng chỉ cho biết
+        "có chuyện", không cho biết chuyện gì.
+      </p>
+
+      <h2>Log: kể lại từng sự việc</h2>
+      <p>
+        Log ghi lại từng request: ai gọi, đường dẫn nào, mã trả về, mất bao lâu. Grafana Alloy đọc log của mọi container rồi
+        gửi về Loki. Mẹo quan trọng nhất nhóm học được là gắn một <code>request_id</code> chung. Gateway tạo mã này, chuyển
+        tiếp cho app trong header <code>X-Request-ID</code>, và cả hai đều ghi nó vào log. Khi người dùng báo lỗi, chỉ cần
+        mã đó là thấy request đã đi qua gateway thế nào và app xử lý ra sao.
+      </p>
+
+      <h2>Cảnh báo: gọi người khi cần</h2>
+      <p>
+        Không ai ngồi nhìn biểu đồ cả ngày. Prometheus đánh giá các luật cảnh báo; khi một luật đúng đủ lâu, Alertmanager
+        gửi thông báo tới webhook của app, và Portal hiển thị cảnh báo đó. Chữ "đủ lâu" rất quan trọng: luật
+        <code>WebServerDown</code> chỉ bật khi web server mất tín hiệu quá 45 giây và giữ nguyên thêm 15 giây, để một lần
+        khởi động lại ngắn không gây báo động giả.
+      </p>
+
+      <h2>Một ví dụ: dừng web2</h2>
+      <table>
+        <tr><th>Thời điểm</th><th>Công cụ</th><th>Thấy gì</th></tr>
+        <tr><td>Ngay lập tức</td><td>Trang chủ</td><td>Dòng web2 chuyển sang "Lỗi", cân bằng tải chỉ còn web1</td></tr>
+        <tr><td>Vài giây</td><td>Loki</td><td>Log của gateway: mọi request đều tới web1</td></tr>
+        <tr><td>Khoảng 1 phút</td><td>Alertmanager</td><td>Cảnh báo <code>WebServerDown</code> chuyển sang firing, Portal hiện cảnh báo</td></tr>
+        <tr><td>Bật lại web2</td><td>Cả ba</td><td>Trạng thái về bình thường, cảnh báo chuyển sang resolved</td></tr>
+      </table>
+
+      <h2>Bài học</h2>
+      <p>
+        Ba công cụ bổ sung cho nhau chứ không thay thế nhau. Metric để biết có vấn đề, log để biết vấn đề là gì, cảnh báo
+        để không bỏ lỡ vấn đề. Trên AWS, ba vai trò này tương ứng với CloudWatch Metrics, CloudWatch Logs và CloudWatch Alarms.
+      </p>
+
+      <div class="post-nav">
+        <a href="/">← Về trang chủ</a>
+        <a href="/blog/blog5.html">Bài tiếp: Hội An 2 ngày 1 đêm →</a>
+      </div>
+    </article>
+        <aside class="toc" aria-label="Mục lục"><h3>Mục lục</h3><ol id="toc-list"></ol></aside>
+        </div>
+      </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">MyMiniCloud</p>
+          <p>Hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container, triển khai trên máy cá nhân và AWS EC2.</p>
+        </div>
+        <div>
+          <h2>Trang</h2>
+          <ul>
+            <li><a href="/">Tổng quan</a></li>
+            <li><a href="/blog/">Blog</a></li>
+            <li><a href="/portal/">Portal</a></li>
+            <li><a href="/#kien-truc">Kiến trúc</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Dịch vụ</h2>
+          <ul>
+            <li><a href="/#trang-thai">Web, Application, Database</a></li>
+            <li><a href="/#trang-thai">Keycloak, MinIO, DNS</a></li>
+            <li><a href="/#trang-thai">Prometheus, Grafana</a></li>
+            <li><a href="/#can-bang-tai">Gateway và cân bằng tải</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Nhóm thực hiện</h2>
+          <ul>
+            <li>Đinh Quốc Cường · 523H0008</li>
+            <li>Nguyễn Cao Hậu · 523H0025</li>
+            <li>GV hướng dẫn: TS. Bùi Quy Anh</li>
+            <li>Trường Đại học Tôn Đức Thắng</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MyMiniCloud · Môn Điện toán đám mây</span>
+        <span>Trang do __SERVER_NAME__ phục vụ · <a href="#top">Lên đầu trang ↑</a></span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

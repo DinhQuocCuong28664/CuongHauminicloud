@@ -97,7 +97,7 @@ LATENCY = Histogram(
     "minicloud_http_request_duration_seconds", "Request processing time", ["method", "endpoint"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5),
 )
-NOT_MEASURED = {"/metrics", "/health"}
+NOT_MEASURED = {"/metrics", "/health", "/status"}   # health probes: polled often, not user traffic
 
 # ---------- Advanced: single-line JSON log with request_id so Loki can trace across proxy and app ----------
 log = logging.getLogger("minicloud")

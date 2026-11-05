@@ -15,6 +15,8 @@ docker compose ps
 bash scripts/smoke-test.sh  # chạy toàn bộ kiểm thử, ghi log vào logs/
 ```
 
+Kịch bản demo từng bước (9 server, 10 mục mở rộng, phần nâng cao, Docker Hub, EC2): [`docs/demo-runbook.md`](docs/demo-runbook.md).
+
 ## Image trên Docker Hub
 
 Ba image tự build (tag `1.0` và `latest`, public):

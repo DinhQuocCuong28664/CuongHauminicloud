@@ -140,12 +140,34 @@ function logCall(method, path, status, ms, requestId) {
 }
 
 function toast(text, kind = 'ok') {
-  const el = $('toast');
-  el.textContent = text;
-  el.className = `msg msg-${kind}`;
-  show(el);
+  const box = $('toast');
+  box.replaceChildren();
+  if (kind === 'ok') box.append(icon('check', 'ic check'));
+  box.append(el('span', '', text));
+  box.className = `msg msg-${kind}`;
+  show(box);
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => show(el, false), 5000);
+  toast.timer = setTimeout(() => {
+    box.classList.add('leaving');
+    setTimeout(() => show(box, false), 160);
+  }, 4000);
+}
+const { flash, shake, countUp } = window.mmc;     // motion helpers from /assets/shell.js
+
+// Placeholder rows with a light sweep while a table is loading
+function skeletonRows(body, cols, n = 4) {
+  body.replaceChildren();
+  for (let i = 0; i < n; i++) {
+    const tr = el('tr', 'skel');
+    for (let c = 0; c < cols; c++) {
+      const td = el('td');
+      const bar = el('span', 'skeleton');
+      bar.style.width = `${40 + ((i * 7 + c * 13) % 50)}%`;
+      td.append(bar);
+      tr.append(td);
+    }
+    body.append(tr);
+  }
 }
 function showError(e) {
   toast(e.status === 403 ? `Bị từ chối (403): ${e.message}` : `Lỗi: ${e.message}`, 'error');
@@ -194,7 +216,7 @@ function tickExpiry() {
   const claims = decodeJwt(t.access);
   const life = Math.max(1, claims.exp - claims.iat);
   const pct = Math.max(0, Math.min(100, (left / life) * 100));
-  $('p-exp-bar').style.width = `${pct}%`;
+  $('p-exp-bar').style.transform = `scaleX(${pct / 100})`;
   $('p-exp-bar').classList.toggle('low', pct < 25);
 }
 
@@ -230,7 +252,10 @@ $('form-avatar').addEventListener('submit', async (ev) => {
 // ---------------------------------------------------------------- Students (CRUD)
 let students = [];
 
+let changedId = null;     // id of the row just added or edited: flashed once after the table re-renders
+
 async function loadStudents() {
+  if (!students.length) skeletonRows($('students-body'), 6);
   const data = await api('GET', '/students');
   students = data.students;
   renderStudents();
@@ -261,8 +286,11 @@ function renderStudents() {
     del.onclick = () => deleteStudent(s);
     td.append(edit, ' ', del);
     tr.append(td);
+    tr.dataset.id = s.id;
     body.append(tr);
+    if (String(s.id) === String(changedId)) flash(tr);
   }
+  changedId = null;
 }
 $('students-search').addEventListener('input', renderStudents);
 
@@ -295,12 +323,21 @@ $('form-student').addEventListener('submit', async (ev) => {
     student_id: $('s-student-id').value.trim(), fullname: $('s-fullname').value.trim(),
     dob: $('s-dob').value || null, major: $('s-major').value.trim(),
   };
+  const btn = $('btn-save-student');
+  btn.classList.add('busy');
   try {
     const s = id ? await api('PUT', `/students/${id}`, body) : await api('POST', '/students', body);
     toast(id ? `Đã cập nhật ${s.student_id}` : `Đã thêm ${s.student_id} (id ${s.id})`);
+    changedId = s.id;
     resetForm();
     await loadStudents();
-  } catch (e) { showError(e); }
+  } catch (e) {
+    showError(e);
+    // 400: point at the form fields; 403: point at the button the viewer is not allowed to use
+    shake(e.status === 400 ? $('form-student') : btn);
+  } finally {
+    btn.classList.remove('busy');
+  }
 });
 $('btn-cancel-edit').onclick = resetForm;
 $('btn-reload-students').onclick = () => loadStudents().catch(showError);
@@ -321,10 +358,18 @@ async function deleteStudent(s) {
   if (!(await confirmDialog(`Sinh viên ${s.student_id} – ${s.fullname} sẽ bị xoá khỏi studentdb.students.`))) return;
   try {
     await api('DELETE', `/students/${s.id}`);
+    const row = $('students-body').querySelector(`tr[data-id="${s.id}"]`);
+    if (row && !window.mmc.reduceMotion()) {
+      row.classList.add('leaving-row');
+      await new Promise((r) => setTimeout(r, 220));
+    }
     toast(`Đã xoá ${s.student_id}`);
     if ($('s-id').value === String(s.id)) resetForm();
     await loadStudents();
-  } catch (e) { showError(e); }
+  } catch (e) {
+    showError(e);
+    shake($('students-body').querySelector(`tr[data-id="${s.id}"]`));
+  }
 }
 
 // ---------------------------------------------------------------- Private documents
@@ -334,9 +379,10 @@ function formatBytes(n) {
 
 async function loadDocuments() {
   const body = $('documents-body');
-  body.replaceChildren();
+  skeletonRows(body, 4, 3);
   try {
     const data = await api('GET', '/documents');
+    body.replaceChildren();
     if (!data.documents.length) body.append(emptyRow(4, 'file', 'Bucket documents đang trống.'));
     for (const d of data.documents) {
       const name = el('span', 'file-name');
@@ -354,7 +400,7 @@ async function loadDocuments() {
       body.append(tr);
     }
   } catch (e) {
-    body.append(emptyRow(4, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
+    body.replaceChildren(emptyRow(4, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
   }
 }
 
@@ -375,7 +421,7 @@ async function loadSystemSummary() {
     const res = await fetch('/api/status', { cache: 'no-store' });
     const data = await res.json();
     const { up, total } = data.summary;
-    $('ops-stat-up').replaceChildren(document.createTextNode(String(up)), el('small', '', ` / ${total}`));
+    countUp($('ops-stat-up'), up, el('small', '', ` / ${total}`));
     $('ops-stat-up').className = `stat-value ${up === total ? 'status-up' : 'status-down'}`;
   } catch (e) {
     $('ops-stat-up').textContent = '–';
@@ -384,15 +430,16 @@ async function loadSystemSummary() {
 
 async function loadAlerts() {
   const body = $('alerts-body');
-  body.replaceChildren();
+  skeletonRows(body, 7, 3);
   loadSystemSummary();
   try {
     const data = await api('GET', '/alerts');
+    body.replaceChildren();
     $('ops-firing').textContent = `${data.firing} đang firing`;
     $('ops-firing').className = data.firing ? 'badge badge-red' : 'badge badge-green';
-    $('ops-stat-firing').textContent = String(data.firing);
+    countUp($('ops-stat-firing'), data.firing);
     $('ops-stat-firing').className = `stat-value ${data.firing ? 'status-down' : 'status-up'}`;
-    $('ops-stat-resolved').textContent = String(data.alerts.filter((a) => a.status !== 'firing').length);
+    countUp($('ops-stat-resolved'), data.alerts.filter((a) => a.status !== 'firing').length);
     if (!data.alerts.length) body.append(emptyRow(7, 'bell', 'Chưa có cảnh báo nào.'));
     const fmt = (v) => (v ? new Date(v).toLocaleString('vi-VN') : '');
     for (const a of data.alerts) {
@@ -409,7 +456,7 @@ async function loadAlerts() {
   } catch (e) {
     $('ops-firing').textContent = '';
     for (const id of ['ops-stat-firing', 'ops-stat-resolved']) $(id).textContent = '–';
-    body.append(emptyRow(7, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
+    body.replaceChildren(emptyRow(7, 'lock', e.status === 403 ? `403 – ${e.message}` : e.message, 'st-warn'));
   }
 }
 $('btn-reload-alerts').onclick = loadAlerts;
@@ -438,6 +485,13 @@ function renderOpsLinks() {
 }
 
 // ---------------------------------------------------------------- Tab
+// The underline under the selected tab slides (transform only) instead of jumping
+function moveIndicator(tab) {
+  const bar = $('tab-indicator');
+  if (!bar || !tab) return;
+  bar.style.transform = `translateX(${tab.offsetLeft}px) scaleX(${tab.offsetWidth})`;
+}
+addEventListener('resize', () => moveIndicator(document.querySelector('.tab.active')));
 const loaders = { profile: loadProfile, students: loadStudents, documents: loadDocuments, ops: loadAlerts };
 for (const tab of document.querySelectorAll('.tab')) {
   tab.addEventListener('click', () => {
@@ -445,7 +499,12 @@ for (const tab of document.querySelectorAll('.tab')) {
       t.classList.toggle('active', t === tab);
       t.setAttribute('aria-selected', String(t === tab));
     }
-    for (const p of document.querySelectorAll('.panel')) show(p, p.dataset.panel === tab.dataset.tab);
+    for (const p of document.querySelectorAll('.panel')) {
+      const on = p.dataset.panel === tab.dataset.tab;
+      show(p, on);
+      p.classList.toggle('fade-enter', on);
+    }
+    moveIndicator(tab);
     location.hash = tab.dataset.tab;
     loaders[tab.dataset.tab]().catch(showError);
   });
@@ -467,6 +526,7 @@ $('btn-logout').onclick = logout;
   }
   show($('view-app'));
   show($('portal-nav'));
+  moveIndicator(document.querySelector('.tab.active'));
   show($('nav-user'));
   show($('btn-logout'));
   renderOpsLinks();
