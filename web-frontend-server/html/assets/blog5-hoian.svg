@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Tranh vẽ phố cổ Hội An về đêm với đèn lồng và sông Hoài">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2a4a"/>
+      <stop offset="1" stop-color="#3b3f6b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffd27a" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffd27a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="360" fill="url(#sky)"/>
+  <circle cx="660" cy="70" r="26" fill="#f4ecd0"/>
+  <text x="40" y="50" font-family="Segoe UI, Arial" font-size="24" font-weight="700" fill="#ffffff">Hội An – 2 ngày 1 đêm</text>
+  <text x="40" y="76" font-family="Segoe UI, Arial" font-size="14" fill="#c9cfe6">phố cổ, đèn lồng và bờ sông Hoài</text>
+  <!-- old houses -->
+  <g>
+    <rect x="40" y="170" width="150" height="110" fill="#e9c46a"/>
+    <path d="M30 172 L115 128 L200 172 Z" fill="#8c3b2a"/>
+    <rect x="70" y="210" width="30" height="70" fill="#5a3a22"/>
+    <rect x="125" y="205" width="40" height="30" fill="#ffe8a8"/>
+    <rect x="210" y="185" width="170" height="95" fill="#f2d18b"/>
+    <path d="M200 187 L295 140 L390 187 Z" fill="#9b4532"/>
+    <rect x="240" y="220" width="40" height="30" fill="#ffe8a8"/>
+    <rect x="310" y="215" width="30" height="65" fill="#5a3a22"/>
+    <rect x="400" y="165" width="140" height="115" fill="#e9c46a"/>
+    <path d="M390 167 L470 122 L550 167 Z" fill="#8c3b2a"/>
+    <rect x="430" y="205" width="35" height="30" fill="#ffe8a8"/>
+    <rect x="490" y="210" width="28" height="70" fill="#5a3a22"/>
+  </g>
+  <!-- bridge -->
+  <path d="M560 280 Q660 200 760 280" fill="none" stroke="#b5532f" stroke-width="14"/>
+  <rect x="610" y="214" width="100" height="22" rx="4" fill="#8c3b2a"/>
+  <!-- lanterns -->
+  <g>
+    <line x1="40" y1="110" x2="540" y2="110" stroke="#2b2b3b" stroke-width="2"/>
+    <circle cx="90" cy="130" r="26" fill="url(#glow)"/><ellipse cx="90" cy="130" rx="11" ry="14" fill="#e63946"/>
+    <circle cx="180" cy="130" r="26" fill="url(#glow)"/><ellipse cx="180" cy="130" rx="11" ry="14" fill="#f4a261"/>
+    <circle cx="270" cy="130" r="26" fill="url(#glow)"/><ellipse cx="270" cy="130" rx="11" ry="14" fill="#e63946"/>
+    <circle cx="360" cy="130" r="26" fill="url(#glow)"/><ellipse cx="360" cy="130" rx="11" ry="14" fill="#2a9d8f"/>
+    <circle cx="450" cy="130" r="26" fill="url(#glow)"/><ellipse cx="450" cy="130" rx="11" ry="14" fill="#f4a261"/>
+  </g>
+  <!-- river with reflections -->
+  <rect x="0" y="280" width="800" height="80" fill="#1d3557"/>
+  <g fill="#ffd27a" opacity="0.55">
+    <rect x="80" y="296" width="22" height="4" rx="2"/><rect x="170" y="306" width="22" height="4" rx="2"/>
+    <rect x="262" y="298" width="22" height="4" rx="2"/><rect x="350" y="312" width="22" height="4" rx="2"/>
+    <rect x="442" y="300" width="22" height="4" rx="2"/>
+  </g>
+  <!-- boat with a floating lantern -->
+  <path d="M600 322 h120 l-16 18 h-88 z" fill="#3d2b1f"/>
+  <circle cx="560" cy="330" r="14" fill="url(#glow)"/><circle cx="560" cy="330" r="5" fill="#ffb703"/>
+</svg>

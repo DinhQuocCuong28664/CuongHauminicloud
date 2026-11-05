@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" role="img" aria-label="Ba cách nhìn vào hệ thống: metric, log và cảnh báo">
+  <rect width="800" height="360" fill="#f5f7fb"/>
+  <text x="400" y="44" font-family="Segoe UI, Arial" font-size="22" font-weight="700" text-anchor="middle" fill="#1d1d1f">Metric · Log · Cảnh báo</text>
+  <g font-family="Segoe UI, Arial" text-anchor="middle">
+    <!-- Metric -->
+    <rect x="30" y="80" width="230" height="240" rx="14" fill="#ffffff" stroke="#d2d2d7"/>
+    <text x="145" y="112" font-size="17" font-weight="700" fill="#1d1d1f">Metric</text>
+    <text x="145" y="134" font-size="13" fill="#6e6e73">bao nhiêu, nhanh hay chậm?</text>
+    <path d="M55 285 H235 M55 285 V160" stroke="#d2d2d7" stroke-width="1.5" fill="none"/>
+    <polyline points="60,262 85,250 110,256 135,230 160,238 185,205 210,214 230,190" fill="none" stroke="#0066cc" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="55" y1="200" x2="235" y2="200" stroke="#d1242f" stroke-dasharray="5 4" stroke-width="1.5"/>
+    <text x="232" y="194" font-size="11" text-anchor="end" fill="#d1242f">ngưỡng p95</text>
+    <text x="145" y="306" font-size="12" fill="#6e6e73">Prometheus</text>
+    <!-- Log -->
+    <rect x="285" y="80" width="230" height="240" rx="14" fill="#ffffff" stroke="#d2d2d7"/>
+    <text x="400" y="112" font-size="17" font-weight="700" fill="#1d1d1f">Log</text>
+    <text x="400" y="134" font-size="13" fill="#6e6e73">chuyện gì đã xảy ra?</text>
+    <g font-family="Consolas, monospace" font-size="11" text-anchor="start">
+      <rect x="302" y="152" width="196" height="132" rx="8" fill="#1d1d1f"/>
+      <text x="312" y="174" fill="#8e8e93">10:02:11 GET /api/hello 200</text>
+      <text x="312" y="194" fill="#8e8e93">10:02:12 GET / 200 web1</text>
+      <text x="312" y="214" fill="#ffd60a">10:02:13 POST /api/... 403</text>
+      <text x="312" y="234" fill="#8e8e93">10:02:13 GET / 200 web2</text>
+      <text x="312" y="254" fill="#30d158">request_id 8d4a08e3…</text>
+      <text x="312" y="274" fill="#8e8e93">10:02:14 GET /media/ 200</text>
+    </g>
+    <text x="400" y="306" font-size="12" fill="#6e6e73">Loki + Alloy</text>
+    <!-- Alert -->
+    <rect x="540" y="80" width="230" height="240" rx="14" fill="#ffffff" stroke="#d2d2d7"/>
+    <text x="655" y="112" font-size="17" font-weight="700" fill="#1d1d1f">Cảnh báo</text>
+    <text x="655" y="134" font-size="13" fill="#6e6e73">khi nào cần người xử lý?</text>
+    <path d="M655 160 c-26 0 -38 20 -38 44 v28 l-12 14 h100 l-12 -14 v-28 c0 -24 -12 -44 -38 -44 z" fill="#fdeeee" stroke="#d1242f" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="655" cy="256" r="8" fill="#d1242f"/>
+    <rect x="582" y="272" width="146" height="24" rx="12" fill="#fdeeee"/>
+    <text x="655" y="289" font-size="12" font-weight="600" fill="#d1242f">WebServerDown: firing</text>
+    <text x="655" y="312" font-size="12" fill="#6e6e73">Alertmanager → Portal</text>
+  </g>
+</svg>

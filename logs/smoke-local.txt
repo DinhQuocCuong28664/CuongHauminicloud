@@ -1,22 +1,22 @@
-MyMiniCloud smoke test — nhãn: local — host: localhost — 2026-11-06 05:02:14 +0700
+MyMiniCloud smoke test — nhãn: local — host: localhost — 2026-11-06 06:51:12 +0700
 
 NAME                                  STATUS
-api-gateway-proxy-server              Up 20 minutes (healthy)
-application-backend-server            Up 20 minutes (healthy)
-authentication-identity-server        Up 20 minutes (healthy)
-internal-dns-server                   Up 20 minutes (healthy)
-logging-alloy-collector               Up 20 minutes (healthy)
-logging-loki-server                   Up 20 minutes
-monitoring-alertmanager-server        Up 20 minutes (healthy)
-monitoring-cadvisor-server            Up 20 minutes (healthy)
-monitoring-grafana-dashboard-server   Up 20 minutes (healthy)
-monitoring-node-exporter-server       Up 20 minutes (healthy)
-monitoring-prometheus-server          Up 20 minutes (healthy)
-object-storage-server                 Up 20 minutes (healthy)
-relational-database-server            Up 20 minutes (healthy)
-web-frontend-exporter                 Up 20 minutes
-web-frontend-server1                  Up 8 minutes (healthy)
-web-frontend-server2                  Up 39 seconds (healthy)
+api-gateway-proxy-server              Up 2 hours (healthy)
+application-backend-server            Up 6 minutes (healthy)
+authentication-identity-server        Up 2 hours (healthy)
+internal-dns-server                   Up 2 hours (healthy)
+logging-alloy-collector               Up 2 hours (healthy)
+logging-loki-server                   Up 2 hours
+monitoring-alertmanager-server        Up 2 hours (healthy)
+monitoring-cadvisor-server            Up 2 hours (healthy)
+monitoring-grafana-dashboard-server   Up 2 hours (healthy)
+monitoring-node-exporter-server       Up 2 hours (healthy)
+monitoring-prometheus-server          Up 2 hours (healthy)
+object-storage-server                 Up 8 minutes (healthy)
+relational-database-server            Up 9 minutes (healthy)
+web-frontend-exporter                 Up 2 hours
+web-frontend-server1                  Up About an hour (healthy)
+web-frontend-server2                  Up About a minute (healthy)
 
 [PASS] T-B01  Web server: / và /blog/ trả 200
          GET :18080/ -> 200 <title>MyMiniCloud – Home</title>
@@ -52,20 +52,20 @@ web-frontend-server2                  Up 39 seconds (healthy)
          `/upload/web/index.html` -> `local/demo/index.html`
          ┌───────────┬─────────────┬──────────┬──────────────┐
          │ Total     │ Transferred │ Duration │ Speed        │
-         │ 15.61 KiB │ 15.61 KiB   │ 00m00s   │ 265.21 KiB/s │
+         │ 17.71 KiB │ 17.71 KiB   │ 00m00s   │ 256.09 KiB/s │
          └───────────┴─────────────┴──────────┴──────────────┘
          `/upload/samples/avatar.jpg` -> `local/profile-pics/avatar.jpg`
          ┌───────────┬─────────────┬──────────┬──────────────┐
          │ Total     │ Transferred │ Duration │ Speed        │
-         │ 23.15 KiB │ 23.15 KiB   │ 00m00s   │ 426.54 KiB/s │
+         │ 23.15 KiB │ 23.15 KiB   │ 00m00s   │ 392.43 KiB/s │
          └───────────┴─────────────┴──────────┴──────────────┘
          `/upload/samples/report.pdf` -> `local/documents/report.pdf`
          ┌──────────┬─────────────┬──────────┬─────────────┐
          │ Total    │ Transferred │ Duration │ Speed       │
-         │ 1.98 MiB │ 1.98 MiB    │ 00m00s   │ 21.98 MiB/s │
+         │ 1.98 MiB │ 1.98 MiB    │ 00m00s   │ 23.11 MiB/s │
          └──────────┴─────────────┴──────────┴─────────────┘
          Access permission for `local/profile-pics` is set to `download`
-         Lifecycle configuration rule added with ID `dbmfpqiil9lc7nbk9rm0` to local/db-backups.
+         Lifecycle configuration rule added with ID `dbmhct4g1c1s7ne807a0` to local/db-backups.
          Created policy `minicloud-app` successfully.
          Created policy `minicloud-backup` successfully.
          Added user `minicloud-app` successfully.
@@ -84,7 +84,7 @@ web-frontend-server2                  Up 39 seconds (healthy)
          ├──────────────────────┬─────────┬────────┬──────┬────────────────┬─────────────────────┤
          │ ID                   │ STATUS  │ PREFIX │ TAGS │ DAYS TO EXPIRE │ EXPIRE DELETEMARKER │
          ├──────────────────────┼─────────┼────────┼──────┼────────────────┼─────────────────────┤
-         │ dbmfpqiil9lc7nbk9rm0 │ Enabled │ -      │ -    │              7 │ false               │
+         │ dbmhct4g1c1s7ne807a0 │ Enabled │ -      │ -    │              7 │ false               │
          └──────────────────────┴─────────┴────────┴──────┴────────────────┴─────────────────────┘
          AccessKey: minicloud-app
          Status: enabled
@@ -98,13 +98,19 @@ web-frontend-server2                  Up 39 seconds (healthy)
          [2026-11-05 21:46:42 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-214641.sql.gz
          [2026-11-05 21:50:57 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-215057.sql.gz
          [2026-11-05 22:01:29 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-220128.sql.gz
+         [2026-11-05 22:05:10 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-220510.sql.gz
+         [2026-11-05 22:27:35 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-222735.sql.gz
+         [2026-11-05 23:47:11 UTC]   691B STANDARD db-backups/minicloud/minicloud-20261105-234711.sql.gz
          [2026-11-05 21:46:42 UTC]   829B STANDARD db-backups/studentdb/studentdb-20261105-214641.sql.gz
          [2026-11-05 21:50:57 UTC]   829B STANDARD db-backups/studentdb/studentdb-20261105-215057.sql.gz
          [2026-11-05 22:01:29 UTC]   829B STANDARD db-backups/studentdb/studentdb-20261105-220128.sql.gz
-         [2026-11-05 22:02:18 UTC]  16KiB STANDARD demo/index.html
-         [2026-11-05 22:02:18 UTC] 2.0MiB STANDARD documents/report.pdf
-         [2026-11-05 22:02:18 UTC]  23KiB STANDARD profile-pics/avatar.jpg
-         [2026-11-05 21:56:06 UTC]  23KiB STANDARD profile-pics/sv01.jpg
+         [2026-11-05 22:05:10 UTC]   829B STANDARD db-backups/studentdb/studentdb-20261105-220510.sql.gz
+         [2026-11-05 22:27:35 UTC]   830B STANDARD db-backups/studentdb/studentdb-20261105-222735.sql.gz
+         [2026-11-05 23:47:11 UTC]   830B STANDARD db-backups/studentdb/studentdb-20261105-234711.sql.gz
+         [2026-11-05 23:51:16 UTC]  18KiB STANDARD demo/index.html
+         [2026-11-05 23:51:16 UTC] 2.0MiB STANDARD documents/report.pdf
+         [2026-11-05 23:51:16 UTC]  23KiB STANDARD profile-pics/avatar.jpg
+         [2026-11-05 23:50:01 UTC]  23KiB STANDARD profile-pics/sv01.jpg
          GET :9001/ (console) -> 200
 [PASS] T-B06  DNS: web-frontend-server.cloud.local -> 10.10.10.10
          dig @<host> -p 1053 web-frontend-server.cloud.local +short -> 10.10.10.10
@@ -139,9 +145,9 @@ web-frontend-server2                  Up 39 seconds (healthy)
 ==================== PHẦN MỞ RỘNG ====================
 
 [PASS] T-E01  Blog cá nhân: 3 bài có ảnh, link về trang chủ, trang chủ liệt kê đủ
-         blog1.html: "Container khác máy ảo ở điểm nào?" | ảnh /assets/blog1-container.svg -> 200 | link về trang chủ: 4
-         blog2.html: "Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên" | ảnh /assets/blog2-dalat.svg -> 200 | link về trang chủ: 4
-         blog3.html: "Học Docker Compose qua đồ án MyMiniCloud" | ảnh /assets/blog3-study.svg -> 200 | link về trang chủ: 4
+         blog1.html: "Container khác máy ảo ở điểm nào?" | ảnh /assets/blog1-container.svg -> 200 | link về trang chủ: 5
+         blog2.html: "Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên" | ảnh /assets/blog2-dalat.svg -> 200 | link về trang chủ: 5
+         blog3.html: "Học Docker Compose qua đồ án MyMiniCloud" | ảnh /assets/blog3-study.svg -> 200 | link về trang chủ: 5
          trang chủ có link tới 3/3 bài
 [PASS] T-E02  API /student đọc students.json qua proxy: 5 sinh viên đủ 4 trường
          GET :80/api/student -> 5 bản ghi
@@ -197,10 +203,10 @@ web-frontend-server2                  Up 39 seconds (healthy)
          POST /api/students sv02        -> 403
          GET  /api/documents sv02       -> 403
 [PASS] T-A03  CRUD /api/students trên MariaDB: thêm 201, sửa 200, dữ liệu sai 400, xoá 204, xoá lại 404
-         POST   /api/students           -> 201 (id 23)
-         PUT    /api/students/23        -> 200 (major = DevOps)
+         POST   /api/students           -> 201 (id 27)
+         PUT    /api/students/27        -> 200 (major = DevOps)
          POST   dữ liệu sai             -> 400
-         DELETE /api/students/23        -> 204
+         DELETE /api/students/27        -> 204
          DELETE lần hai                 -> 404
 [PASS] T-A04  MinIO qua app: upload ảnh vào profile-pics, đọc qua /media/; documents chỉ editor tải được
          POST /api/avatar (sv01)        -> {"bucket":"profile-pics","bytes":23705,"key":"sv01.jpg","url":"/media/sv01.jpg?v=32eb39333084"}
@@ -211,28 +217,28 @@ web-frontend-server2                  Up 39 seconds (healthy)
          PUT  /media/hack.jpg                     -> 403
          GET  :9000/documents/report.pdf ẩn danh -> 403
 [PASS] T-A05  Loki: log mọi container; một request_id tra được ở cả proxy và app
-         X-Request-ID của GET /api/students-db: 8d4a08e395288532458dd2e184e2b3ab
+         X-Request-ID của GET /api/students-db: b62e04d7799d78434c7cc74794aee709
          dòng log ở proxy: 1, ở app: 1 (sau 5 s)
          số container có log trong Loki: 15
 [PASS] T-A06  cAdvisor theo dõi từng container, app xuất metric RED, Grafana có 4 dashboard nâng cao
          target: alertmanager=up app=up cadvisor=up loki=up
          container được cAdvisor theo dõi: 16
-         tổng request API đã đếm: 391, p95 5 phút: 0.024 s
+         tổng request API đã đếm: 107, p95 5 phút: 0.064 s
          dashboard tag nang-cao: 4
 [PASS] T-A07  Cảnh báo: dừng web2 -> WebServerDown firing, gửi tới app; bật lại -> resolved
          số luật cảnh báo đã nạp: 6
-         docker stop web-frontend-server2 -> app nhận firing sau 63 s; trong lúc đó GET / qua proxy: 200 200 200 200 
-         docker start web-frontend-server2 -> app nhận resolved sau 58 s
+         docker stop web-frontend-server2 -> app nhận firing sau 79 s; trong lúc đó GET / qua proxy: 200 200 200 200 
+         docker start web-frontend-server2 -> app nhận resolved sau 27 s
 [PASS] T-A08  Gateway: rate limit 429, header bảo mật, chặn /api/metrics và POST /api/alerts, HTTPS khi chạy EC2
          40 request /api/hello (20 luồng song song) -> 200×31 429×9 
          header: X-Request-ID X-Content-Type-Options X-Frame-Options Referrer-Policy 
          GET /api/metrics -> 404, POST /api/alerts -> 403
          (chạy HTTP, không kiểm tra HTTPS)
 [PASS] T-A09  Sao lưu MariaDB sang MinIO (db-backups, lifecycle 7 ngày) và khôi phục thử khớp bản gốc
-           studentdb/studentdb-20261105-220510.sql.gz    dump     2134 B  gzip     829 B  (39%)  0.07s  sha256 7b3751591889…
-           minicloud/minicloud-20261105-220510.sql.gz    dump     1860 B  gzip     691 B  (37%)  0.06s  sha256 397b79ddde53…
-         Lifecycle: rule dbmfpqiil9lc7nbk9rm0 Enabled, xoá sau 7 ngày
-         sha256: khớp (7b3751591889…)
+           studentdb/studentdb-20261105-235355.sql.gz    dump     2134 B  gzip     830 B  (39%)  0.09s  sha256 07e2c4fdeff5…
+           minicloud/minicloud-20261105-235355.sql.gz    dump     1860 B  gzip     691 B  (37%)  0.06s  sha256 a46777434f6d…
+         Lifecycle: rule dbmhct4g1c1s7ne807a0 Enabled, xoá sau 7 ngày
+         sha256: khớp (07e2c4fdeff5…)
          students     (4, '2675099698')          (4, '2675099698')            KHỚP
          KẾT LUẬN: khôi phục đúng
 [PASS] T-A10  DNS nội bộ: app kết nối DB, MinIO bằng tên cloud.local do BIND9 phân giải
@@ -242,8 +248,8 @@ web-frontend-server2                  Up 39 seconds (healthy)
          GET /api/notes (đọc DB qua db.cloud.local) -> 200
 [PASS] T-A12  Trang chủ: bảng trạng thái live (/api/status) đủ 9 vai trò, đổi màu khi một web server dừng
          GET /api/status -> UP 10/10 9 vai trò; trang chủ có CSP: csp, nạp home.js: 1
-         docker stop web-frontend-server2 -> web2 thành down sau 1 s
-         docker start web-frontend-server2 -> web2 thành up sau 1 s
+         docker stop web-frontend-server2 -> web2 thành down sau 3 s
+         docker start web-frontend-server2 -> web2 thành up sau 4 s
 [PASS] T-A11  Compose: mọi container có giới hạn RAM, no-new-privileges; 14 container có healthcheck đều healthy
          container đang chạy: 16
          có giới hạn RAM: 16, có no-new-privileges: 16, healthy: 14 (Loki, nginx-exporter là image distroless, không có healthcheck)

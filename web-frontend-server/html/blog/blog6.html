@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Từ localhost lên AWS EC2: 5 điều nhóm ước gì biết sớm hơn – MyMiniCloud Blog</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/assets/theme.js"></script>
+  <script src="/assets/shell.js" defer></script>
+</head>
+<body id="top">
+  <header class="site-header" id="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/"><svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>MyMiniCloud</a>
+      <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
+        <a href="/" data-nav="home">Tổng quan</a>
+        <a href="/blog/" data-nav="blog">Blog</a>
+        <a href="/portal/" data-nav="portal">Portal</a>
+        <details class="menu" id="tools-menu">
+          <summary>Công cụ <svg class="ic chev" aria-hidden="true"><use href="/assets/icons.svg#chevron-down"/></svg></summary>
+          <div class="menu-panel" id="tool-links"></div>
+        </details>
+      </nav>
+      <div class="header-right">
+        <span class="served" title="Web server đã trả trang này (header X-Served-By)"><span class="served-label">phục vụ bởi</span> __SERVER_NAME__</span>
+        <button class="icon-btn theme-toggle" id="theme-toggle" type="button">
+          <svg class="ic ic-moon" aria-hidden="true"><use href="/assets/icons.svg#moon"/></svg>
+          <svg class="ic ic-sun" aria-hidden="true"><use href="/assets/icons.svg#sun"/></svg>
+        </button>
+        <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="main-nav">
+          <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+      <div class="content-inner">
+        <div class="crumbs"><a href="/">Tổng quan</a> / <a href="/blog/">Blog</a> / Từ localhost lên AWS EC2: 5 điều nhóm ước gì biết sớm hơn</div>
+        <div class="article-layout">
+    <article class="post">
+      <span class="tag">Học tập</span>
+      <h1>Từ localhost lên AWS EC2: 5 điều nhóm ước gì biết sớm hơn</h1>
+      <p class="meta"><span>Đinh Quốc Cường &amp; Nguyễn Cao Hậu · 05/11/2026 · Served by __SERVER_NAME__</span><span id="reading-time"></span></p>
+
+      <figure>
+        <img src="/assets/blog6-ec2.svg" alt="Sơ đồ đưa MyMiniCloud từ máy cá nhân lên AWS EC2 qua Docker Hub">
+        <figcaption>Image được đẩy lên Docker Hub, EC2 chỉ việc kéo về và chạy cùng file compose.</figcaption>
+      </figure>
+
+      <p>
+        Chạy được trên máy mình mới là một nửa đồ án. Đưa cả hệ thống lên một máy EC2 t3.medium dạy nhóm thêm nhiều điều mà
+        lúc chạy localhost không gặp. Đây là năm điều đáng ghi lại.
+      </p>
+
+      <h2>1. Public IP đổi mỗi lần bật máy</h2>
+      <p>
+        Máy EC2 không gắn Elastic IP thì mỗi lần Stop rồi Start lại nhận một public IP mới. Mọi thứ phụ thuộc vào địa chỉ, từ
+        URL của Keycloak tới chứng chỉ HTTPS, đều phải đổi theo. Nhóm viết <code>deploy.sh</code> để đọc IP hiện tại, ghi vào
+        <code>.env</code> và tạo tên miền dạng <code>&lt;ip&gt;.sslip.io</code> trước khi khởi động cụm.
+      </p>
+
+      <h2>2. Security Group mở càng ít càng tốt</h2>
+      <p>
+        Chỉ cổng 80 và 443 mở cho mọi người. Các cổng quản trị như SSH, Grafana, Prometheus, MinIO Console chỉ mở cho IP
+        của nhóm; cơ sở dữ liệu và DNS nội bộ không mở ra ngoài. Mỗi lần đổi mạng (ở trường, ở nhà) thì cập nhật lại luật
+        cho IP mới và xoá luật của IP cũ.
+      </p>
+
+      <h2>3. Ghim phiên bản image</h2>
+      <p>
+        Trên máy cá nhân, <code>latest</code> có vẻ tiện; trên máy chủ thì nó làm hai lần triển khai có thể chạy hai phiên
+        bản khác nhau. Nhóm đẩy image lên Docker Hub với tag cụ thể (<code>2.0</code>) và mọi image bên ngoài cũng được
+        ghim phiên bản, nên EC2 chạy đúng thứ đã kiểm thử ở nhà.
+      </p>
+
+      <h2>4. HTTPS với Let's Encrypt cần cổng 80</h2>
+      <p>
+        Let's Encrypt kiểm tra quyền sở hữu tên miền bằng cách gọi một file qua HTTP cổng 80. Gateway nginx phục vụ thư
+        mục <code>/.well-known/acme-challenge/</code> cho certbot, sau đó mới chuyển hướng mọi request còn lại sang HTTPS.
+        Đóng cổng 80 quá sớm là không xin được chứng chỉ.
+      </p>
+
+      <h2>5. Xong việc thì Stop</h2>
+      <p>
+        Máy đang chạy tính tiền theo giờ, kể cả khi không ai dùng. Nhóm tạo thói quen Stop máy sau mỗi lần demo. Stop khác
+        Terminate: dữ liệu trên ổ EBS vẫn còn, chỉ ổ đĩa tiếp tục bị tính một khoản nhỏ. Cùng bộ
+        <code>smoke-test.sh</code> được chạy lại trên EC2 trước khi tắt, để chắc kết quả trên máy chủ giống ở nhà.
+      </p>
+
+      <div class="post-nav">
+        <a href="/">← Về trang chủ</a>
+        <a href="/blog/">Danh sách bài viết</a>
+      </div>
+    </article>
+        <aside class="toc" aria-label="Mục lục"><h3>Mục lục</h3><ol id="toc-list"></ol></aside>
+        </div>
+      </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">MyMiniCloud</p>
+          <p>Hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container, triển khai trên máy cá nhân và AWS EC2.</p>
+        </div>
+        <div>
+          <h2>Trang</h2>
+          <ul>
+            <li><a href="/">Tổng quan</a></li>
+            <li><a href="/blog/">Blog</a></li>
+            <li><a href="/portal/">Portal</a></li>
+            <li><a href="/#kien-truc">Kiến trúc</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Dịch vụ</h2>
+          <ul>
+            <li><a href="/#trang-thai">Web, Application, Database</a></li>
+            <li><a href="/#trang-thai">Keycloak, MinIO, DNS</a></li>
+            <li><a href="/#trang-thai">Prometheus, Grafana</a></li>
+            <li><a href="/#can-bang-tai">Gateway và cân bằng tải</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Nhóm thực hiện</h2>
+          <ul>
+            <li>Đinh Quốc Cường · 523H0008</li>
+            <li>Nguyễn Cao Hậu · 523H0025</li>
+            <li>GV hướng dẫn: TS. Bùi Quy Anh</li>
+            <li>Trường Đại học Tôn Đức Thắng</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MyMiniCloud · Môn Điện toán đám mây</span>
+        <span>Trang do __SERVER_NAME__ phục vụ · <a href="#top">Lên đầu trang ↑</a></span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

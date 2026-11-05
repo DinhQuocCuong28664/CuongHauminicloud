@@ -1,9 +1,11 @@
-// Console shell shared by every page: theme toggle, mobile sidebar, active link, tool links, blog table of contents.
+// Site shell shared by every page: theme toggle, header menus, current page, tool links, blog table of contents,
+// plus small motion helpers (count-up, flash, shake, reveal) used by home.js and portal.js.
 'use strict';
 
 (function () {
   const root = document.documentElement;
   const ICONS = '/assets/icons.svg';
+  const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function icon(name, cls = 'ic') {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -14,6 +16,47 @@
     svg.append(use);
     return svg;
   }
+
+  // ---------------------------------------------------------------- motion helpers
+  // Number runs from 0 to its value once (400 ms, ease-out); suffix nodes such as "<small> / 10</small>" are kept.
+  function countUp(el, value, suffixNode) {
+    const done = () => el.replaceChildren(document.createTextNode(String(value)), ...(suffixNode ? [suffixNode] : []));
+    if (reduceMotion() || !Number.isFinite(value) || value === 0 || el.dataset.counted) { done(); return; }
+    el.dataset.counted = '1';
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 400);
+      const eased = 1 - Math.pow(1 - k, 3);
+      el.replaceChildren(document.createTextNode(String(Math.round(value * eased))), ...(suffixNode ? [suffixNode] : []));
+      if (k < 1) requestAnimationFrame(step); else done();
+    };
+    requestAnimationFrame(step);
+  }
+  // One-off highlight that marks "this just changed"
+  function flash(el) {
+    el.classList.remove('flash');
+    void el.offsetWidth;          // restart the animation
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 950);
+  }
+  // Short horizontal shake for an input or button that was rejected
+  function shake(el) {
+    if (!el) return;
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  }
+  // Run fn once, when el first scrolls into view
+  function onReveal(el, fn) {
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { fn(); return; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { io.disconnect(); fn(); }
+    }, { threshold: 0.25 });
+    io.observe(el);
+  }
+  window.mmc = { icon, countUp, flash, shake, onReveal, reduceMotion };
   window.mmcIcon = icon;
 
   // ---------------------------------------------------------------- light / dark
@@ -28,65 +71,69 @@
     label();
     toggle.addEventListener('click', () => {
       const next = currentTheme() === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = next;
+      const apply = () => { root.dataset.theme = next; label(); };
+      // Cross-fade the whole page when the browser supports view transitions
+      if (document.startViewTransition && !reduceMotion()) document.startViewTransition(apply); else apply();
       try { localStorage.setItem('mmc-theme', next); } catch (e) { /* not persisted */ }
-      label();
     });
   }
 
-  // ---------------------------------------------------------------- mobile sidebar
-  const menu = document.getElementById('menu-toggle');
-  if (menu) {
-    const setOpen = (open) => {
-      document.body.classList.toggle('nav-open', open);
-      menu.setAttribute('aria-expanded', String(open));
-    };
-    menu.addEventListener('click', () => setOpen(!document.body.classList.contains('nav-open')));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
-    document.addEventListener('click', (e) => {
-      if (document.body.classList.contains('nav-open') && !e.target.closest('.sidebar, #menu-toggle')) setOpen(false);
-    });
-    document.querySelectorAll('.sidebar .side-link').forEach((a) => a.addEventListener('click', () => setOpen(false)));
-  }
+  // ---------------------------------------------------------------- header: mobile menu and tools dropdown
+  const header = document.getElementById('site-header');
+  const menuBtn = document.getElementById('menu-toggle');
+  const tools = document.getElementById('tools-menu');
+  const setMenu = (open) => {
+    if (!header) return;
+    header.classList.toggle('nav-open', open);
+    if (menuBtn) menuBtn.setAttribute('aria-expanded', String(open));
+  };
+  if (menuBtn) menuBtn.addEventListener('click', () => setMenu(!header.classList.contains('nav-open')));
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    setMenu(false);
+    if (tools && tools.open) { tools.open = false; tools.querySelector('summary').focus(); }
+  });
+  document.addEventListener('click', (e) => {
+    if (tools && tools.open && !tools.contains(e.target)) tools.open = false;
+    if (header && header.classList.contains('nav-open') && !header.contains(e.target)) setMenu(false);
+  });
 
-  // ---------------------------------------------------------------- active section in the sidebar
+  // Current page in the main navigation
   const section = location.pathname.startsWith('/blog') ? 'blog'
     : location.pathname.startsWith('/portal') ? 'portal' : 'home';
-  const active = document.querySelector(`.sidebar a[data-nav="${section}"]`);
-  if (active) active.setAttribute('aria-current', 'page');
+  const current = document.querySelector(`.main-nav a[data-nav="${section}"]`);
+  if (current) current.setAttribute('aria-current', 'page');
 
-  // ---------------------------------------------------------------- tool links
-  // The admin ports are only open to the team's IP on EC2, so over HTTPS only Keycloak (behind the gateway) is listed.
-  const tools = document.getElementById('tool-links');
-  if (tools) {
+  // Tool links. The admin ports are only open to the team's IP on EC2, so over HTTPS only Keycloak is listed.
+  const toolLinks = document.getElementById('tool-links');
+  if (toolLinks) {
     const host = location.hostname;
     const https = location.protocol === 'https:';
     const list = [
-      ['chart', 'Grafana', `http://${host}:3000/`, !https],
-      ['activity', 'Prometheus', `http://${host}:9090/targets`, !https],
-      ['bell', 'Alertmanager', `http://${host}:9093/`, !https],
-      ['bucket', 'MinIO Console', `http://${host}:9001/`, !https],
-      ['key', 'Keycloak Admin', `${location.origin}/auth/admin/`, true],
+      ['Grafana', `http://${host}:3000/`, !https],
+      ['Prometheus', `http://${host}:9090/targets`, !https],
+      ['Alertmanager', `http://${host}:9093/`, !https],
+      ['MinIO Console', `http://${host}:9001/`, !https],
+      ['Keycloak Admin', `${location.origin}/auth/admin/`, true],
     ];
-    for (const [ic, name, url, visible] of list) {
+    for (const [name, url, visible] of list) {
       if (!visible) continue;
       const a = document.createElement('a');
-      a.className = 'side-link';
       a.href = url;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.append(icon(ic), document.createTextNode(name), icon('external', 'ic ext'));
-      tools.append(a);
+      a.append(document.createTextNode(name), icon('external', 'ic ext'));
+      toolLinks.append(a);
     }
     if (https) {
       const p = document.createElement('p');
-      p.className = 'side-note';
+      p.className = 'menu-note';
       p.textContent = 'Grafana, Prometheus, MinIO chỉ mở cho IP của nhóm.';
-      tools.append(p);
+      toolLinks.append(p);
     }
   }
 
-  // ---------------------------------------------------------------- blog: table of contents from <h2>
+  // ---------------------------------------------------------------- blog: table of contents and reading time
   const toc = document.getElementById('toc-list');
   const article = document.querySelector('article.post');
   if (toc && article) {
@@ -114,8 +161,6 @@
       heads.forEach((h) => io.observe(h));
     }
   }
-
-  // ---------------------------------------------------------------- reading time for blog posts
   const rt = document.getElementById('reading-time');
   if (rt && article) {
     const words = article.textContent.trim().split(/\s+/).length;
