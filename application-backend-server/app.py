@@ -97,7 +97,7 @@ LATENCY = Histogram(
     "minicloud_http_request_duration_seconds", "Thời gian xử lý request", ["method", "endpoint"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5),
 )
-NOT_MEASURED = {"/metrics", "/health", "/status"}   # health probes: polled often, not user traffic
+NOT_MEASURED = {"/metrics", "/health", "/status"}   # health check: được gọi liên tục, không phải lưu lượng của người dùng
 
 # ---------- Nâng cao: log JSON một dòng, có request_id để Loki truy vết qua proxy và app ----------
 log = logging.getLogger("minicloud")
@@ -320,7 +320,7 @@ def metrics():
     return Response(generate_latest(registry), mimetype=CONTENT_TYPE_LATEST)
 
 
-# ---------- Public system status for the home page (read-only, no secrets) ----------
+# ---------- Trạng thái hệ thống công khai cho trang chủ (chỉ đọc, không lộ bí mật) ----------
 STATUS_TIMEOUT = float(os.getenv("STATUS_TIMEOUT", "1.5"))
 STATUS_CACHE_SECONDS = float(os.getenv("STATUS_CACHE_SECONDS", "3"))
 STATUS_DNS_NAME = os.getenv("STATUS_DNS_NAME", "db.cloud.local")
@@ -346,7 +346,7 @@ def _probe_dns():
     return f"{STATUS_DNS_NAME} -> {ip}"
 
 
-# (id, group, role number, role, technology, container, probe)
+# (id, nhóm, số thứ tự vai trò, vai trò, công nghệ, container, hàm kiểm tra)
 STATUS_CHECKS = [
     ("proxy", "core", 9, "Reverse Proxy / LB", "nginx", "api-gateway-proxy-server",
      lambda: _probe_http("http://api-gateway-proxy-server/healthz")),
@@ -372,8 +372,8 @@ STATUS_CHECKS = [
     ("alertmanager", "extra", 7, "Alerting", "Alertmanager", "monitoring-alertmanager-server",
      lambda: _probe_http("http://monitoring-alertmanager-server:9093/-/ready")),
     ("loki", "extra", 8, "Log storage", "Loki", "logging-loki-server",
-     # /ready can stay at 503 ("waiting for 15s") on a single-binary Loki that still serves queries,
-     # so check the query API instead
+     # /ready của Loki chạy một tiến trình có thể kẹt ở 503 ("waiting for 15s") dù vẫn truy vấn được,
+     # nên kiểm tra API truy vấn thay cho /ready
      lambda: _probe_http("http://logging-loki-server:3100/loki/api/v1/labels")),
     ("alloy", "extra", 8, "Log collector", "Grafana Alloy", "logging-alloy-collector",
      lambda: _probe_http("http://logging-alloy-collector:12345/-/ready")),
@@ -384,7 +384,7 @@ def _timed(probe):
     t0 = time.perf_counter()
     try:
         detail, ok = probe(), True
-    except Exception as e:  # report only the exception type, never internal error text
+    except Exception as e:  # chỉ báo loại lỗi, không lộ nội dung lỗi bên trong
         detail, ok = ("unreachable" if isinstance(e, (OSError, requests.RequestException)) else str(e)[:40]), False
     return ok, detail, round((time.perf_counter() - t0) * 1000, 1)
 
@@ -410,7 +410,7 @@ def collect_status():
 
 @app.get("/status")
 def status():
-    """Health of every MiniCloud container, checked from inside cloud-net. Cached briefly so polling is cheap."""
+    """Tình trạng mọi container MiniCloud, kiểm tra từ bên trong cloud-net. Lưu đệm ngắn để gọi liên tục vẫn nhẹ."""
     with _status_lock:
         if _status_cache["body"] is None or time.time() - _status_cache["at"] > STATUS_CACHE_SECONDS:
             _status_cache["body"] = collect_status()

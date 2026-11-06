@@ -1,7 +1,7 @@
-// Loaded synchronously in <head> so the saved light/dark choice applies before the first paint (no flash).
+// Nạp đồng bộ trong <head> để lựa chọn sáng/tối đã lưu áp dụng trước lần vẽ đầu tiên (không chớp).
 (function () {
   try {
     var saved = localStorage.getItem('mmc-theme');
     if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
-  } catch (e) { /* storage blocked: follow the OS setting */ }
+  } catch (e) { /* bị chặn lưu trữ: theo cài đặt của hệ điều hành */ }
 })();

@@ -125,8 +125,8 @@ tổng request API đã đếm: $m3, p95 5 phút: $m4 s
 dashboard tag nang-cao: $m5"
 
 # ---------------------------------------------------------------- T-A07 Alerting: stop web2 -> firing -> resolved
-# Only count the web2 alert raised during this run: rows left "firing" by an earlier run (for example when
-# Docker was shut down before the resolved notification arrived) must not make the test pass or hang.
+# Chỉ tính cảnh báo web2 phát sinh trong lần chạy này: các dòng còn "firing" từ lần trước (ví dụ Docker bị tắt
+# trước khi nhận được thông báo resolved) không được làm test đạt sai hoặc treo.
 alert_state() { curl -s -H "$A1" "$P/api/alerts" | json "next((a['status'] for a in d['alerts'] if a['alertname']=='WebServerDown' and a['target']=='web-frontend-server2' and a['starts_at']>='$alert_since'), 'none')"; }
 w_rules=$(curl -s "http://$H:$PROM_PORT/api/v1/rules" | json "sum(len(g['rules']) for g in d['data']['groups'])")
 if [ "${SKIP_ALERT_TEST:-0}" = 1 ]; then
@@ -192,7 +192,7 @@ getent hosts db.cloud.local -> $d1
 getent hosts s3.cloud.local -> $d2 (CNAME)
 GET /api/notes (đọc DB qua db.cloud.local) -> $d4"
 
-# ---------------------------------------------------------------- T-A12 Live status board on the home page
+# ---------------------------------------------------------------- T-A12 Bảng trạng thái trực tiếp trên trang chủ
 web2_state() { curl -s "$P/api/status" | json "next(s['status'] for s in d['services'] if s['id']=='web2')"; }
 u1=$(curl -s "$P/api/status" | json "'%d/%d %d' % (d['summary']['up'], d['summary']['total'], len({s['role_no'] for s in d['services'] if s['group']=='core'}))")
 u2=$(curl -s -D - -o /dev/null "$P/" | tr -d '\r' | awk 'tolower($0) ~ /^content-security-policy:/ {print "csp"}')

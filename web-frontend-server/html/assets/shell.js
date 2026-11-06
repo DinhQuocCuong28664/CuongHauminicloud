@@ -1,5 +1,5 @@
-// Site shell shared by every page: theme toggle, header menus, current page, tool links, blog table of contents,
-// plus small motion helpers (count-up, flash, shake, reveal) used by home.js and portal.js.
+// Khung trang dùng chung: đổi sáng/tối, menu header, trang hiện tại, link công cụ, mục lục blog,
+// cùng các hàm chuyển động nhỏ (đếm số, nháy, rung, hiện khi cuộn tới) cho home.js và portal.js.
 'use strict';
 
 (function () {
@@ -17,8 +17,8 @@
     return svg;
   }
 
-  // ---------------------------------------------------------------- motion helpers
-  // Number runs from 0 to its value once (400 ms, ease-out); suffix nodes such as "<small> / 10</small>" are kept.
+  // ---------------------------------------------------------------- hàm chuyển động
+  // Số chạy từ 0 tới giá trị thật một lần (400 ms, ease-out); giữ phần đuôi như "<small> / 10</small>".
   function countUp(el, value, suffixNode) {
     const done = () => el.replaceChildren(document.createTextNode(String(value)), ...(suffixNode ? [suffixNode] : []));
     if (reduceMotion() || !Number.isFinite(value) || value === 0 || el.dataset.counted) { done(); return; }
@@ -32,14 +32,14 @@
     };
     requestAnimationFrame(step);
   }
-  // One-off highlight that marks "this just changed"
+  // Tô sáng một lần để đánh dấu "chỗ vừa đổi"
   function flash(el) {
     el.classList.remove('flash');
-    void el.offsetWidth;          // restart the animation
+    void el.offsetWidth;          // chạy lại animation
     el.classList.add('flash');
     setTimeout(() => el.classList.remove('flash'), 950);
   }
-  // Short horizontal shake for an input or button that was rejected
+  // Rung ngang ngắn cho ô nhập hoặc nút bị từ chối
   function shake(el) {
     if (!el) return;
     el.classList.remove('shake');
@@ -47,7 +47,7 @@
     el.classList.add('shake');
     el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
   }
-  // Run fn once, when el first scrolls into view
+  // Chạy fn một lần, khi el lần đầu cuộn vào màn hình
   function onReveal(el, fn) {
     if (!el) return;
     if (!('IntersectionObserver' in window)) { fn(); return; }
@@ -59,7 +59,7 @@
   window.mmc = { icon, countUp, flash, shake, onReveal, reduceMotion };
   window.mmcIcon = icon;
 
-  // ---------------------------------------------------------------- light / dark
+  // ---------------------------------------------------------------- sáng / tối
   function currentTheme() {
     if (root.dataset.theme) return root.dataset.theme;
     return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -72,13 +72,13 @@
     toggle.addEventListener('click', () => {
       const next = currentTheme() === 'dark' ? 'light' : 'dark';
       const apply = () => { root.dataset.theme = next; label(); };
-      // Cross-fade the whole page when the browser supports view transitions
+      // Chuyển mờ cả trang khi trình duyệt hỗ trợ view transitions
       if (document.startViewTransition && !reduceMotion()) document.startViewTransition(apply); else apply();
-      try { localStorage.setItem('mmc-theme', next); } catch (e) { /* not persisted */ }
+      try { localStorage.setItem('mmc-theme', next); } catch (e) { /* không lưu được */ }
     });
   }
 
-  // ---------------------------------------------------------------- header: mobile menu and tools dropdown
+  // ---------------------------------------------------------------- header: menu điện thoại và menu Công cụ
   const header = document.getElementById('site-header');
   const menuBtn = document.getElementById('menu-toggle');
   const tools = document.getElementById('tools-menu');
@@ -98,13 +98,13 @@
     if (header && header.classList.contains('nav-open') && !header.contains(e.target)) setMenu(false);
   });
 
-  // Current page in the main navigation
+  // Đánh dấu trang hiện tại trên thanh điều hướng
   const section = location.pathname.startsWith('/blog') ? 'blog'
     : location.pathname.startsWith('/portal') ? 'portal' : 'home';
   const current = document.querySelector(`.main-nav a[data-nav="${section}"]`);
   if (current) current.setAttribute('aria-current', 'page');
 
-  // Tool links. The admin ports are only open to the team's IP on EC2, so over HTTPS only Keycloak is listed.
+  // Link công cụ. Trên EC2 các cổng quản trị chỉ mở cho IP của nhóm, nên khi chạy HTTPS chỉ liệt kê Keycloak.
   const toolLinks = document.getElementById('tool-links');
   if (toolLinks) {
     const host = location.hostname;
@@ -133,7 +133,7 @@
     }
   }
 
-  // ---------------------------------------------------------------- blog: table of contents and reading time
+  // ---------------------------------------------------------------- blog: mục lục và thời gian đọc
   const toc = document.getElementById('toc-list');
   const article = document.querySelector('article.post');
   if (toc && article) {

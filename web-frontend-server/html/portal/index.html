@@ -50,7 +50,7 @@
   <main class="content">
       <div class="content-inner">
 
-        <!-- Signed out -->
+        <!-- Chưa đăng nhập -->
         <section id="view-login" hidden>
           <div class="login-card card">
             <div class="login-icon"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#lock"/></svg></div>
@@ -79,10 +79,10 @@
           </ol>
         </section>
 
-        <!-- Signed in -->
+        <!-- Đã đăng nhập -->
         <section id="view-app" hidden>
 
-          <!-- Profile: token details and avatar -->
+          <!-- Hồ sơ: thông tin token và ảnh đại diện -->
           <div class="panel" data-panel="profile">
             <div class="page-head">
               <div><div class="crumbs">Portal / Hồ sơ</div><h1>Hồ sơ</h1>
@@ -133,7 +133,7 @@
             </div>
           </div>
 
-          <!-- Students: CRUD on studentdb.students -->
+          <!-- Sinh viên: CRUD trên studentdb.students -->
           <div class="panel" data-panel="students" hidden>
             <div class="page-head">
               <div><div class="crumbs">Portal / Sinh viên</div><h1>Sinh viên</h1>
@@ -174,7 +174,7 @@
             </div>
           </div>
 
-          <!-- Private documents in the documents bucket -->
+          <!-- Tài liệu private trong bucket documents -->
           <div class="panel" data-panel="documents" hidden>
             <div class="page-head">
               <div><div class="crumbs">Portal / Tài liệu</div><h1>Tài liệu private</h1>
@@ -191,7 +191,7 @@
             </div>
           </div>
 
-          <!-- Operations: alerts from Alertmanager and links to the monitoring tools -->
+          <!-- Vận hành: cảnh báo từ Alertmanager và link tới công cụ giám sát -->
           <div class="panel" data-panel="ops" hidden>
             <div class="page-head">
               <div><div class="crumbs">Portal / Vận hành</div><h1>Vận hành <span id="ops-firing" class="badge"></span></h1>
@@ -216,7 +216,7 @@
             <div class="grid" id="ops-links"></div>
           </div>
 
-          <!-- API call log: use request_id to look up logs in Grafana (Loki) -->
+          <!-- Nhật ký gọi API: dùng request_id để tra log trong Grafana (Loki) -->
           <details class="calls card" open>
             <summary><h2>Nhật ký gọi API</h2><span class="muted small">request_id dùng để tra log trong Grafana → Logs</span></summary>
             <div class="table-wrap">
@@ -284,7 +284,7 @@
       </div>
     </div>
   </footer>
-  <!-- defer: runs after /assets/shell.js (also deferred), which provides the icon helper -->
+  <!-- defer: chạy sau /assets/shell.js (cũng defer), file cung cấp hàm vẽ icon -->
   <script src="/portal/portal.js" defer></script>
 </body>
 </html>

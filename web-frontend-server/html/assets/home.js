@@ -1,6 +1,6 @@
-// Home page: live status board (/api/status), round-robin demo (X-Served-By) and architecture colouring.
-// Motion only marks what matters: rows appear once in sequence, a row flashes when its status changes,
-// headline numbers count up once, and the diagram arrows draw themselves when scrolled into view.
+// Trang chủ: bảng trạng thái trực tiếp (/api/status), minh hoạ round robin (X-Served-By) và tô màu sơ đồ kiến trúc.
+// Chuyển động chỉ đánh dấu điều quan trọng: các dòng hiện lần lượt một lần, dòng đổi trạng thái thì nháy,
+// số liệu chính đếm lên một lần, mũi tên trên sơ đồ tự vẽ khi cuộn tới.
 'use strict';
 
 (function () {
@@ -68,7 +68,7 @@
     }
   }
 
-  // Render the board; on the first load rows enter one after another, later only changed rows flash
+  // Vẽ bảng; lần tải đầu các dòng hiện lần lượt, các lần sau chỉ dòng đổi trạng thái mới nháy
   const previous = new Map();
   function renderBoard(board, services, firstLoad) {
     const rows = services.map(serviceRow);
@@ -140,8 +140,8 @@
     }
   }
 
-  // ---------------------------------------------------------------- round robin demo
-  // Each response appears as soon as it arrives, so the alternation web1, web2, web1... is visible.
+  // ---------------------------------------------------------------- minh hoạ round robin
+  // Mỗi phản hồi hiện ngay khi về, nên thấy rõ thứ tự web1, web2, web1...
   let lbRunning = false;
   async function runLb() {
     if (lbRunning) return;
@@ -194,7 +194,7 @@
     lbRunning = false;
   }
 
-  // ---------------------------------------------------------------- architecture: arrows draw once when visible
+  // ---------------------------------------------------------------- kiến trúc: mũi tên tự vẽ một lần khi hiện ra
   const arch = document.querySelector('.arch');
   if (arch && !reduceMotion()) {
     arch.classList.add('will-draw');

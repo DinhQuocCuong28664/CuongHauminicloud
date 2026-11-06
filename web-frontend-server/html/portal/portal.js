@@ -10,7 +10,7 @@ const STORE = sessionStorage;            // token chỉ sống trong tab hiện 
 
 const $ = (id) => document.getElementById(id);
 const show = (el, on = true) => { el.hidden = !on; };
-const icon = (name, cls = 'ic') => window.mmcIcon(name, cls);   // from /assets/shell.js
+const icon = (name, cls = 'ic') => window.mmcIcon(name, cls);   // lấy từ /assets/shell.js
 function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -152,9 +152,9 @@ function toast(text, kind = 'ok') {
     setTimeout(() => show(box, false), 160);
   }, 4000);
 }
-const { flash, shake, countUp } = window.mmc;     // motion helpers from /assets/shell.js
+const { flash, shake, countUp } = window.mmc;     // các hàm chuyển động lấy từ /assets/shell.js
 
-// Placeholder rows with a light sweep while a table is loading
+// Dòng giữ chỗ có vệt sáng khi bảng đang tải
 function skeletonRows(body, cols, n = 4) {
   body.replaceChildren();
   for (let i = 0; i < n; i++) {
@@ -180,7 +180,7 @@ let me = null;
 async function loadProfile() {
   me = await api('GET', '/me');
   $('nav-user').replaceChildren(icon('user'), el('span', '', me.username));
-  // Vietnamese names put the family name first (the Keycloak name claim puts the given name first)
+  // Tên tiếng Việt để họ trước (claim name của Keycloak để tên trước)
   $('p-name').textContent = [me.family_name, me.given_name].filter(Boolean).join(' ') || me.name || me.username;
   $('p-username').textContent = me.username;
   $('p-email').textContent = me.email || '';
@@ -220,7 +220,7 @@ function tickExpiry() {
   $('p-exp-bar').classList.toggle('low', pct < 25);
 }
 
-// Avatar drop zone: the <input type=file> covers the zone, so clicking and dropping both work natively
+// Vùng thả ảnh: <input type=file> phủ kín vùng nên bấm chọn hay kéo thả đều chạy sẵn
 $('avatar-file').addEventListener('change', () => {
   const f = $('avatar-file').files[0];
   $('avatar-file-name').textContent = f ? `${f.name} · ${(f.size / 1024).toFixed(0)} KB` : 'Chọn hoặc kéo ảnh vào đây';
@@ -249,10 +249,10 @@ $('form-avatar').addEventListener('submit', async (ev) => {
   } catch (e) { showError(e); }
 });
 
-// ---------------------------------------------------------------- Students (CRUD)
+// ---------------------------------------------------------------- Sinh viên (CRUD)
 let students = [];
 
-let changedId = null;     // id of the row just added or edited: flashed once after the table re-renders
+let changedId = null;     // id của dòng vừa thêm hoặc sửa: nháy một lần sau khi bảng vẽ lại
 
 async function loadStudents() {
   if (!students.length) skeletonRows($('students-body'), 6);
@@ -333,7 +333,7 @@ $('form-student').addEventListener('submit', async (ev) => {
     await loadStudents();
   } catch (e) {
     showError(e);
-    // 400: point at the form fields; 403: point at the button the viewer is not allowed to use
+    // 400: chỉ vào các ô nhập; 403: chỉ vào nút mà viewer không được dùng
     shake(e.status === 400 ? $('form-student') : btn);
   } finally {
     btn.classList.remove('busy');
@@ -342,7 +342,7 @@ $('form-student').addEventListener('submit', async (ev) => {
 $('btn-cancel-edit').onclick = resetForm;
 $('btn-reload-students').onclick = () => loadStudents().catch(showError);
 
-// Confirmation uses a native modal <dialog> (focus trap, Esc to cancel) instead of window.confirm
+// Xác nhận bằng <dialog> dạng modal của trình duyệt (giữ focus, Esc để huỷ) thay cho window.confirm
 function confirmDialog(text) {
   const dlg = $('confirm-dialog');
   $('confirm-text').textContent = text;
@@ -372,7 +372,7 @@ async function deleteStudent(s) {
   }
 }
 
-// ---------------------------------------------------------------- Private documents
+// ---------------------------------------------------------------- Tài liệu private
 function formatBytes(n) {
   return n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(2)} MB` : `${(n / 1024).toFixed(1)} KB`;
 }
@@ -415,7 +415,7 @@ async function downloadDocument(name) {
   } catch (e) { showError(e); }
 }
 
-// ---------------------------------------------------------------- Operations
+// ---------------------------------------------------------------- Vận hành
 async function loadSystemSummary() {
   try {
     const res = await fetch('/api/status', { cache: 'no-store' });
@@ -485,7 +485,7 @@ function renderOpsLinks() {
 }
 
 // ---------------------------------------------------------------- Tab
-// The underline under the selected tab slides (transform only) instead of jumping
+// Gạch chân dưới tab đang chọn trượt sang (chỉ dùng transform) thay vì nhảy
 function moveIndicator(tab) {
   const bar = $('tab-indicator');
   if (!bar || !tab) return;

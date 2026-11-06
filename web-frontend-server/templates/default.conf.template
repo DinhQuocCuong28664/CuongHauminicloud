@@ -9,8 +9,8 @@ server {
     # ${SERVER_NAME} được thay lúc khởi động (web1 hoặc web2)
     add_header X-Served-By ${SERVER_NAME} always;
 
-    # Same-origin only CSP for the home page and the blog (no inline scripts or styles, no CDN).
-    # Browsers revalidate pages and assets (ETag) so a rebuilt image shows up without a hard reload.
+    # CSP chỉ cho tài nguyên cùng nguồn cho trang chủ và blog (không script/style inline, không CDN).
+    # Trình duyệt kiểm tra lại trang và tài nguyên (ETag) nên build lại image là thấy ngay, không cần tải lại cứng.
     location / {
         try_files $uri $uri/ =404;
         add_header X-Served-By ${SERVER_NAME} always;

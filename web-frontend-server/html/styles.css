@@ -1,7 +1,7 @@
-/* MyMiniCloud design system, shared by the home page, the blog and the Portal.
-   Neutral surfaces, one accent colour for links and primary actions, and status colours used only for status.
-   Motion is functional (feedback, loading, "what just changed"), 150-300 ms, transform/opacity only,
-   and switched off for prefers-reduced-motion. */
+/* Hệ thống giao diện MyMiniCloud, dùng chung cho trang chủ, blog và Portal.
+   Nền trung tính, một màu nhấn cho liên kết và nút chính, màu trạng thái chỉ dùng để báo trạng thái.
+   Chuyển động chỉ dùng khi có mục đích (phản hồi, đang tải, "chỗ vừa đổi"), 150-300 ms, chỉ transform/opacity,
+   và tắt khi người dùng bật prefers-reduced-motion. */
 
 :root {
   color-scheme: light;
@@ -52,7 +52,7 @@
   --ok: #30d158; --err: #ff453a; --err-soft: #3a1513; --warn: #ffd60a; --warn-soft: #332b05;
 }
 
-/* ------------------------------------------------------------------ base */
+/* ------------------------------------------------------------------ nền tảng */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 16px); }
@@ -98,7 +98,7 @@ img { max-width: 100%; }
 }
 .menu > summary::-webkit-details-marker { display: none; }
 .main-nav > a:hover, .menu > summary:hover { color: var(--text); text-decoration: none; }
-/* Current page: accent underline that grows in from the centre */
+/* Trang hiện tại: gạch chân màu nhấn mở rộng từ giữa ra */
 .main-nav > a::after {
   content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; background: var(--accent);
   transform: scaleX(0); transition: transform var(--dur) var(--ease-out);
@@ -141,7 +141,7 @@ img { max-width: 100%; }
   :root:not([data-theme="light"]) .theme-toggle .ic-moon { display: none; }
 }
 
-/* ------------------------------------------------------------------ page layout */
+/* ------------------------------------------------------------------ bố cục trang */
 .content { flex: 1; width: 100%; padding: 48px 24px 72px; }
 .content-inner { max-width: 1080px; margin: 0 auto; }
 .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 28px; }
@@ -166,7 +166,7 @@ img { max-width: 100%; }
 .site-footer a:hover { color: var(--text); }
 .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line-strong); font-size: 0.8rem; color: var(--faint); }
 
-/* ------------------------------------------------------------------ cards and stats */
+/* ------------------------------------------------------------------ thẻ và số liệu */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
@@ -188,7 +188,7 @@ a.card:hover { border-color: var(--line-strong); text-decoration: none; transfor
 .status-up { color: var(--text); }
 .status-down { color: var(--err); }
 
-/* ------------------------------------------------------------------ status labels */
+/* ------------------------------------------------------------------ nhãn trạng thái */
 .badge {
   display: inline-flex; align-items: center; gap: 6px; padding: 1px 9px; border-radius: 999px;
   font-size: 0.76rem; font-weight: 500; line-height: 1.6; white-space: nowrap;
@@ -205,7 +205,7 @@ a.card:hover { border-color: var(--line-strong); text-decoration: none; transfor
 .pulse { animation: none; }
 .tag { display: inline-block; font-size: 0.78rem; font-weight: 500; color: var(--accent); }
 
-/* ------------------------------------------------------------------ buttons and forms */
+/* ------------------------------------------------------------------ nút và form */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 34px; padding: 6px 16px; border-radius: 999px;
@@ -245,7 +245,7 @@ label.field { display: grid; gap: 5px; font-size: 0.8rem; font-weight: 500; colo
 .input-icon .ic { position: absolute; left: 11px; color: var(--faint); pointer-events: none; }
 .input-icon input { padding-left: 32px; }
 
-/* ------------------------------------------------------------------ tables */
+/* ------------------------------------------------------------------ bảng */
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 table.data { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 table.data th { text-align: left; font-size: 0.78rem; font-weight: 500; color: var(--muted); padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -262,7 +262,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .st-warn { color: var(--warn); }
 .st-err { color: var(--err); }
 
-/* ------------------------------------------------------------------ toast and dialog */
+/* ------------------------------------------------------------------ thông báo và hộp thoại */
 .msg {
   position: fixed; right: 20px; bottom: 20px; z-index: 50;
   display: flex; align-items: center; gap: 10px;
@@ -285,7 +285,7 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.35); animation: fade-in var(-
 dialog.modal p { color: var(--muted); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
-/* ------------------------------------------------------------------ home */
+/* ------------------------------------------------------------------ trang chủ */
 .intro { padding: 12px 0 36px; }
 .intro h1 { font-size: 3rem; letter-spacing: -0.04em; margin-bottom: 14px; }
 .intro p { font-size: 1.15rem; color: var(--muted); max-width: 60ch; margin: 0; }
@@ -326,7 +326,7 @@ dialog.modal p { color: var(--muted); }
 .feature-list h3 .ic { display: none; }
 .feature-list p { font-size: 0.86rem; }
 
-/* architecture diagram (inline SVG) */
+/* sơ đồ kiến trúc (SVG nhúng) */
 .arch { width: 100%; height: auto; display: block; font-family: var(--font); }
 .arch-card { padding: 18px; overflow-x: auto; }
 .arch-card .arch { min-width: 640px; }
@@ -342,7 +342,7 @@ dialog.modal p { color: var(--muted); }
 .a-band { fill: var(--subtle); stroke: none; }
 .a-pill { fill: var(--surface); stroke: var(--line-strong); transition: fill var(--dur), stroke var(--dur); }
 .a-pt { fill: var(--text); font-size: 11px; font-weight: 500; }
-/* Line drawing: solid edges draw themselves once when the diagram scrolls into view */
+/* Nét vẽ: các mũi tên liền tự vẽ một lần khi sơ đồ cuộn vào màn hình */
 .arch.will-draw .a-edge:not(.d) { stroke-dasharray: 400; stroke-dashoffset: 400; }
 .arch.drawn .a-edge:not(.d) { stroke-dashoffset: 0; transition: stroke-dashoffset 700ms var(--ease-out); }
 .arch.will-draw [marker-end] { marker-end: none; }
@@ -393,7 +393,7 @@ article.post pre { background: var(--subtle); border-radius: 8px; padding: 12px 
 .post-card:hover h3 { color: var(--accent); }
 .post-card p { margin: 0; color: var(--muted); }
 
-/* ------------------------------------------------------------------ motion */
+/* ------------------------------------------------------------------ chuyển động */
 @view-transition { navigation: auto; }
 ::view-transition-old(root) { animation: fade-out var(--dur-fast) var(--ease-in) both; }
 ::view-transition-new(root) { animation: fade-in var(--dur-page) var(--ease-out) both; }
@@ -411,16 +411,16 @@ article.post pre { background: var(--subtle); border-radius: 8px; padding: 12px 
 @keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
 @keyframes flash { from { opacity: 1; } to { opacity: 0; } }
 
-/* Items appear one after another: JS sets --i on each element */
+/* Các phần tử hiện lần lượt: JS gán --i cho từng phần tử */
 .enter { animation: rise-in var(--dur) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 30ms); }
 .fade-enter { animation: fade-in var(--dur-fast) var(--ease-out) both; }
 .shake { animation: shake 300ms ease-in-out; }
 .leaving-row { opacity: 0; transform: translateX(8px); transition: opacity var(--dur) var(--ease-in), transform var(--dur) var(--ease-in); }
-/* "This just changed": a one-off highlight layer that fades out */
+/* "Chỗ vừa đổi": lớp tô sáng một lần rồi mờ dần */
 .flash { position: relative; }
 .flash::after { content: ""; position: absolute; inset: 0; background: var(--accent-soft); pointer-events: none; animation: flash 900ms var(--ease-out) forwards; }
 .svc.flash.down::after { background: var(--err-soft); }
-/* Skeleton with a light sweep */
+/* Khung chờ có vệt sáng chạy qua */
 .skeleton { position: relative; overflow: hidden; background: var(--subtle); color: transparent !important; }
 .skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent); animation: shimmer 1.3s infinite; }
 :root[data-theme="dark"] .skeleton::after { background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent); }
@@ -432,7 +432,7 @@ article.post pre { background: var(--subtle); border-radius: 8px; padding: 12px 
   .arch.will-draw .a-edge:not(.d) { stroke-dasharray: none; stroke-dashoffset: 0; }
 }
 
-/* ------------------------------------------------------------------ responsive */
+/* ------------------------------------------------------------------ màn hình nhỏ */
 @media (max-width: 1100px) {
   .article-layout { grid-template-columns: 1fr; }
   .toc { display: none; }
@@ -473,7 +473,7 @@ article.post pre { background: var(--subtle); border-radius: 8px; padding: 12px 
   .footer-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
-/* small fixes */
+/* chỉnh nhỏ */
 .intro p.byline { max-width: none; }
 @media (max-width: 860px) {
   .menu > summary { width: 100%; }
