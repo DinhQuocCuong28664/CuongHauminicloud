@@ -1,26 +1,26 @@
-$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@13.212.88.223
+$ ssh -i minicloud-523h0008-523h0025-key.pem ubuntu@47.128.224.105
 ubuntu@minicloud-ec2
 PRETTY_NAME="Ubuntu 24.04.5 LTS"
 7.0.0-1014-aws
 2
                total        used        free      shared  buff/cache   available
-Mem:           3.7Gi       2.1Gi       215Mi       4.3Mi       1.7Gi       1.7Gi
+Mem:           3.7Gi       2.1Gi       289Mi       4.4Mi       1.6Gi       1.6Gi
 
 $ docker compose ps
 NAME                                  IMAGE                                      STATUS
-api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:2.0     Up 3 minutes (healthy)
-application-backend-server            dinhquoccuong286/myminicloud-app:2.0       Up 6 minutes (healthy)
+api-gateway-proxy-server              dinhquoccuong286/myminicloud-proxy:2.1     Up 4 minutes (healthy)
+application-backend-server            dinhquoccuong286/myminicloud-app:2.1       Up 6 minutes (healthy)
 authentication-identity-server        quay.io/keycloak/keycloak:26.8.1           Up 3 minutes (healthy)
-internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 6 minutes (healthy)
-logging-alloy-collector               grafana/alloy:v1.20.1                      Up 6 minutes (healthy)
-logging-loki-server                   grafana/loki:3.7.8                         Up 6 minutes
+internal-dns-server                   internetsystemsconsortium/bind9:9.18       Up 7 minutes (healthy)
+logging-alloy-collector               grafana/alloy:v1.20.1                      Up 7 minutes (healthy)
+logging-loki-server                   grafana/loki:3.7.8                         Up 7 minutes
 monitoring-alertmanager-server        prom/alertmanager:v0.34.1                  Up 6 minutes (healthy)
-monitoring-cadvisor-server            ghcr.io/google/cadvisor:v0.60.6            Up 6 minutes (healthy)
-monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 6 minutes (healthy)
-monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 6 minutes (healthy)
-monitoring-prometheus-server          prom/prometheus:v3.15.0                    Up 6 minutes (healthy)
-object-storage-server                 pgsty/minio:RELEASE.2026-08-04T00-00-00Z   Up 6 minutes (healthy)
+monitoring-cadvisor-server            ghcr.io/google/cadvisor:v0.60.6            Up 7 minutes (healthy)
+monitoring-grafana-dashboard-server   grafana/grafana:13.2.4                     Up 7 minutes (healthy)
+monitoring-node-exporter-server       prom/node-exporter:v1.12.1                 Up 7 minutes (healthy)
+monitoring-prometheus-server          prom/prometheus:v3.15.0                    Up 7 minutes (healthy)
+object-storage-server                 pgsty/minio:RELEASE.2026-08-04T00-00-00Z   Up 7 minutes (healthy)
 relational-database-server            mariadb:11.4.13                            Up 6 minutes (healthy)
-web-frontend-exporter                 nginx/nginx-prometheus-exporter:1.5.3      Up 6 minutes
-web-frontend-server1                  dinhquoccuong286/myminicloud-web:2.0       Up 6 minutes (healthy)
-web-frontend-server2                  dinhquoccuong286/myminicloud-web:2.0       Up 45 seconds (healthy)
+web-frontend-exporter                 nginx/nginx-prometheus-exporter:1.5.3      Up 7 minutes
+web-frontend-server1                  dinhquoccuong286/myminicloud-web:2.1       Up 6 minutes (healthy)
+web-frontend-server2                  dinhquoccuong286/myminicloud-web:2.1       Up 13 seconds (healthy)
