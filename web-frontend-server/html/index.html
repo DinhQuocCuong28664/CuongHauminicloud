@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MyMiniCloud – Home</title>
   <meta name="description" content="MyMiniCloud: hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container.">
-  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png">
   <link rel="stylesheet" href="/styles.css">
   <script src="/assets/theme.js"></script>
   <script src="/assets/shell.js" defer></script>
@@ -14,7 +14,7 @@
 <body id="top">
   <header class="site-header" id="site-header">
     <div class="header-inner">
-      <a class="brand" href="/"><svg class="logo" aria-hidden="true"><use href="/assets/icons.svg#cloud"/></svg>MyMiniCloud</a>
+      <a class="brand" href="/"><img class="logo" src="/assets/logo-cloud-96.png" alt="" width="44" height="44"><span><strong>MyMiniCloud</strong><small>523H0008 và 523H0025</small></span></a>
       <nav class="main-nav" id="main-nav" aria-label="Điều hướng chính">
         <a href="/" data-nav="home">Tổng quan</a>
         <a href="/blog/" data-nav="blog">Blog</a>
@@ -38,233 +38,219 @@
   </header>
 
   <main class="content">
-      <div class="content-inner">
+    <div class="content-inner">
+      <h1 class="sr-only">MyMiniCloud: trạng thái 9 loại server trong container</h1>
 
-        <section class="intro" aria-labelledby="hero-title">
-          <h1 id="hero-title">MyMiniCloud</h1>
-          <p>
-            Hệ thống cloud thu nhỏ gồm 9 loại server chạy trong container trên mạng <code>cloud-net</code>:
-            web, ứng dụng, cơ sở dữ liệu, xác thực, lưu trữ đối tượng, DNS, giám sát, trực quan hoá và gateway cân bằng tải.
+      <!-- Resource bar: host CPU/RAM (node exporter), containers (cAdvisor), traffic, alerts -->
+      <div class="res" aria-live="polite">
+        <div><b>Máy chủ</b><span id="res-host-spec">–</span><i id="res-cpu">CPU –</i><i id="res-mem">RAM –</i><div class="res-meter" id="res-mem-bar"><span></span></div></div>
+        <div><b>Server chính</b><span id="res-containers">–</span><i id="st-up">–</i><i id="st-extra">–</i><div class="res-meter" id="res-up-bar"><span></span></div></div>
+        <div><b>Gateway</b><span>nginx :80, :443</span><i id="res-traffic">– req/phút</i><i id="st-latency">–</i><div class="res-meter" id="res-traffic-bar"><span></span></div></div>
+        <div><b>Cảnh báo</b><span>Alertmanager</span><i id="res-alerts">–</i><i id="st-up-foot">đang kiểm tra</i><div class="res-meter" id="res-alert-bar"><span></span></div></div>
+      </div>
+
+      <section class="section" id="trang-thai" aria-labelledby="h-status">
+        <div class="section-head">
+          <h2 id="h-status">9 loại server</h2>
+          <span class="muted">App kiểm tra từng container từ bên trong <code>cloud-net</code> mỗi 5 giây; dải vạch là 30 lần kiểm tra gần nhất</span>
+        </div>
+        <div class="status-board" id="board-core"></div>
+        <h3 class="sub-head">Thành phần nâng cao</h3>
+        <div class="status-board" id="board-extra"></div>
+        <div class="board-foot">
+          <span id="board-state" class="badge badge-gray"><span class="dot"></span>Đang kết nối…</span>
+          <span id="board-time"></span>
+          <button class="btn btn-small" id="board-refresh" type="button">
+            <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#refresh"/></svg>Làm mới
+          </button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="h-links">
+        <h2 class="sr-only" id="h-links">Lối tắt</h2>
+        <div class="links">
+          <a class="link" href="/portal/"><span class="logo-tile brand-logo"><img src="/assets/logo-cloud-96.png" alt=""></span><strong>Portal</strong><em>/portal/</em></a>
+          <a class="link" data-port="3000" href="/"><span class="logo-tile"><img src="/assets/logos/grafana.svg" alt=""></span><strong>Grafana</strong><em>:3000</em></a>
+          <a class="link" href="/blog/"><span class="logo-tile brand-logo"><img src="/assets/logo-cloud-96.png" alt=""></span><strong>Blog của nhóm</strong><em>/blog/</em></a>
+          <a class="link" data-port="9090" data-path="/targets" href="/"><span class="logo-tile"><img src="/assets/logos/prometheus.svg" alt=""></span><strong>Prometheus</strong><em>:9090</em></a>
+          <a class="link" href="/auth/admin/" target="_blank" rel="noopener"><span class="logo-tile"><img src="/assets/logos/keycloak.svg" alt=""></span><strong>Keycloak</strong><em>/auth/admin/</em></a>
+          <a class="link" data-port="9001" href="/"><span class="logo-tile"><span class="mono-logo minio"></span></span><strong>MinIO Console</strong><em>:9001</em></a>
+          <a class="link" href="https://hub.docker.com/u/dinhquoccuong286" target="_blank" rel="noopener"><span class="logo-tile"><img src="/assets/logos/docker.svg" alt=""></span><strong>Docker Hub</strong><em>dinhquoccuong286</em></a>
+          <a class="link" href="https://github.com/DinhQuocCuong28664/CuongHauminicloud" target="_blank" rel="noopener"><span class="logo-tile"><span class="mono-logo github"></span></span><strong>GitHub</strong><em>CuongHauminicloud</em></a>
+        </div>
+        <p class="muted small" id="links-note" hidden>Trên EC2, Grafana, Prometheus và MinIO Console chỉ mở cho IP của nhóm.</p>
+      </section>
+
+      <section class="section two">
+        <div class="card" id="can-bang-tai">
+          <div class="card-head">
+            <h2>Cân bằng tải round robin</h2>
+            <button class="btn btn-small" id="lb-run" type="button">
+              <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#refresh"/></svg>Thử lại
+            </button>
+          </div>
+          <p class="muted">
+            Trình duyệt gửi 6 request tới trang chủ qua gateway và đọc header <code>X-Served-By</code>.
+            Hai web server thay phiên trả lời; dừng một server thì gateway chỉ còn gửi tới server còn lại.
           </p>
-          <p class="byline">Đinh Quốc Cường (523H0008) · Nguyễn Cao Hậu (523H0025) · Điện toán đám mây, TDTU 2026</p>
-        </section>
-
-        <div class="stats" aria-live="polite">
-          <div class="stat">
-            <div class="stat-label"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#activity"/></svg>Server chính đang chạy</div>
-            <div class="stat-value" id="st-up">–</div>
-            <div class="stat-foot" id="st-up-foot">đang kiểm tra…</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#box"/></svg>Thành phần nâng cao</div>
-            <div class="stat-value" id="st-extra">–</div>
-            <div class="stat-foot">Loki, Alloy, cAdvisor, Alertmanager, Node Exporter</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#clock"/></svg>Độ trễ qua gateway</div>
-            <div class="stat-value" id="st-latency">–</div>
-            <div class="stat-foot">thời gian gọi <code>/api/status</code></div>
-          </div>
-          <div class="stat">
-            <div class="stat-label"><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#web"/></svg>Trang này do</div>
-            <div class="stat-value">__SERVER_NAME__</div>
-            <div class="stat-foot">header <code>X-Served-By</code></div>
+          <div class="lb-strip" id="lb-strip" aria-live="polite"></div>
+          <div class="lb-bars" id="lb-bars"></div>
+          <p class="muted small" id="lb-note"></p>
+          <div class="feature-list">
+            <a class="card" href="/portal/">
+              <h3>Portal</h3>
+              <p>Đăng nhập Keycloak (PKCE), phân quyền editor/viewer, quản lý sinh viên, ảnh đại diện trên MinIO.</p>
+            </a>
+            <div class="card">
+              <h3>Log tập trung</h3>
+              <p>Loki và Alloy gom log mọi container; tra một request theo <code>request_id</code> trên Grafana.</p>
+            </div>
+            <div class="card">
+              <h3>Giám sát và cảnh báo</h3>
+              <p>cAdvisor theo dõi từng container, Alertmanager gửi cảnh báo về Portal.</p>
+            </div>
           </div>
         </div>
 
-        <section class="section" id="trang-thai" aria-labelledby="h-status">
-          <div class="section-head">
-            <h2 id="h-status">Trạng thái 9 loại server</h2>
-            <span class="muted">App kiểm tra từng container từ bên trong <code>cloud-net</code>, tự làm mới mỗi 5 giây</span>
+        <div class="card arch-card" id="kien-truc">
+          <div class="card-head">
+            <h2>Kiến trúc</h2>
+            <span class="muted small">Ô viền đỏ là server đang lỗi</span>
           </div>
-          <div class="status-board" id="board-core"></div>
-          <h3 class="sub-head">Thành phần nâng cao</h3>
-          <div class="status-board" id="board-extra"></div>
-          <div class="board-foot">
-            <span id="board-state" class="badge badge-gray"><span class="dot"></span>Đang kết nối…</span>
-            <span id="board-time"></span>
-            <button class="btn btn-small" id="board-refresh" type="button">
-              <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#refresh"/></svg>Làm mới
-            </button>
-          </div>
-        </section>
+          <svg class="arch" viewBox="0 0 1000 446" role="img" aria-labelledby="arch-title">
+            <title id="arch-title">Người dùng đi qua gateway tới web1, web2, Keycloak, Flask API và MinIO; API dùng MariaDB và DNS nội bộ; nhóm giám sát và log theo dõi mọi container.</title>
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path class="a-arrow" d="M0 0 10 5 0 10z"/>
+              </marker>
+            </defs>
+            <rect class="a-net" x="164" y="8" width="822" height="432" rx="14"/>
+            <text class="a-s" x="182" y="31">cloud-net · 10.10.10.0/24</text>
 
-        <section class="section grid-2" id="can-bang-tai">
-          <div class="card">
-            <div class="card-head">
-              <h2>Cân bằng tải round robin</h2>
-              <button class="btn btn-small" id="lb-run" type="button">
-                <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#refresh"/></svg>Thử lại
-              </button>
+            <rect class="a-node" x="16" y="196" width="120" height="60" rx="10"/>
+            <text class="a-t" x="76" y="222" text-anchor="middle">Người dùng</text>
+            <text class="a-s" x="76" y="240" text-anchor="middle">trình duyệt</text>
+            <path class="a-edge" d="M136 226H194" marker-end="url(#arr)"/>
+
+            <rect class="a-node hl" data-svc="proxy" x="196" y="188" width="156" height="76" rx="10"/>
+            <text class="a-t" x="274" y="214" text-anchor="middle">Gateway / LB</text>
+            <text class="a-s" x="274" y="233" text-anchor="middle">nginx :80 · :443</text>
+            <text class="a-s" x="274" y="250" text-anchor="middle">rate limit · HTTPS</text>
+
+            <path class="a-edge" d="M352 220C392 220 390 63 428 63" marker-end="url(#arr)"/>
+            <path class="a-edge" d="M352 223C392 223 390 119 428 119" marker-end="url(#arr)"/>
+            <path class="a-edge" d="M352 226C392 226 390 175 428 175" marker-end="url(#arr)"/>
+            <path class="a-edge" d="M352 230C392 230 390 234 428 234" marker-end="url(#arr)"/>
+            <path class="a-edge" d="M352 234C392 234 390 323 428 323" marker-end="url(#arr)"/>
+
+            <rect class="a-node" data-svc="web1" x="430" y="40" width="176" height="46" rx="9"/>
+            <text class="a-t" x="518" y="60" text-anchor="middle">web1</text>
+            <text class="a-s" x="518" y="77" text-anchor="middle">nginx · trang chủ, blog</text>
+            <rect class="a-node" data-svc="web2" x="430" y="96" width="176" height="46" rx="9"/>
+            <text class="a-t" x="518" y="116" text-anchor="middle">web2</text>
+            <text class="a-s" x="518" y="133" text-anchor="middle">nginx · bản sao</text>
+            <rect class="a-node" data-svc="auth" x="430" y="152" width="176" height="46" rx="9"/>
+            <text class="a-t" x="518" y="172" text-anchor="middle">Keycloak</text>
+            <text class="a-s" x="518" y="189" text-anchor="middle">/auth · OIDC</text>
+            <rect class="a-node" data-svc="app" x="430" y="208" width="176" height="52" rx="9"/>
+            <text class="a-t" x="518" y="230" text-anchor="middle">Flask API</text>
+            <text class="a-s" x="518" y="248" text-anchor="middle">/api · RBAC · metrics</text>
+            <rect class="a-node" data-svc="storage" x="430" y="300" width="176" height="46" rx="9"/>
+            <text class="a-t" x="518" y="320" text-anchor="middle">MinIO</text>
+            <text class="a-s" x="518" y="337" text-anchor="middle">/media · S3 API</text>
+            <path class="a-edge" d="M518 260V298" marker-end="url(#arr)"/>
+
+            <path class="a-edge" d="M606 230C650 230 648 213 688 213" marker-end="url(#arr)"/>
+            <path class="a-edge" d="M606 240C650 240 648 273 688 273" marker-end="url(#arr)"/>
+            <rect class="a-node" data-svc="db" x="690" y="190" width="170" height="46" rx="9"/>
+            <text class="a-t" x="775" y="210" text-anchor="middle">MariaDB</text>
+            <text class="a-s" x="775" y="227" text-anchor="middle">db.cloud.local</text>
+            <rect class="a-node" data-svc="dns" x="690" y="250" width="170" height="46" rx="9"/>
+            <text class="a-t" x="775" y="270" text-anchor="middle">BIND9 DNS</text>
+            <text class="a-s" x="775" y="287" text-anchor="middle">zone cloud.local</text>
+
+            <path class="a-edge d" d="M900 372V120H860"/>
+            <text class="a-s" x="890" y="110" text-anchor="end">thu metric và log</text>
+            <text class="a-s" x="890" y="96" text-anchor="end">của mọi container</text>
+
+            <rect class="a-band" x="196" y="372" width="772" height="54" rx="10"/>
+            <text class="a-t" x="212" y="404">Giám sát và log</text>
+            <rect class="a-pill" data-svc="monitoring" x="330" y="386" width="86" height="26" rx="13"/>
+            <text class="a-pt" x="373" y="403" text-anchor="middle">Prometheus</text>
+            <rect class="a-pill" data-svc="node-exporter" x="422" y="386" width="86" height="26" rx="13"/>
+            <text class="a-pt" x="465" y="403" text-anchor="middle">Node Exp.</text>
+            <rect class="a-pill" data-svc="cadvisor" x="514" y="386" width="86" height="26" rx="13"/>
+            <text class="a-pt" x="557" y="403" text-anchor="middle">cAdvisor</text>
+            <rect class="a-pill" data-svc="alertmanager" x="606" y="386" width="86" height="26" rx="13"/>
+            <text class="a-pt" x="649" y="403" text-anchor="middle">Alertmgr</text>
+            <rect class="a-pill" data-svc="grafana" x="698" y="386" width="86" height="26" rx="13"/>
+            <text class="a-pt" x="741" y="403" text-anchor="middle">Grafana</text>
+            <rect class="a-pill" data-svc="loki" x="790" y="386" width="80" height="26" rx="13"/>
+            <text class="a-pt" x="830" y="403" text-anchor="middle">Loki</text>
+            <rect class="a-pill" data-svc="alloy" x="876" y="386" width="80" height="26" rx="13"/>
+            <text class="a-pt" x="916" y="403" text-anchor="middle">Alloy</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="section" id="bai-viet" aria-labelledby="h-posts">
+        <div class="section-head">
+          <h2 id="h-posts">Bài viết mới trên blog</h2>
+          <a href="/blog/">Xem tất cả bài viết →</a>
+        </div>
+        <div class="post-grid">
+          <a class="post-tile" href="/blog/blog6.html">
+            <div class="thumb"><img src="/assets/blog6-ec2.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Học tập</span>
+              <h3>Từ localhost lên AWS EC2: 5 điều nhóm ước gì biết sớm hơn</h3>
+              <p>IP đổi mỗi lần bật máy, Security Group, image ghim tag, HTTPS với Let's Encrypt và thói quen tắt máy.</p>
             </div>
-            <p class="muted small">
-              Trình duyệt gửi 6 request tới trang chủ qua gateway và đọc header <code>X-Served-By</code>.
-              Hai web server thay phiên trả lời; dừng một server thì gateway chỉ còn gửi tới server còn lại.
-            </p>
-            <div class="lb-strip" id="lb-strip" aria-live="polite"></div>
-            <div class="lb-bars" id="lb-bars"></div>
-            <p class="muted small" id="lb-note"></p>
-          </div>
-
-          <div class="card">
-            <div class="card-head"><h2>Phần nâng cao</h2></div>
-            <div class="feature-list">
-              <a class="card" href="/portal/">
-                <h3><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#portal"/></svg> Portal</h3>
-                <p>Đăng nhập Keycloak (PKCE), phân quyền editor/viewer, quản lý sinh viên, ảnh đại diện trên MinIO.</p>
-              </a>
-              <div class="card">
-                <h3><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#log"/></svg> Log tập trung</h3>
-                <p>Loki và Alloy gom log mọi container; tra một request theo <code>request_id</code> trên Grafana.</p>
-              </div>
-              <div class="card">
-                <h3><svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#bell"/></svg> Giám sát và cảnh báo</h3>
-                <p>cAdvisor theo dõi từng container, Alertmanager gửi cảnh báo về Portal.</p>
-              </div>
+          </a>
+          <a class="post-tile" href="/blog/blog5.html">
+            <div class="thumb"><img src="/assets/blog5-hoian.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Du lịch</span>
+              <h3>Hội An 2 ngày 1 đêm: đi chậm cho sinh viên</h3>
+              <p>Phố cổ buổi sáng, đèn lồng buổi tối, biển An Bàng và vài mẹo để chuyến đi nhẹ ví.</p>
             </div>
-          </div>
-        </section>
+          </a>
+          <a class="post-tile" href="/blog/blog4.html">
+            <div class="thumb"><img src="/assets/blog4-observability.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Công nghệ</span>
+              <h3>Metric, log và cảnh báo: ba cách nhìn vào một hệ thống</h3>
+              <p>Prometheus, Loki và Alertmanager trả lời ba câu hỏi khác nhau; ví dụ khi dừng một web server.</p>
+            </div>
+          </a>
+          <a class="post-tile" href="/blog/blog1.html">
+            <div class="thumb"><img src="/assets/blog1-container.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Công nghệ</span>
+              <h3>Container khác máy ảo ở điểm nào?</h3>
+              <p>Namespace, cgroup và lý do cả hệ thống chạy gọn trong một máy.</p>
+            </div>
+          </a>
+          <a class="post-tile" href="/blog/blog2.html">
+            <div class="thumb"><img src="/assets/blog2-dalat.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Du lịch</span>
+              <h3>Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên</h3>
+              <p>Lịch trình, chi phí và mẹo đi lại cho chuyến đi ngắn.</p>
+            </div>
+          </a>
+          <a class="post-tile" href="/blog/blog3.html">
+            <div class="thumb"><img src="/assets/blog3-study.svg" alt="" loading="lazy"></div>
+            <div class="body">
+              <span class="tag">Học tập</span>
+              <h3>Học Docker Compose qua đồ án MyMiniCloud</h3>
+              <p>Những gì nhóm học được khi ghép 9 server thành một hệ thống.</p>
+            </div>
+          </a>
+        </div>
+      </section>
 
-        <section class="section" id="kien-truc" aria-labelledby="h-arch">
-          <div class="section-head">
-            <h2 id="h-arch">Kiến trúc</h2>
-            <span class="muted">Ô tô đen là server đang lỗi theo bảng trạng thái</span>
-          </div>
-          <div class="card arch-card">
-            <svg class="arch" viewBox="0 0 1000 446" role="img" aria-labelledby="arch-title">
-              <title id="arch-title">Người dùng đi qua gateway tới web1, web2, Keycloak, Flask API và MinIO; API dùng MariaDB và DNS nội bộ; nhóm giám sát và log theo dõi mọi container.</title>
-              <defs>
-                <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                  <path class="a-arrow" d="M0 0 10 5 0 10z"/>
-                </marker>
-              </defs>
-              <rect class="a-net" x="164" y="8" width="822" height="432" rx="14"/>
-              <text class="a-s" x="182" y="31">cloud-net · 10.10.10.0/24</text>
-
-              <rect class="a-node" x="16" y="196" width="120" height="60" rx="10"/>
-              <text class="a-t" x="76" y="222" text-anchor="middle">Người dùng</text>
-              <text class="a-s" x="76" y="240" text-anchor="middle">trình duyệt</text>
-              <path class="a-edge" d="M136 226H194" marker-end="url(#arr)"/>
-
-              <rect class="a-node hl" data-svc="proxy" x="196" y="188" width="156" height="76" rx="10"/>
-              <text class="a-t" x="274" y="214" text-anchor="middle">Gateway / LB</text>
-              <text class="a-s" x="274" y="233" text-anchor="middle">nginx :80 · :443</text>
-              <text class="a-s" x="274" y="250" text-anchor="middle">rate limit · HTTPS</text>
-
-              <path class="a-edge" d="M352 220C392 220 390 63 428 63" marker-end="url(#arr)"/>
-              <path class="a-edge" d="M352 223C392 223 390 119 428 119" marker-end="url(#arr)"/>
-              <path class="a-edge" d="M352 226C392 226 390 175 428 175" marker-end="url(#arr)"/>
-              <path class="a-edge" d="M352 230C392 230 390 234 428 234" marker-end="url(#arr)"/>
-              <path class="a-edge" d="M352 234C392 234 390 323 428 323" marker-end="url(#arr)"/>
-
-              <rect class="a-node" data-svc="web1" x="430" y="40" width="176" height="46" rx="9"/>
-              <text class="a-t" x="518" y="60" text-anchor="middle">web1</text>
-              <text class="a-s" x="518" y="77" text-anchor="middle">nginx · trang chủ, blog</text>
-              <rect class="a-node" data-svc="web2" x="430" y="96" width="176" height="46" rx="9"/>
-              <text class="a-t" x="518" y="116" text-anchor="middle">web2</text>
-              <text class="a-s" x="518" y="133" text-anchor="middle">nginx · bản sao</text>
-              <rect class="a-node" data-svc="auth" x="430" y="152" width="176" height="46" rx="9"/>
-              <text class="a-t" x="518" y="172" text-anchor="middle">Keycloak</text>
-              <text class="a-s" x="518" y="189" text-anchor="middle">/auth · OIDC</text>
-              <rect class="a-node" data-svc="app" x="430" y="208" width="176" height="52" rx="9"/>
-              <text class="a-t" x="518" y="230" text-anchor="middle">Flask API</text>
-              <text class="a-s" x="518" y="248" text-anchor="middle">/api · RBAC · metrics</text>
-              <rect class="a-node" data-svc="storage" x="430" y="300" width="176" height="46" rx="9"/>
-              <text class="a-t" x="518" y="320" text-anchor="middle">MinIO</text>
-              <text class="a-s" x="518" y="337" text-anchor="middle">/media · S3 API</text>
-              <path class="a-edge" d="M518 260V298" marker-end="url(#arr)"/>
-
-              <path class="a-edge" d="M606 230C650 230 648 213 688 213" marker-end="url(#arr)"/>
-              <path class="a-edge" d="M606 240C650 240 648 273 688 273" marker-end="url(#arr)"/>
-              <rect class="a-node" data-svc="db" x="690" y="190" width="170" height="46" rx="9"/>
-              <text class="a-t" x="775" y="210" text-anchor="middle">MariaDB</text>
-              <text class="a-s" x="775" y="227" text-anchor="middle">db.cloud.local</text>
-              <rect class="a-node" data-svc="dns" x="690" y="250" width="170" height="46" rx="9"/>
-              <text class="a-t" x="775" y="270" text-anchor="middle">BIND9 DNS</text>
-              <text class="a-s" x="775" y="287" text-anchor="middle">zone cloud.local</text>
-
-              <path class="a-edge d" d="M900 372V120H860"/>
-              <text class="a-s" x="890" y="110" text-anchor="end">thu metric và log</text>
-              <text class="a-s" x="890" y="96" text-anchor="end">của mọi container</text>
-
-              <rect class="a-band" x="196" y="372" width="772" height="54" rx="10"/>
-              <text class="a-t" x="212" y="404">Giám sát và log</text>
-              <rect class="a-pill" data-svc="monitoring" x="330" y="386" width="86" height="26" rx="13"/>
-              <text class="a-pt" x="373" y="403" text-anchor="middle">Prometheus</text>
-              <rect class="a-pill" data-svc="node-exporter" x="422" y="386" width="86" height="26" rx="13"/>
-              <text class="a-pt" x="465" y="403" text-anchor="middle">Node Exp.</text>
-              <rect class="a-pill" data-svc="cadvisor" x="514" y="386" width="86" height="26" rx="13"/>
-              <text class="a-pt" x="557" y="403" text-anchor="middle">cAdvisor</text>
-              <rect class="a-pill" data-svc="alertmanager" x="606" y="386" width="86" height="26" rx="13"/>
-              <text class="a-pt" x="649" y="403" text-anchor="middle">Alertmgr</text>
-              <rect class="a-pill" data-svc="grafana" x="698" y="386" width="86" height="26" rx="13"/>
-              <text class="a-pt" x="741" y="403" text-anchor="middle">Grafana</text>
-              <rect class="a-pill" data-svc="loki" x="790" y="386" width="80" height="26" rx="13"/>
-              <text class="a-pt" x="830" y="403" text-anchor="middle">Loki</text>
-              <rect class="a-pill" data-svc="alloy" x="876" y="386" width="80" height="26" rx="13"/>
-              <text class="a-pt" x="916" y="403" text-anchor="middle">Alloy</text>
-            </svg>
-          </div>
-        </section>
-
-        <section class="section" id="bai-viet" aria-labelledby="h-posts">
-          <div class="section-head">
-            <h2 id="h-posts">Bài viết mới trên blog</h2>
-            <a href="/blog/">Xem tất cả bài viết →</a>
-          </div>
-          <div class="post-grid">
-            <a class="card post-tile" href="/blog/blog6.html">
-              <div class="thumb"><img src="/assets/blog6-ec2.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Học tập</span>
-                <h3>Từ localhost lên AWS EC2: 5 điều nhóm ước gì biết sớm hơn</h3>
-                <p>IP đổi mỗi lần bật máy, Security Group, image ghim tag, HTTPS với Let's Encrypt và thói quen tắt máy.</p>
-              </div>
-            </a>
-            <a class="card post-tile" href="/blog/blog5.html">
-              <div class="thumb"><img src="/assets/blog5-hoian.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Du lịch</span>
-                <h3>Hội An 2 ngày 1 đêm: đi chậm cho sinh viên</h3>
-                <p>Phố cổ buổi sáng, đèn lồng buổi tối, biển An Bàng và vài mẹo để chuyến đi nhẹ ví.</p>
-              </div>
-            </a>
-            <a class="card post-tile" href="/blog/blog4.html">
-              <div class="thumb"><img src="/assets/blog4-observability.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Công nghệ</span>
-                <h3>Metric, log và cảnh báo: ba cách nhìn vào một hệ thống</h3>
-                <p>Prometheus, Loki và Alertmanager trả lời ba câu hỏi khác nhau; ví dụ khi dừng một web server.</p>
-              </div>
-            </a>
-            <a class="card post-tile" href="/blog/blog1.html">
-              <div class="thumb"><img src="/assets/blog1-container.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Công nghệ</span>
-                <h3>Container khác máy ảo ở điểm nào?</h3>
-                <p>Namespace, cgroup và lý do cả hệ thống chạy gọn trong một máy.</p>
-              </div>
-            </a>
-            <a class="card post-tile" href="/blog/blog2.html">
-              <div class="thumb"><img src="/assets/blog2-dalat.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Du lịch</span>
-                <h3>Đà Lạt 3 ngày: lịch trình gợi ý cho sinh viên</h3>
-                <p>Lịch trình, chi phí và mẹo đi lại cho chuyến đi ngắn.</p>
-              </div>
-            </a>
-            <a class="card post-tile" href="/blog/blog3.html">
-              <div class="thumb"><img src="/assets/blog3-study.svg" alt="" loading="lazy"></div>
-              <div class="body">
-                <span class="tag">Học tập</span>
-                <h3>Học Docker Compose qua đồ án MyMiniCloud</h3>
-                <p>Những gì nhóm học được khi ghép 9 server thành một hệ thống.</p>
-              </div>
-            </a>
-          </div>
-        </section>
-
-      </div>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -295,15 +281,15 @@
         <div>
           <h2>Nhóm thực hiện</h2>
           <ul>
-            <li>Đinh Quốc Cường · 523H0008</li>
-            <li>Nguyễn Cao Hậu · 523H0025</li>
+            <li>Đinh Quốc Cường, 523H0008</li>
+            <li>Nguyễn Cao Hậu, 523H0025</li>
             <li>GV hướng dẫn: TS. Bùi Quy Anh</li>
             <li>Trường Đại học Tôn Đức Thắng</li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 MyMiniCloud · Môn Điện toán đám mây</span>
+        <span>© 2026 MyMiniCloud, môn Điện toán đám mây</span>
         <span>Trang do __SERVER_NAME__ phục vụ · <a href="#top">Lên đầu trang ↑</a></span>
       </div>
     </div>

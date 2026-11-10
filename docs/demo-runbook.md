@@ -11,6 +11,18 @@ Bám theo đề "Xây dựng mô phỏng hệ thống MiniCloud cơ bản". Th�
 
 Tổng thời lượng gợi ý: 15–20 phút. Mỗi bước ghi rõ lệnh, chỗ cần mở trên trình duyệt, kết quả mong đợi và câu nói gợi ý.
 
+**Bản rút gọn 8–10 phút (cho video nộp kèm báo cáo):**
+
+| Thời gian | Làm gì | Mục chi tiết |
+|---|---|---|
+| 0:00–0:30 | Giới thiệu nhóm, `docker compose ps` (16 container) | 0 |
+| 0:30–4:00 | A1–A9 nhanh: mỗi server một lệnh hoặc một tab, rồi `bash scripts/ping-all.sh` | A |
+| 4:00–6:00 | Lướt bảng mục B: blog, `/api/student`, `/api/students-db`, token, MinIO 200/403, DNS, target `web`, dashboard System Health, `/student/`, round robin | B |
+| 6:00–8:00 | Trang chủ: thanh CPU/RAM, thẻ trạng thái; dừng web2 thấy thẻ đỏ; Portal với `sv01` (thêm sinh viên) và `sv02` (bị 403) | C1, C2 |
+| 8:00–9:30 | Docker Hub (tag `2.2`), ảnh EC2 trong báo cáo mục 4.8, `logs/smoke-local.txt` 32/32 | D, C6 |
+
+Nhớ `docker start web-frontend-server2` sau đoạn 6:00–8:00.
+
 > Mật khẩu nằm trong `.env`, không đọc to và không để lộ trên màn hình. Các bảng dưới đây chỉ ghi **tên biến**.
 
 ---
@@ -164,14 +176,14 @@ bash scripts/ping-all.sh
 
 ### C1. Trang chủ: bảng trạng thái trực tiếp (A12)
 - **Trình duyệt:** tab 2. Chỉ cho thấy:
-  - hàng số liệu (10/10 server);
-  - bảng 9 vai trò tự làm mới mỗi 5 giây;
+  - thanh tài nguyên trên cùng: CPU, RAM, số container, số cảnh báo (số thật lấy từ Prometheus và Alertmanager);
+  - thẻ trạng thái của 9 loại server (logo, độ trễ, % sẵn sàng, dải 30 lần kiểm tra), tự làm mới mỗi 5 giây;
   - sơ đồ kiến trúc.
 - **Thao tác:** dừng web2 ngay trong lúc quay:
   ```bash
   docker stop web-frontend-server2
   ```
-- **Kết quả:** sau vài giây dòng web2 chuyển sang "Lỗi" và nháy, ô web2 trên sơ đồ đổi màu, khối cân bằng tải chỉ còn web1. **Giữ web2 dừng** để dùng tiếp cho C3.
+- **Kết quả:** sau vài giây thẻ web2 viền đỏ, nhãn "Lỗi", dải lịch sử thêm vạch đỏ, ô web2 trên sơ đồ đổi màu, khối cân bằng tải chỉ còn web1. **Giữ web2 dừng** để dùng tiếp cho C3.
 
 ### C2. Portal (A01–A04)
 Tab 7 → Đăng nhập bằng Keycloak với `sv01`.
@@ -220,13 +232,13 @@ bash scripts/smoke-test.sh local
 ## D. Docker Hub và AWS EC2 (khoảng 2 phút)
 
 ### D1. Docker Hub
-- **Trình duyệt:** tab 8. Có `myminicloud-web`, `myminicloud-app`, `myminicloud-proxy`, `myminicloud-db-backup`, mỗi image có tag `2.0`.
+- **Trình duyệt:** tab 8. Có `myminicloud-web`, `myminicloud-app`, `myminicloud-proxy`, `myminicloud-db-backup`, mỗi image có tag `2.2` và `latest`.
 
 ### D2. EC2: chọn một trong hai cách
 **Cách 1 — dùng minh chứng có sẵn (khuyên dùng, không tốn tiền):** mở trong báo cáo mục 4.8 các ảnh EC2:
 - trang chủ qua `https://<ip>.sslip.io`;
 - chứng chỉ Let's Encrypt;
-- smoke test 31/31 trên EC2;
+- smoke test 32/32 trên EC2;
 - Security Group.
 
 **Cách 2 — chạy thật (tài khoản B, khoảng 10–15 phút, máy t3.medium tính tiền theo giờ, trừ vào tín dụng):**
@@ -239,7 +251,7 @@ bash scripts/ec2/stop.sh        # BẮT BUỘC: dừng máy sau khi demo
 - **Lưu ý:**
   - Public IP đổi sau mỗi lần bật lại máy.
   - Nếu đổi mạng (ở trường, ở nhà), `launch.sh` sẽ thêm luật Security Group cho IP mới.
-  - Bản trên EC2 hiện là bản trước khi làm lại giao diện. Muốn EC2 có giao diện mới thì phải push image mới lên Docker Hub trước.
+  - EC2 kéo image theo `IMAGE_TAG` trong `.env` (hiện là `2.2`), nên phải push image lên Docker Hub trước khi deploy.
 
 ---
 

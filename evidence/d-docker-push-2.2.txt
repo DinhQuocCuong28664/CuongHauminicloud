@@ -1,0 +1,37 @@
+$ docker push dinhquoccuong286/myminicloud-web:2.2
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+0d2d3a670e11: Pushed
+26eb34b45162: Pushed
+f782acb61549: Pushed
+8f3c2403b37d: Pushed
+2.2: digest: sha256:4910243e5e2c75d92e5e16d1cb8496d5594792fe8a6cfddfe101d25511291954 size: 856
+$ docker push dinhquoccuong286/myminicloud-web:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+0d2d3a670e11: Already exists
+latest: digest: sha256:4910243e5e2c75d92e5e16d1cb8496d5594792fe8a6cfddfe101d25511291954 size: 856
+$ docker push dinhquoccuong286/myminicloud-app:2.2
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+15c4b7cbea3d: Pushed
+da767517f57c: Pushed
+45f56fe334e9: Pushed
+2.2: digest: sha256:2ffbe4b5ca4d0d143df66986d505b3634c56a3657adb0719018cd80f7ebde65f size: 856
+$ docker push dinhquoccuong286/myminicloud-app:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+da767517f57c: Already exists
+latest: digest: sha256:2ffbe4b5ca4d0d143df66986d505b3634c56a3657adb0719018cd80f7ebde65f size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:2.2
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+907dd01ddef8: Pushed
+2.2: digest: sha256:94ebae96b565f76568aae199fbfdc675643686bda045887a4e41436670c134e3 size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+907dd01ddef8: Already exists
+latest: digest: sha256:94ebae96b565f76568aae199fbfdc675643686bda045887a4e41436670c134e3 size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:2.2
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-db-backup]
+080cbba65a33: Pushed
+2.2: digest: sha256:6971988ff17cd3589d4729858b932a3b968f7b232ff2d74f856f0e02a06cc8c8 size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-db-backup]
+080cbba65a33: Already exists
+latest: digest: sha256:6971988ff17cd3589d4729858b932a3b968f7b232ff2d74f856f0e02a06cc8c8 size: 856

@@ -1,21 +1,21 @@
 NAME                                  CPU %     MEM USAGE / LIMIT
-api-gateway-proxy-server              0.00%     5.312MiB / 128MiB
-authentication-identity-server        0.23%     579.5MiB / 1GiB
-application-backend-server            0.01%     114.4MiB / 256MiB
-web-frontend-server2                  0.00%     3.547MiB / 64MiB
-relational-database-server            0.01%     90.86MiB / 512MiB
+api-gateway-proxy-server              0.03%     5.668MiB / 128MiB
+authentication-identity-server        0.27%     562.4MiB / 1GiB
+web-frontend-server2                  0.00%     3.422MiB / 64MiB
 monitoring-alertmanager-server        0.00%     14.99MiB / 96MiB
-web-frontend-server1                  0.00%     3.48MiB / 64MiB
-monitoring-grafana-dashboard-server   0.95%     478.8MiB / 768MiB
-web-frontend-exporter                 0.00%     10.46MiB / 32MiB
-logging-alloy-collector               0.25%     88.05MiB / 192MiB
-internal-dns-server                   0.00%     26.69MiB / 128MiB
-monitoring-prometheus-server          1.41%     52.95MiB / 512MiB
-object-storage-server                 0.07%     215.2MiB / 384MiB
-monitoring-node-exporter-server       0.00%     13.62MiB / 64MiB
-logging-loki-server                   1.98%     99.69MiB / 1GiB
-monitoring-cadvisor-server            0.15%     25.09MiB / 192MiB
+web-frontend-server1                  3.58%     3.496MiB / 64MiB
+application-backend-server            0.01%     113MiB / 256MiB
+relational-database-server            0.01%     108.7MiB / 512MiB
+monitoring-grafana-dashboard-server   0.89%     247MiB / 768MiB
+web-frontend-exporter                 0.00%     7.078MiB / 32MiB
+logging-alloy-collector               0.60%     68.45MiB / 192MiB
+internal-dns-server                   0.00%     34.08MiB / 128MiB
+monitoring-prometheus-server          0.31%     50.62MiB / 512MiB
+object-storage-server                 0.03%     243.6MiB / 384MiB
+monitoring-node-exporter-server       0.00%     8.023MiB / 64MiB
+logging-loki-server                   0.60%     74.2MiB / 1GiB
+monitoring-cadvisor-server            0.00%     21.23MiB / 192MiB
 
                total        used        free      shared  buff/cache   available
-Mem:           3.7Gi       2.1Gi       298Mi       4.4Mi       1.6Gi       1.7Gi
-Swap:          2.0Gi        65Mi       1.9Gi
+Mem:           3.7Gi       2.0Gi       219Mi       4.3Mi       1.7Gi       1.7Gi
+Swap:          2.0Gi        36Mi       2.0Gi

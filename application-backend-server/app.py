@@ -380,6 +380,47 @@ STATUS_CHECKS = [
 ]
 
 
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://monitoring-prometheus-server:9090")
+ALERTMANAGER_URL = os.getenv("ALERTMANAGER_URL", "http://monitoring-alertmanager-server:9093")
+# Host and traffic numbers for the home page resource bar, read from Prometheus (node exporter, cAdvisor, nginx exporter)
+HOST_QUERIES = {
+    "cpu_pct": '100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[1m])))',
+    "mem_pct": "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+    "cpus": 'count(node_cpu_seconds_total{mode="idle"})',
+    "mem_total_gb": "node_memory_MemTotal_bytes / 1073741824",
+    # count distinct names: a recreated container keeps its old series for a few minutes
+    "containers": "count(count by (name) (container_last_seen{name!=\"\"}))",
+    "web_req_per_min": "60 * sum(rate(nginx_http_requests_total[1m]))",
+}
+
+
+def _prom_value(query):
+    resp = requests.get(f"{PROMETHEUS_URL}/api/v1/query", params={"query": query}, timeout=STATUS_TIMEOUT)
+    result = resp.json().get("data", {}).get("result", [])
+    return round(float(result[0]["value"][1]), 1) if result else None
+
+
+def _host_metrics():
+    out = {}
+    for key, query in HOST_QUERIES.items():
+        try:
+            out[key] = _prom_value(query)
+        except (requests.RequestException, ValueError, KeyError, IndexError):
+            out[key] = None
+    return out
+
+
+def _active_alerts():
+    try:
+        resp = requests.get(f"{ALERTMANAGER_URL}/api/v2/alerts",
+                            params={"active": "true", "silenced": "false", "inhibited": "false"},
+                            timeout=STATUS_TIMEOUT)
+        resp.raise_for_status()
+        return [a.get("labels", {}).get("alertname", "?") for a in resp.json()]
+    except (requests.RequestException, ValueError):
+        return None
+
+
 def _timed(probe):
     t0 = time.perf_counter()
     try:
@@ -391,7 +432,9 @@ def _timed(probe):
 
 def collect_status():
     futures = [_status_pool.submit(_timed, c[6]) for c in STATUS_CHECKS]
-    wait(futures, timeout=STATUS_TIMEOUT + 0.5)
+    host_future = _status_pool.submit(_host_metrics)
+    alerts_future = _status_pool.submit(_active_alerts)
+    wait(futures + [host_future, alerts_future], timeout=STATUS_TIMEOUT + 0.5)
     services = []
     for (sid, group, num, role, tech, container, _), fut in zip(STATUS_CHECKS, futures):
         ok, detail, ms = fut.result() if fut.done() else (False, "timeout", None)
@@ -405,6 +448,8 @@ def collect_status():
                     "extra_up": sum(s["status"] == "up" for s in services if s["group"] == "extra"),
                     "extra_total": len(services) - len(core)},
         "services": services,
+        "host": host_future.result() if host_future.done() else {k: None for k in HOST_QUERIES},
+        "alerts": alerts_future.result() if alerts_future.done() else None,
     }
 
 

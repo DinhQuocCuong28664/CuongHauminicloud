@@ -1,6 +1,10 @@
 REPOSITORY:TAG                               IMAGE ID       SIZE
+dinhquoccuong286/myminicloud-web:2.2         4910243e5e2c   102MB
+dinhquoccuong286/myminicloud-app:2.2         2ffbe4b5ca4d   194MB
 dinhquoccuong286/myminicloud-db-backup:2.1   c5b37c5f32b0   207MB
+dinhquoccuong286/myminicloud-db-backup:2.2   6971988ff17c   207MB
 dinhquoccuong286/myminicloud-proxy:2.1       024705d832e6   101MB
+dinhquoccuong286/myminicloud-proxy:2.2       94ebae96b565   101MB
 dinhquoccuong286/myminicloud-app:2.1         2a7f336fd816   194MB
 dinhquoccuong286/myminicloud-web:2.1         2aa642671e81   102MB
 dinhquoccuong286/myminicloud-proxy:2.0       6d499786f74d   101MB
