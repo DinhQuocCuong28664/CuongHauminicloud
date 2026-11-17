@@ -604,6 +604,67 @@ def avatar_upload():
 
 
 # ---------- Private documents (A04): editors only, the app reads them on behalf of the user ----------
+# ---------- Advanced: read-only database browser (Portal "Database" tab) ----------
+# Only these databases, and only the tables MariaDB lets minicloud_app read; table names are checked against
+# information_schema before they are put in SQL, so no user input is ever concatenated into a query.
+BROWSE_DATABASES = ("minicloud", "studentdb", "ops")
+BROWSE_EDITOR_ONLY = ("ops",)      # alerts are editor-only elsewhere in the API, keep the same rule here
+BROWSE_MAX_ROWS = 100
+
+
+def browse_allowed_databases():
+    return [d for d in BROWSE_DATABASES if d not in BROWSE_EDITOR_ONLY or "editor" in g.roles]
+
+
+def browse_table_names(database):
+    rows = db_query(
+        "SELECT table_name AS name FROM information_schema.tables"
+        " WHERE table_schema = %s AND table_type = 'BASE TABLE' ORDER BY table_name", "information_schema", (database,))
+    return [r["name"] for r in rows]
+
+
+def json_safe(value):
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return value.isoformat()
+    if isinstance(value, (bytes, bytearray)):
+        return f"<{len(value)} bytes>"
+    if isinstance(value, datetime.timedelta) or type(value).__name__ == "Decimal":
+        return str(value)
+    return value
+
+
+@app.get("/db")
+@require_auth()
+def db_overview():
+    databases = []
+    for name in browse_allowed_databases():
+        tables = []
+        for t in browse_table_names(name):
+            count = db_query(f"SELECT COUNT(*) AS n FROM `{name}`.`{t}`", name)[0]["n"]
+            tables.append({"name": t, "rows": count})
+        databases.append({"name": name, "tables": tables})
+    return jsonify(user=g.user, databases=databases)
+
+
+@app.get("/db/<database>/<table>")
+@require_auth()
+def db_table(database, table):
+    if database not in browse_allowed_databases():
+        return jsonify(error="Database not available for your role"), 403
+    if table not in browse_table_names(database):
+        return jsonify(error="Unknown table"), 404
+    total = db_query(f"SELECT COUNT(*) AS n FROM `{database}`.`{table}`", database)[0]["n"]
+    # Small tables in id order; bigger ones show the newest rows
+    order = "DESC" if total > BROWSE_MAX_ROWS else "ASC"
+    rows = db_query(f"SELECT * FROM `{database}`.`{table}` ORDER BY 1 {order} LIMIT {BROWSE_MAX_ROWS}", database)
+    columns = list(rows[0].keys()) if rows else [
+        c["name"] for c in db_query(
+            "SELECT column_name AS name FROM information_schema.columns WHERE table_schema = %s AND table_name = %s"
+            " ORDER BY ordinal_position", "information_schema", (database, table))]
+    return jsonify(database=database, table=table, total=total, shown=len(rows), newest_first=(order == "DESC"),
+                   columns=columns, rows=[{k: json_safe(v) for k, v in r.items()} for r in rows])
+
+
 @app.get("/documents")
 @require_auth("editor")
 def documents_list():

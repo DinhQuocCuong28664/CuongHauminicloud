@@ -59,6 +59,28 @@
   window.mmc = { icon, countUp, flash, shake, onReveal, reduceMotion };
   window.mmcIcon = icon;
 
+  // ---------------------------------------------------------------- font switch (Times New Roman <-> Arial)
+  const fontToggle = document.createElement('button');
+  fontToggle.className = 'icon-btn font-toggle';
+  fontToggle.id = 'font-toggle';
+  fontToggle.type = 'button';
+  fontToggle.textContent = 'Aa';
+  const fontLabel = () => {
+    const sans = root.dataset.font === 'sans';
+    const next = sans ? 'Times New Roman' : 'Arial';
+    fontToggle.setAttribute('aria-label', `Đổi phông chữ sang ${next}`);
+    fontToggle.title = `Phông chữ hiện tại: ${sans ? 'Arial' : 'Times New Roman'} (bấm để đổi sang ${next})`;
+  };
+  fontLabel();
+  fontToggle.addEventListener('click', () => {
+    const next = root.dataset.font === 'sans' ? 'serif' : 'sans';
+    if (next === 'sans') root.dataset.font = 'sans'; else delete root.dataset.font;
+    fontLabel();
+    try { localStorage.setItem('mmc-font', next); } catch (e) { /* not persisted */ }
+  });
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.before(fontToggle);
+
   // ---------------------------------------------------------------- light / dark
   function currentTheme() {
     if (root.dataset.theme) return root.dataset.theme;

@@ -4,4 +4,7 @@
     var saved = localStorage.getItem('mmc-theme');
     if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
   } catch (e) { /* storage blocked: follow the OS setting */ }
+  try {
+    if (localStorage.getItem('mmc-font') === 'sans') document.documentElement.dataset.font = 'sans';
+  } catch (e) { /* storage blocked: keep the default serif font */ }
 })();

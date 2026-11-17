@@ -42,6 +42,7 @@
       <button class="tab active" data-tab="profile" role="tab" type="button" aria-selected="true">Hồ sơ</button>
       <button class="tab" data-tab="students" role="tab" type="button" aria-selected="false">Sinh viên</button>
       <button class="tab" data-tab="documents" role="tab" type="button" aria-selected="false">Tài liệu</button>
+      <button class="tab" data-tab="database" role="tab" type="button" aria-selected="false">Cơ sở dữ liệu</button>
       <button class="tab" data-tab="ops" role="tab" type="button" aria-selected="false">Vận hành</button>
       <span class="tab-indicator" id="tab-indicator" aria-hidden="true"></span>
     </div>
@@ -187,6 +188,25 @@
               <table class="data">
                 <thead><tr><th>Tên</th><th class="num">Dung lượng</th><th>Cập nhật</th><th></th></tr></thead>
                 <tbody id="documents-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Database: read-only view of the MariaDB tables (API /api/db) -->
+          <div class="panel" data-panel="database" hidden>
+            <div class="page-head">
+              <div><div class="crumbs">Portal / Cơ sở dữ liệu</div><h1>Cơ sở dữ liệu</h1>
+                <p>Xem chỉ-đọc các bảng trong MariaDB (<code>minicloud</code>, <code>studentdb</code>; <code>ops</code> chỉ dành cho editor). Tối đa 100 dòng mỗi bảng.</p></div>
+              <button id="btn-reload-db" class="btn" type="button">
+                <svg class="ic" aria-hidden="true"><use href="/assets/icons.svg#refresh"/></svg>Tải lại
+              </button>
+            </div>
+            <div id="db-tables" class="form-actions"></div>
+            <p class="muted small" id="db-note"></p>
+            <div class="table-wrap">
+              <table class="data">
+                <thead id="db-head"></thead>
+                <tbody id="db-body"></tbody>
               </table>
             </div>
           </div>

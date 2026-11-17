@@ -484,6 +484,53 @@ function renderOpsLinks() {
   }
 }
 
+// ---------------------------------------------------------------- Database browser (read-only)
+let dbCurrent = null;
+
+async function loadDatabase() {
+  const data = await api('GET', '/db');
+  const box = $('db-tables');
+  box.replaceChildren();
+  let first = null;
+  for (const d of data.databases) {
+    for (const t of d.tables) {
+      const b = el('button', 'btn btn-small', `${d.name}.${t.name} (${t.rows})`);
+      b.type = 'button';
+      b.dataset.key = `${d.name}/${t.name}`;
+      b.onclick = () => loadDbTable(d.name, t.name).catch(showError);
+      box.append(b, ' ');
+      if (!first && (!dbCurrent || dbCurrent === b.dataset.key)) first = [d.name, t.name];
+    }
+  }
+  if (first) await loadDbTable(first[0], first[1]);
+}
+
+async function loadDbTable(database, table) {
+  dbCurrent = `${database}/${table}`;
+  for (const b of $('db-tables').querySelectorAll('button')) b.classList.toggle('btn-primary', b.dataset.key === dbCurrent);
+  const data = await api('GET', `/db/${encodeURIComponent(database)}/${encodeURIComponent(table)}`);
+  $('db-note').textContent = `${data.database}.${data.table}: ${data.total} dòng` +
+    (data.total > data.shown ? `, hiển thị ${data.shown} dòng mới nhất` : '') + ' · chỉ đọc.';
+  const head = $('db-head');
+  const body = $('db-body');
+  head.replaceChildren();
+  body.replaceChildren();
+  const hr = el('tr');
+  for (const c of data.columns) hr.append(el('th', '', c));
+  head.append(hr);
+  if (!data.rows.length) {
+    body.append(emptyRow(data.columns.length || 1, 'users', 'Bảng chưa có dòng nào.'));
+    return;
+  }
+  for (const r of data.rows) {
+    const tr = el('tr');
+    for (const c of data.columns) tr.append(el('td', 'mono', r[c] === null ? 'NULL' : String(r[c])));
+    body.append(tr);
+  }
+}
+
+$('btn-reload-db').onclick = () => loadDatabase().catch(showError);
+
 // ---------------------------------------------------------------- Tab
 // The underline under the selected tab slides (transform only) instead of jumping
 function moveIndicator(tab) {
@@ -492,7 +539,7 @@ function moveIndicator(tab) {
   bar.style.transform = `translateX(${tab.offsetLeft}px) scaleX(${tab.offsetWidth})`;
 }
 addEventListener('resize', () => moveIndicator(document.querySelector('.tab.active')));
-const loaders = { profile: loadProfile, students: loadStudents, documents: loadDocuments, ops: loadAlerts };
+const loaders = { profile: loadProfile, students: loadStudents, documents: loadDocuments, database: loadDatabase, ops: loadAlerts };
 for (const tab of document.querySelectorAll('.tab')) {
   tab.addEventListener('click', () => {
     for (const t of document.querySelectorAll('.tab')) {

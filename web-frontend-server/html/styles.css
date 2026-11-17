@@ -162,6 +162,9 @@ img { max-width: 100%; }
 }
 .icon-btn:hover { border-color: var(--text); }
 .icon-btn:active { transform: scale(.95); }
+/* Font switch: default is Times New Roman; data-font="sans" on <html> (set by theme.js / shell.js) uses Arial. */
+:root[data-font="sans"] { --font: Arial, Helvetica, "Liberation Sans", sans-serif; }
+.font-toggle { font-family: var(--font); font-size: 1rem; font-weight: 700; line-height: 1; }
 .menu-btn { display: none; }
 .theme-toggle .ic-sun { display: none; }
 :root[data-theme="dark"] .theme-toggle .ic-sun { display: block; }
