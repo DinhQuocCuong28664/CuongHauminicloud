@@ -16,14 +16,16 @@ bash scripts/smoke-test.sh  # chạy toàn bộ kiểm thử, ghi log vào logs/
 ```
 
 Kịch bản demo từng bước (9 server, 10 mục mở rộng, phần nâng cao, Docker Hub, EC2): [`docs/demo-runbook.md`](docs/demo-runbook.md).
+Bảng điều khiển live demo trên Windows: chạy `DEMO.bat` (menu `scripts/demo_menu.py`).
 
 ## Image trên Docker Hub
 
-Ba image tự build (tag `1.0` và `latest`, public):
+Bốn image tự build (tag `1.0` đến `2.2` và `latest`, public; bản hiện tại `2.2`):
 
 - https://hub.docker.com/r/dinhquoccuong286/myminicloud-web
 - https://hub.docker.com/r/dinhquoccuong286/myminicloud-app
 - https://hub.docker.com/r/dinhquoccuong286/myminicloud-proxy
+- https://hub.docker.com/r/dinhquoccuong286/myminicloud-db-backup
 
 Trên máy chỉ cần chạy (như EC2), đặt `DOCKERHUB_USER=dinhquoccuong286` trong `.env` rồi:
 
@@ -36,7 +38,7 @@ docker compose up -d
 
 | Script | Việc |
 |---|---|
-| `scripts/ec2/launch.sh` | tạo key pair, security group (80 mở Internet; 22 và cổng quản trị chỉ My IP; không mở 3306, 9100, 1053), instance t3.medium Ubuntu 24.04, gp3 30 GB; `user-data.sh` cài Docker và swap 2 GB |
+| `scripts/ec2/launch.sh` | tạo key pair, security group (80 và 443 mở Internet; 22 và cổng quản trị chỉ My IP; không mở 3306, 9100, 1053), instance t3.medium Ubuntu 24.04, gp3 30 GB; `user-data.sh` cài Docker và swap 2 GB |
 | `scripts/ec2/deploy.sh` | gửi mã nguồn + `.env` (PUBLIC_HOST = public IP), `docker compose pull` từ Docker Hub, `up -d --no-build`, chạy smoke test trên EC2 |
 | `scripts/ec2/remote-check.sh` | kiểm thử từ máy cá nhân qua public IP, kể cả xác nhận cổng 3306/9100 bị chặn |
 | `scripts/ec2/stop.sh` | Stop instance (không Terminate) khi không dùng |

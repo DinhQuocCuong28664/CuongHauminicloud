@@ -2,6 +2,8 @@
 *.pem
 object-storage-server/data/
 __pycache__/
+.demo-chrome-profile/
+.demo-chrome-profile-ec2/
 *.pyc
 object-storage-server/samples/*.pdf
 scripts/ec2/instance.env

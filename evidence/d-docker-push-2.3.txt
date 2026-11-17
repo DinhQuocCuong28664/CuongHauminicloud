@@ -1,0 +1,43 @@
+$ docker push dinhquoccuong286/myminicloud-web:2.3
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+44136fa355b3: Mounted from pgsty/mc
+8928e5ac3bed: Pushed
+e90be2dacfe2: Pushed
+6dd84dc8ee1e: Pushed
+fcb6abcb1a98: Pushed
+2.3: digest: sha256:d57a3de432bcfa115e8d59b4e7d5cf8ea499d7926e8f7dc3d387d9543f3c0649 size: 856
+$ docker push dinhquoccuong286/myminicloud-web:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-web]
+8928e5ac3bed: Already exists
+44136fa355b3: Already exists
+latest: digest: sha256:d57a3de432bcfa115e8d59b4e7d5cf8ea499d7926e8f7dc3d387d9543f3c0649 size: 856
+$ docker push dinhquoccuong286/myminicloud-app:2.3
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+44136fa355b3: Mounted from dinhquoccuong286/myminicloud-web
+ffa07b330c3c: Pushed
+2.3: digest: sha256:4455a608cebefdb74bbd3898f7d54c20b30376850cc67a08ea09c7033015912b size: 856
+$ docker push dinhquoccuong286/myminicloud-app:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-app]
+44136fa355b3: Already exists
+ffa07b330c3c: Already exists
+latest: digest: sha256:4455a608cebefdb74bbd3898f7d54c20b30376850cc67a08ea09c7033015912b size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:2.3
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+44136fa355b3: Mounted from dinhquoccuong286/myminicloud-web
+96459a693b7b: Pushed
+2.3: digest: sha256:979148531f3ed2dff58a27c0131c267e84a485d981bcf7e838533297fe81685f size: 856
+$ docker push dinhquoccuong286/myminicloud-proxy:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-proxy]
+44136fa355b3: Already exists
+96459a693b7b: Already exists
+latest: digest: sha256:979148531f3ed2dff58a27c0131c267e84a485d981bcf7e838533297fe81685f size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:2.3
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-db-backup]
+44136fa355b3: Mounted from dinhquoccuong286/myminicloud-web
+f7649edfd5b1: Pushed
+2.3: digest: sha256:bd5255c5dde1ed742c2d3d063fdb4798da854c43a6b86fc4d8f2a2eeba361ad0 size: 856
+$ docker push dinhquoccuong286/myminicloud-db-backup:latest
+The push refers to repository [docker.io/dinhquoccuong286/myminicloud-db-backup]
+f7649edfd5b1: Already exists
+44136fa355b3: Already exists
+latest: digest: sha256:bd5255c5dde1ed742c2d3d063fdb4798da854c43a6b86fc4d8f2a2eeba361ad0 size: 856

@@ -136,13 +136,27 @@ else
   alert_since=$(date -u +%Y-%m-%dT%H:%M:%S)
   docker stop web-frontend-server2 >/dev/null
   t0=$(date +%s); f=none
-  while [ $(( $(date +%s) - t0 )) -lt 150 ]; do f=$(alert_state); [ "$f" = firing ] && break; sleep 5; done
+  printf "       [T-A07 Đang chạy] Đã dừng web2, đang chờ Alertmanager gửi WebServerDown firing..."
+  while [ $(( $(date +%s) - t0 )) -lt 150 ]; do
+    f=$(alert_state)
+    [ "$f" = firing ] && break
+    printf "."
+    sleep 5
+  done
   tf=$(( $(date +%s) - t0 ))
   lbw=$(for i in 1 2 3 4; do code "$P/"; printf ' '; done)
+  printf " nhận firing sau %ds!\n" "$tf"
   docker start web-frontend-server2 >/dev/null
   t1=$(date +%s); r=$f
-  while [ $(( $(date +%s) - t1 )) -lt 150 ]; do r=$(alert_state); [ "$r" = resolved ] && break; sleep 5; done
+  printf "       [T-A07 Đang chạy] Đã bật lại web2, đang chờ Alertmanager gửi trạng thái resolved..."
+  while [ $(( $(date +%s) - t1 )) -lt 150 ]; do
+    r=$(alert_state)
+    [ "$r" = resolved ] && break
+    printf "."
+    sleep 5
+  done
   tr_=$(( $(date +%s) - t1 ))
+  printf " nhận resolved sau %ds!\n" "$tr_"
   [ "$f" = firing ] && [ "$r" = resolved ] && [ "$w_rules" -ge 6 ]
   result T-A07 "Cảnh báo: dừng web2 -> WebServerDown firing, gửi tới app; bật lại -> resolved" $? "số luật cảnh báo đã nạp: $w_rules
 docker stop web-frontend-server2 -> app nhận firing sau ${tf} s; trong lúc đó GET / qua proxy: $lbw
